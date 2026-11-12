@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modul 0X — Tittel · TDT4136</title>
+<link rel="stylesheet" href="assets/style.css">
+<!-- Modulspesifikk CSS kan legges i <style> her -->
+</head>
+<body data-module="m0X">
+<div class="layout">
+  <nav class="toc"></nav>
+  <main>
+    <div class="kicker">Modul X · Kap. N</div>
+    <h1>Tittel på modulen</h1>
+    <p class="lead">Én–to setninger om hva du lærer og hvorfor det betyr noe til eksamen.</p>
+
+    <div class="box key">
+      <span class="box-title">Læringsmål</span>
+      <ul><li>Etter denne modulen kan du …</li></ul>
+    </div>
+
+    <h2>1. Første seksjon</h2>
+    <p>Vanlig brødtekst. Første gang et fagbegrep dukker opp, markeres det slik:
+      <span class="term" data-en="frontier">grensen<span class="def">Mengden noder vi har oppdaget, men ennå ikke ekspandert. Kalles også «open list».</span></span>.
+      Forklaringen havner automatisk i margen til høyre (eller som popup på smal skjerm).</p>
+    <p>Fri margnote (tips, huskeregel): <span class="aside" data-title="Huskeregel">BFS = kø (FIFO), DFS = stakk (LIFO).</span></p>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span><p>Hverdagslig forklaring/analogi.</p></div>
+    <div class="box warning"><span class="box-title">Vanlig feil</span><p>Typiske feller på eksamen.</p></div>
+    <div class="box exam"><span class="box-title">Eksamenstips</span><p>Hvordan dette spørres om, og hva sensor ser etter.</p></div>
+    <div class="box example"><span class="box-title">Eksempel</span><p>…</p></div>
+    <div class="box algo"><span class="box-title">Algoritme</span><pre>function BFS(problem) …</pre></div>
+
+    <figure>
+      <svg viewBox="0 0 300 120" width="300" role="img" aria-label="…">
+        <!-- Bruk klassene node / node-hl / node-good / edge / edge-hl osv. så det funker i mørk modus -->
+        <line class="edge" x1="50" y1="60" x2="150" y2="60"/>
+        <circle class="node" cx="50" cy="60" r="18"/><text x="50" y="65" text-anchor="middle" class="label">S</text>
+        <circle class="node-good" cx="150" cy="60" r="18"/><text x="150" y="65" text-anchor="middle" class="label">G</text>
+      </svg>
+      <figcaption>Figur 1: Forklarende bildetekst.</figcaption>
+    </figure>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">Hvilken datastruktur bruker BFS for grensen?</p>
+      <ul class="opts">
+        <li data-why="En stakk gir DFS-oppførsel.">Stakk (LIFO)</li>
+        <li>Kø (FIFO)</li>
+        <li data-why="Prioritetskø brukes av UCS/A*.">Prioritetskø</li>
+      </ul>
+      <div class="feedback">BFS ekspanderer grunneste node først, så den eldste noden må tas ut først → FIFO-kø.</div>
+    </div>
+
+    <div class="check" data-answer="9" data-mode="number">
+      <p class="q">Hva er f(n) = g(n) + h(n) når g = 6 og h = 3?</p>
+      <div class="explain">f = 6 + 3 = 9.</div>
+    </div>
+
+    <div class="check" data-answer="S, A, B, G" data-mode="seq">
+      <p class="q">Skriv rekkefølgen nodene ekspanderes i (kommaseparert).</p>
+      <div class="explain">…</div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Hvorfor tror du …?</p>
+      <details><summary>Vis et forslag</summary><p>…</p></details>
+    </div>
+
+    <div class="stepper" data-label="Steg">
+      <div class="step"><p>Steg 1: …</p></div>
+      <div class="step"><p>Steg 2: …</p></div>
+    </div>
+
+    <div class="widget" id="min-widget">
+      <p>Interaktiv figur. Lag den med JS nederst på siden, gjerne med CourseKit.graph.</p>
+      <svg id="g1" viewBox="0 0 400 200" width="400"></svg>
+      <div class="controls"><button id="g1-step">Neste steg</button></div>
+      <div class="log" id="g1-log"></div>
+    </div>
+
+    <h2>2. Eksamensoppgaver</h2>
+    <div class="exercise" data-title="Oppgave: …" data-meta="Eksamen 2025 · 8 p">
+      <p>Oppgavetekst …</p>
+      <details class="hint"><summary>Hint</summary><p>…</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary><p>…</p></details>
+    </div>
+
+    <h2>3. Oppsummering</h2>
+    <p>Jukselapp-aktig oppsummering.</p>
+  </main>
+  <aside class="margin"></aside>
+</div>
+<script src="assets/course.js"></script>
+<script>
+  // Modulspesifikke widgets
+  (function () {
+    const g = CourseKit.graph(document.getElementById("g1"), {
+      nodes: { S: [40, 100], A: [200, 40], G: [360, 100] },
+      edges: [["S", "A", 2], ["A", "G", 3]]
+    });
+    document.getElementById("g1-step").onclick = () => { g.node("A", "node-hl"); g.edge("S", "A", "edge-hl"); };
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hele kurset · TDT4136</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  html, body { overflow-anchor: none; }
+  html { scroll-behavior: auto !important; }
+  body { font-family: var(--font); }
+  .all-top { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 1rem; padding: .55rem 1.2rem;
+    background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); font-size: .9rem; }
+  .all-top a { color: var(--ink); text-decoration: none; }
+  .all-top .home { font-weight: 700; }
+  .all-top .spacer { flex: 1; }
+  .all-top .where { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .all-top .meter { display: flex; align-items: center; gap: .5rem; flex: none; color: var(--muted); font-size: .82rem; }
+  .all-top .meter b { color: var(--ink); font-variant-numeric: tabular-nums; min-width: 4.6em; text-align: right; }
+  .all-top .progress-wrap { width: 160px; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; flex: none; }
+  .all-top .progress-bar { height: 100%; width: 0; background: var(--accent); }
+
+  .all-top button { font: inherit; background: var(--paper); border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: .25rem .6rem; cursor: pointer; display: none; }
+
+  .all-layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); }
+  .side { position: sticky; top: 2.6rem; align-self: start; height: calc(100vh - 2.6rem); overflow-y: auto; padding: 1.2rem .8rem 2rem 1.2rem; border-right: 1px solid var(--line); font-size: .86rem; }
+  .side h4 { margin: 0 0 .6rem; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .side .mod { margin-bottom: .2rem; }
+  .side .mod > a { display: flex; gap: .5rem; align-items: baseline; padding: .35rem .5rem; border-radius: 7px; color: var(--ink); text-decoration: none; font-weight: 600; line-height: 1.3; }
+  .side .mod > a:hover { background: var(--accent-soft); }
+  .side .mod > a .n { color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; min-width: 1.6em; }
+  .side .mod > a .t { flex: 1; }
+  .side .mod > a .p { color: var(--muted); font-weight: 500; font-size: .78rem; font-variant-numeric: tabular-nums; }
+  .side .mod > a .p.full { color: var(--good); }
+  .side .mod.active > a { background: var(--accent-soft); color: var(--accent); }
+  .side ol { list-style: none; margin: .1rem 0 .5rem 1.1rem; padding: 0; display: none; }
+  .side .mod.active ol { display: block; }
+  .side ol a { display: block; padding: .2rem .6rem; border-left: 2px solid var(--line); color: var(--muted); text-decoration: none; line-height: 1.35; }
+  .side ol a:hover { color: var(--ink); }
+  .side ol a.active { border-left-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .side .extra { margin-top: 1.2rem; padding-top: .8rem; border-top: 1px solid var(--line); }
+  .side .extra a { color: var(--muted); text-decoration: none; display: block; padding: .2rem .5rem; }
+  .side .extra a:hover { color: var(--ink); }
+
+  .stream { min-width: 0; }
+  .stream section { position: relative; }
+  .stream section + section { border-top: 6px solid var(--line); }
+  .stream iframe { display: block; width: 100%; height: 1600px; border: 0; background: var(--bg); }
+  .loading { position: absolute; top: 2rem; left: 0; right: 0; text-align: center; color: var(--muted); }
+  .stream section.ready .loading { display: none; }
+
+  @media (max-width: 1100px) {
+    .all-layout { grid-template-columns: minmax(0, 1fr); }
+    .side { position: fixed; top: 2.6rem; left: 0; width: min(320px, 85vw); z-index: 40; background: var(--paper); transform: translateX(-105%); transition: transform .2s; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+    body.side-open .side { transform: none; }
+    .all-top button { display: inline-block; }
+    .all-top .progress-wrap { width: 90px; }
+  }
+  @media (max-width: 640px) {
+    .all-top .meter span, .all-top .where, .all-top a:not(.home) { display: none; }
+  }
+</style>
+</head>
+<body data-shell>
+<div class="all-top">
+  <button id="menu" aria-label="Innhold">☰</button>
+  <a class="home" href="index.html">TDT4136 · KI-kurs</a>
+  <span class="where" id="where"></span>
+  <span class="spacer"></span>
+  <a href="ordliste.html">Ordliste</a>
+  <a href="../flashcards/index.html">Flashcards</a>
+  <div class="meter" title="Hvor langt ned i hele kurset du har scrollet">
+    <span>Lest</span>
+    <div class="progress-wrap"><div class="progress-bar" id="tot-bar"></div></div>
+    <b id="tot-pct">0,00 %</b>
+  </div>
+</div>
+<div class="all-layout">
+  <nav class="side" id="side">
+    <h4>Moduler</h4>
+  </nav>
+  <div class="stream" id="stream"></div>
+</div>
+
+<script src="assets/course.js"></script>
+<script>
+(function () {
+  "use strict";
+  const MODULES = window.COURSE_MODULES;
+  const LS = window.CourseStore;
+  const side = document.getElementById("side"), stream = document.getElementById("stream");
+  const TOP_OFFSET = () => document.querySelector(".all-top").offsetHeight + 8;
+  const state = {}; // id -> { frame, section, nav, sections:[], h, ready }
+
+  // ---------- Bygg sidefelt + iframes ----------
+  MODULES.forEach((m, i) => {
+    const num = m.id === "m10" ? "★" : String(i + 1);
+    const nav = document.createElement("div");
+    nav.className = "mod";
+    nav.innerHTML = `<a href="#${m.id}"><span class="n">${num}</span><span class="t">${m.title}</span><span class="p"></span></a><ol></ol>`;
+    side.append(nav);
+    const sec = document.createElement("section");
+    sec.id = "mod-" + m.id;
+    sec.innerHTML = `<div class="loading">Laster ${m.title} …</div>`;
+    const fr = document.createElement("iframe");
+    fr.src = m.file + "?embed=1";
+    fr.title = m.title;
+    fr.setAttribute("scrolling", "no");
+    sec.append(fr);
+    stream.append(sec);
+    state[m.id] = { m, frame: fr, section: sec, nav, sections: [], ready: false };
+    nav.querySelector("a").addEventListener("click", e => { e.preventDefault(); goTo(m.id); closeSide(); });
+  });
+  const extra = document.createElement("div");
+  extra.className = "extra";
+  extra.innerHTML = `<a href="ordliste.html">→ Ordliste</a><a href="index.html">→ Forsiden</a>`;
+  side.append(extra);
+
+  function setPct(id, pct) {
+    const p = state[id].nav.querySelector(".p");
+    p.textContent = pct ? pct + " %" : "";
+    p.classList.toggle("full", pct === 100);
+  }
+  function updatePosition() {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const f = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    document.getElementById("tot-bar").style.width = (f * 100) + "%";
+    document.getElementById("tot-pct").textContent = (f * 100).toFixed(2).replace(".", ",") + " %";
+  }
+  MODULES.forEach(m => setPct(m.id, LS.get(m.id + ":pct", 0)));
+
+  // ---------- Navigasjon ----------
+  const scrollToY = (y, smooth) => {
+    const top = Math.max(0, y - TOP_OFFSET());
+    // Myk scrolling bare over korte avstander; lange hopp skjer momentant
+    const near = Math.abs(top - window.scrollY) < 2.5 * window.innerHeight;
+    window.scrollTo({ top, behavior: smooth && near ? "smooth" : "instant" });
+  };
+  function goTo(id, sectionTop, smooth = true) {
+    const s = state[id]; if (!s) return;
+    anchor = { id, off: (sectionTop || 0) - TOP_OFFSET() };
+    scrollToY(s.section.offsetTop + (sectionTop || 0), smooth);
+    history.replaceState(null, "", "#" + id);
+  }
+  function renderSections(s) {
+    const ol = s.nav.querySelector("ol");
+    ol.innerHTML = "";
+    s.sections.forEach(sec => {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = "#" + s.m.id; a.textContent = sec.text; a.dataset.sid = sec.id;
+      a.onclick = e => { e.preventDefault(); goTo(s.m.id, sec.top - 12); closeSide(); };
+      li.append(a); ol.append(li);
+    });
+  }
+
+  // ---------- Meldinger fra modulene ----------
+  let pendingRestore = true;
+  let anchor = null; // { id, off } – leseposisjon som holdes fast når moduler over endrer høyde
+  const idx = id => MODULES.findIndex(m => m.id === id);
+  const reanchor = () => { if (anchor && state[anchor.id]) window.scrollTo(0, state[anchor.id].section.offsetTop + anchor.off); };
+  window.addEventListener("message", ev => {
+    const d = ev.data || {};
+    const s = Object.values(state).find(x => x.frame.contentWindow === ev.source);
+    if (!s) return;
+    if (d.type === "course:size") {
+      if (d.h && Math.abs(d.h - (s.h || 0)) > 1) {
+        s.h = d.h; s.frame.style.height = d.h + "px";
+        if (!pendingRestore && anchor && idx(s.m.id) < idx(anchor.id)) reanchor();
+      }
+      const changed = JSON.stringify(d.sections.map(x => x.id)) !== JSON.stringify(s.sections.map(x => x.id));
+      s.sections = d.sections || [];
+      if (changed) renderSections(s);
+      if (!s.ready) { s.ready = true; s.section.classList.add("ready"); maybeRestore(); }
+      onScroll();
+    } else if (d.type === "course:scroll") {
+      scrollToY(s.section.offsetTop + d.top - 12, true);
+    } else if (d.type === "course:goto") {
+      const t = state[d.target]; if (!t) return;
+      if (d.hash) t.frame.contentWindow.postMessage({ type: "course:locate", hash: d.hash }, "*");
+      else goTo(d.target);
+    } else if (d.type === "course:pct") {
+      setPct(s.m.id, d.pct);
+    }
+  });
+
+  // ---------- Gjenopprett posisjon (hash eller sist lest) ----------
+  function maybeRestore() {
+    if (!pendingRestore) return;
+    if (!Object.values(state).every(x => x.ready)) return;
+    pendingRestore = false;
+    const hash = location.hash.slice(1);
+    const saved = LS.get("alt:pos", null);
+    if (hash && state[hash]) anchor = { id: hash, off: -TOP_OFFSET() };
+    else if (saved && state[saved.id]) anchor = saved;
+    reanchor();
+  }
+  // Fallback hvis en modul aldri svarer
+  setTimeout(() => { if (pendingRestore) { Object.values(state).forEach(x => x.ready = true); maybeRestore(); } }, 6000);
+
+  // ---------- Aktiv modul/seksjon ----------
+  let saveT;
+  function onScroll() {
+    updatePosition();
+    const y = window.scrollY + TOP_OFFSET() + 40;
+    let cur = MODULES[0].id;
+    for (const m of MODULES) if (state[m.id].section.offsetTop <= y) cur = m.id;
+    const s = state[cur];
+    let curSec = null;
+    for (const sec of s.sections) if (s.section.offsetTop + sec.top <= y + 60) curSec = sec;
+    for (const m of MODULES) state[m.id].nav.classList.toggle("active", m.id === cur);
+    s.nav.querySelectorAll("ol a").forEach(a => a.classList.toggle("active", !!curSec && a.dataset.sid === curSec.id));
+    document.getElementById("where").textContent = s.m.title + (curSec ? " — " + curSec.text : "");
+    const act = s.nav.querySelector("ol a.active") || s.nav.querySelector("a");
+    if (act && !document.body.classList.contains("side-open")) {
+      const r = act.getBoundingClientRect(), sr = side.getBoundingClientRect();
+      if (r.top < sr.top + 20 || r.bottom > sr.bottom - 20) side.scrollTop += r.top - sr.top - sr.height / 3;
+    }
+    if (!pendingRestore) {
+      anchor = { id: cur, off: window.scrollY - s.section.offsetTop };
+      clearTimeout(saveT);
+      saveT = setTimeout(() => LS.set("alt:pos", anchor), 300);
+    }
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  // ---------- Mobilmeny ----------
+  function closeSide() { document.body.classList.remove("side-open"); }
+  document.getElementById("menu").onclick = e => { e.stopPropagation(); document.body.classList.toggle("side-open"); };
+  stream.addEventListener("click", closeSide);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modul 11 — Naturlig språkbehandling (NLP) · TDT4136</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  /* Modulspesifikk CSS (m11) */
+  .mini-table td, .mini-table th { padding: .25rem .45rem; }
+  .tagrow { display: flex; flex-wrap: wrap; gap: .35rem; margin: .6rem 0; font-family: var(--font); }
+  .tagrow span { border: 1px solid var(--line); border-radius: 6px; padding: .2rem .45rem; text-align: center; background: var(--paper); font-size: .9rem; }
+  .tagrow span b { display: block; font-size: .72rem; color: var(--accent); font-family: var(--mono); }
+  textarea.nlp-src { width: 100%; min-height: 6.5rem; font-family: var(--mono); font-size: .82rem; padding: .4rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); }
+  .nlp-row { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; margin: .45rem 0; }
+  .nlp-row input[type=text] { flex: 1; min-width: 14rem; }
+  .nlp-out table td, .nlp-out table th { padding: .25rem .45rem; font-size: .85rem; }
+  .nlp-out td.num { font-family: var(--mono); text-align: right; }
+  .nlp-out td.zero { color: var(--bad); font-weight: 700; }
+  .nlp-out .tot { font-weight: 700; background: var(--accent-soft); }
+  .cyk-wrap { overflow-x: auto; }
+  table.cyk { border-collapse: separate; border-spacing: 4px; margin: .4rem 0; }
+  table.cyk td { border: 1px solid var(--line); border-radius: 6px; min-width: 7.5rem; height: 3.1rem; vertical-align: middle; text-align: center; font-size: .78rem; font-family: var(--mono); padding: .2rem .3rem; background: var(--paper); }
+  table.cyk td.empty { color: var(--muted); }
+  table.cyk td.cur { outline: 2px solid var(--accent); background: var(--accent-soft); }
+  table.cyk td.blank { border: none; background: transparent; }
+  table.cyk td.word { border: none; background: transparent; font-family: var(--serif); font-size: .95rem; font-weight: 700; height: auto; }
+  table.cyk td .cat { display: block; }
+  table.cyk td .cat.s { color: var(--good); font-weight: 700; }
+  .cyk-log { font-family: var(--mono); font-size: .78rem; max-height: 14rem; overflow-y: auto; }
+  .cyk-log div.cur { background: var(--accent-soft); font-weight: 700; }
+  .parse-tree svg text { font-size: 12px; }
+  .nlp-status { font-size: .88rem; margin: .4rem 0; min-height: 1.3em; }
+  .lex { font-family: var(--mono); font-size: .78rem; color: var(--muted); }
+</style>
+</head>
+<body data-module="m11">
+<div class="layout">
+  <nav class="toc"></nav>
+  <main>
+    <div class="kicker">Modul 11 · Kap. 24 (forelesning 9)</div>
+    <h1>Naturlig språkbehandling (NLP)</h1>
+    <p class="lead">Hvordan kan en datamaskin regne på språk? Du lærer språkmodeller (bag-of-words, n-gram og glatting), ordklassetagging med skjulte Markov-modeller, grammatikker og parsing (top-down, bottom-up og CYK), og de viktigste NLP-oppgavene. Til eksamen betyr det typisk å forklare hvorfor glatting trengs, sammenligne top-down og bottom-up parsing og regne enkle sannsynligheter for hånd.</p>
+
+    <div class="box key">
+      <span class="box-title">Læringsmål</span>
+      <ul>
+        <li>Forklare hvorfor naturlig språk er vanskelig for maskiner (tvetydighet, vaghet, kontekst …) og hva en <em>språkmodell</em> er.</li>
+        <li>Regne med bag-of-words / naiv Bayes og n-gram-modeller: kjerneregelen, Markov-antakelsen og estimering ved telling.</li>
+        <li>Forklare hvorfor <strong>glatting</strong> er nødvendig, og regne Laplace (add-one), backoff og lineær interpolasjon.</li>
+        <li>Forklare ordrepresentasjoner (atomisk vs. strukturert, WordNet) og ordklassetagging med HMM (overgangs- og emisjonsmodell) og logistisk regresjon, og sammenligne generative og diskriminative modeller.</li>
+        <li>Lese og bruke en PCFG (grammatikken E<sub>0</sub>), regne sannsynligheten til et parsetre, og forklare over- og undergenerering.</li>
+        <li>Forklare <strong>top-down vs. bottom-up parsing</strong> med én ulempe for hver, hvorfor naiv parsing er treg, og hvordan CYK (chart parsing) løser det – og kunne fylle ut en CYK-tabell.</li>
+        <li>Beskrive NLP-oppgavene i 24.6 (talegjenkjenning, tekst-til-tale, maskinoversettelse, informasjonsekstraksjon, informasjonsgjenfinning og spørsmålssvar), og regne presisjon, recall og F1.</li>
+      </ul>
+    </div>
+
+    <div class="box exam">
+      <span class="box-title">Hvorfor dette er viktig til eksamen</span>
+      <p>NLP har vært med på de fleste eksamenene, oftest som teorispørsmål og flervalg (3–8 p). Én gang (2016) var det en hel oppgave på 20 p.</p>
+      <ul>
+        <li><strong>2025 Q12 (5 p):</strong> a) hvorfor glatting er nødvendig i n-gram-modeller + én glattingsmetode (2 p), b) forskjellen på top-down og bottom-up parsing, med én ulempe for hver (3 p).</li>
+        <li><strong>2024 Q19:</strong> flervalg om hva NLP er (NER, stoppord, tokenisering).</li>
+        <li><strong>2016 Task 6 (20 p):</strong> sant/usant om glatting, bag-of-words, IR og IE; hvorfor parsing av naturlig språk er vanskeligere enn av programmeringsspråk; sentimentanalyse av tweets; presisjon/recall/F1; design av et språk- og spamklassifiseringssystem.</li>
+        <li><strong>2015, 2017, 2018:</strong> sant/usant og flervalg om presisjon, recall, term frequency, informasjonsekstraksjon, n-gram og bag-of-words.</li>
+      </ul>
+      <p>Pensum er hele kap. 24 <em>unntatt</em> 24.2.1 (leksikonet til E<sub>0</sub>), 24.3.1 (dependensparsing), 24.3.2 (lære en parser fra eksempler), 24.4 (augmenterte grammatikker) og 24.5 (komplikasjoner i ekte naturlig språk) (forelesningens siste lysark).</p>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>1. Hva er NLP, og hvorfor er språk vanskelig?</h2>
+    <p><span class="term" data-en="natural language processing (NLP)">Naturlig språkbehandling<span class="def">Området i KI som handler om å få datamaskiner til å forstå, generere og samhandle ved hjelp av menneskelig språk (norsk, engelsk …). Overlapper med maskinlæring.</span></span> (NLP) er delen av KI som skal få datamaskiner til å <em>forstå, generere og samhandle</em> med menneskelig språk. Forelesningen tegner NLP som et overlapp mellom KI og maskinlæring: de fleste moderne NLP-metoder lærer fra store tekstmengder.</p>
+    <p>Språk er måten mennesker gir kunnskap videre på, og Turing baserte testen sin for intelligens på språk (modul 1). Kommunikasjon kan ses som tre ledd:</p>
+    <table class="mini-table">
+      <tr><th>Taler</th><th>Språk</th><th>Lytter</th></tr>
+      <tr><td>har et mål og planlegger ordene</td><td>handlingen som bærer meningen</td><td>slutter seg til den <em>tiltenkte</em> meningen</td></tr>
+    </table>
+    <p>Hvorfor bør datamaskiner forstå språk? (1) For å <strong>kommunisere med mennesker</strong> (lettere enn å kreve formell logikk), (2) for å <strong>lære fra det mennesker skriver</strong> (det meste av kunnskapen vår finnes som tekst; Wikipedia alene har rundt 30 millioner sider), og (3) for å <strong>forstå språk vitenskapelig</strong>, sammen med lingvistikk, kognitiv psykologi og nevrovitenskap.</p>
+
+    <h3>Seks grunner til at språk er vanskelig for maskiner</h3>
+    <table>
+      <tr><th>Egenskap</th><th>Eksempel (forelesningen)</th><th>Hva er problemet?</th></tr>
+      <tr><td><span class="term" data-en="ambiguity" data-title="tvetydighet">Tvetydig<span class="def">En setning eller et ord kan ha flere mulige betydninger eller strukturer. «I saw the man with the telescope»: hvem har teleskopet?</span></span></td><td>«He saw her duck» · «I saw the man with the telescope»</td><td>Flere mulige betydninger/parsetrær: er «duck» et substantiv (anda hennes) eller et verb (hun dukket)? Hvem har teleskopet?</td></tr>
+      <tr><td>Vagt</td><td>«That's great!» · «It's kind of cold»</td><td>Hvor kaldt er «kind of cold»? Er «great» oppriktig eller ironisk?</td></tr>
+      <tr><td>Kontekstavhengig</td><td>«I'm here today» · «Let's meet after lunch»</td><td>«I», «here» og «today» betyr noe nytt hver gang setningen sies.</td></tr>
+      <tr><td>I endring</td><td>«tweet», «cloud», «stream»</td><td>Nye ord og nye betydninger av gamle ord kommer hele tiden.</td></tr>
+      <tr><td>Vurderinger varierer</td><td>«Not to be invited is sad» vs. «To be not invited is sad»</td><td>Folk er uenige om hva som er grammatisk riktig.</td></tr>
+      <tr><td>Ingen fast referanse</td><td>To forekomster av «Richard»</td><td>Samme navn kan vise til ulike personer.</td></tr>
+    </table>
+
+    <div class="box intuition">
+      <span class="box-title">Intuisjon: hvorfor ikke bare bruke logikk?</span>
+      <p>I modul 7–9 brukte vi formelle språk (utsagnslogikk og FOL). Der er hver setning entydig, grammatikken er presis, og det er et skarpt skille mellom lovlige og ulovlige setninger. Naturlig språk har ingen av disse egenskapene. Derfor bruker NLP <strong>sannsynligheter</strong>: i stedet for å spørre «er dette en lovlig setning?» spør vi «hvor sannsynlig er denne setningen?» og «hvilken tolkning er mest sannsynlig?».</p>
+    </div>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">(Eksamen 2016, 2 p, omformet) Hva er de viktigste egenskapene ved menneskelige språk som gjør parsing av dem annerledes enn parsing av programmeringsspråk?</p>
+      <ul class="opts">
+        <li data-why="Programmeringsspråk har også store ordforråd (identifikatorer). Det er ikke hovedforskjellen.">At de har flere ord</li>
+        <li>Tvetydighet og redundans; i tillegg er de i stadig endring og sterkt kontekstavhengige</li>
+        <li data-why="Naturlige språk har grammatikk. Problemet er at den ikke er skarp og entydig.">At de mangler grammatikk</li>
+        <li data-why="Både naturlige språk og programmeringsspråk kan beskrives med kontekstfrie grammatikker (i alle fall tilnærmet).">At de ikke kan beskrives med kontekstfrie regler</li>
+      </ul>
+      <div class="feedback">Løsningsforslaget sier «ambiguity and redundancy», og nevner også at menneskelige språk utvikler seg hele tiden og er mer kontekstavhengige. En setning i et programmeringsspråk har nøyaktig ett parsetre; en setning på engelsk har ofte mange.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>2. Språkmodeller og bag-of-words</h2>
+    <p>Kjernebegrepet i hele kapitlet er <span class="term" data-en="language model">språkmodellen<span class="def">En sannsynlighetsfordeling over strenger (tekster): P(«Do I dare disturb the universe?») ≫ P(«Universe dare the I disturb do?»). Brukes til å forutsi neste ord, rette stavefeil og velge beste oversettelse.</span></span>: en <strong>sannsynlighetsfordeling over strenger</strong>.</p>
+    <div class="formula">P(«Do I dare disturb the universe?») ≫ P(«Universe dare the I disturb do?»)</div>
+    <p>Med en slik modell kan vi</p>
+    <ul>
+      <li><strong>forutsi neste ord</strong> (autofullføring i e-post og meldinger),</li>
+      <li><strong>foreslå retting</strong> av stave- og grammatikkfeil (den rettede setningen er mer sannsynlig),</li>
+      <li><strong>velge den mest sannsynlige</strong> oversettelsen eller det mest sannsynlige svaret.</li>
+    </ul>
+    <p>En språkmodell er alltid en tilnærming. Forelesningen siterer lingvisten Sapir (1921): «All grammars leak.»</p>
+
+    <h3>2.1 Bag-of-words-modellen (24.1.1)</h3>
+    <p>Den enkleste språkmodellen er <span class="term" data-en="bag-of-words model">bag-of-words<span class="def">Språkmodell som ser på en tekst som en uordnet samling ord. Rekkefølgen ignoreres; bare hvor mange ganger hvert ord forekommer teller. Basert på naiv Bayes-antakelsen.</span></span>: en setning ses som en <strong>uordnet</strong> samling ord. Modellen bygger på <span class="term" data-en="naive Bayes assumption">naiv Bayes-antakelsen<span class="def">Antakelsen om at hvert ord genereres uavhengig av de andre ordene, gitt klassen (temaet) til teksten. Feil i virkeligheten, men gir enkle modeller som klassifiserer godt.</span></span>: hvert ord genereres <em>uavhengig</em> av de andre, gitt tekstens klasse (tema). Da blir klassifisering til en enkel formel:</p>
+    <div class="formula">P(Class | w<sub>1:N</sub>) ∝ P(Class) · ∏<sub>j</sub> P(w<sub>j</sub> | Class)</div>
+    <p>«∝» betyr «proporsjonal med»: vi regner ut høyresiden for hver klasse og velger klassen med størst verdi (normaliseringskonstanten P(w<sub>1:N</sub>) er lik for alle klasser og kan droppes).</p>
+    <div class="box example">
+      <span class="box-title">Eksempel (forelesningen)</span>
+      <p>«Stocks rallied on Monday, with major indexes gaining 1% as optimism persisted …» → <strong>Business</strong>.<br>
+      «Heavy rain continued to pound much of the east coast on Monday, with flood warnings …» → <strong>Weather</strong>.</p>
+      <p>Ord som «stocks» og «indexes» er mye mer sannsynlige i Business-tekster, mens «rain» og «flood» trekker mot Weather. «Monday» forekommer i begge og hjelper lite.</p>
+    </div>
+
+    <h3>En generativ historie: å trekke ord fra en pose</h3>
+    <p>Bag-of-words kan forstås som en oppskrift for å <em>generere</em> tekst. Det finnes én pose per kategori, og hyppige ord står på flere lapper:</p>
+    <ol>
+      <li>Velg en pose (kategori), og legg bort de andre.</li>
+      <li>Trekk et tilfeldig ord, legg lappen tilbake, og trekk igjen.</li>
+      <li>Stopp når du trekker et setningsslutt-merke (punktum).</li>
+    </ol>
+    <div class="box warning">
+      <span class="box-title">«Clearly wrong, but useful»</span>
+      <p>Ord er <em>ikke</em> uavhengige av hverandre, så teksten som genereres blir usammenhengende ordsalat. Men modellen er god til <strong>klassifisering</strong>: «stocks» → business, «rain» → weather. Merk at bag-of-words er et eksempel på en (enkel) språkmodell (2016 T/F: sant).</p>
+    </div>
+
+    <h3>Trening ved telling</h3>
+    <p>Sannsynlighetene estimeres ved å <strong>telle i et merket korpus</strong>. Et <span class="term" data-en="corpus (pl. corpora)">korpus<span class="def">En stor samling tekst (eventuelt merket med klasser, ordklasser osv.) som modellen trenes på.</span></span> er en stor tekstsamling.</p>
+    <ul>
+      <li>3000 tekster, hvorav 300 er merket business: P(business) ≈ 300/3000 = 0,1.</li>
+      <li>100 000 ord i business-tekstene, hvorav 700 er «stocks»: P(stocks | business) ≈ 700/100 000 = 0,007.</li>
+    </ul>
+    <p>Tre praktiske utfordringer: modellen trenger <strong>merkede tekster</strong>; <strong>sjeldne ord</strong> gir dårlige estimater (løses med glatting, seksjon 4); og <span class="term" data-en="tokenization">tokenisering<span class="def">Å dele en tekst opp i enheter (tokens), typisk ord og tegn. Ikke trivielt: er «aren't» ett token eller to («are» + «n't»)?</span></span>: er «aren't» ett token eller to?</p>
+
+    <div class="check" data-answer="0.004" data-mode="number" data-tol="0.0001">
+      <p class="q">Et korpus har 5000 nyhetsartikler; 1000 av dem er merket sport. Sportsartiklene inneholder til sammen 250 000 ord, og 5000 av dem er «goal». Hva er P(sport) · P(goal | sport)?</p>
+      <div class="explain">P(sport) = 1000/5000 = 0,2. P(goal | sport) = 5000/250 000 = 0,02. Produktet er 0,2 · 0,02 = <strong>0,004</strong>. (Dette er bidraget fra ordet «goal» i naiv Bayes-formelen. For en hel tekst ganger vi inn ett slikt ledd per ord.)</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>3. n-gram-modeller</h2>
+    <p>Bag-of-words overser rekkefølgen. Ordet «quarter» er vanlig både i business- og sportstekster, men nabordene skiller dem: «first <strong>quarter</strong> earnings report» (business) vs. «fourth <strong>quarter</strong> touchdown passes» (sport). Vi trenger en modell der hvert ord avhenger av ordene foran.</p>
+
+    <h3>Fra kjerneregelen til Markov-antakelsen (24.1.2)</h3>
+    <p>Kjerneregelen (chain rule) for sannsynlighet gir en eksakt formel der hvert ord avhenger av <em>alle</em> foregående ord:</p>
+    <div class="formula">P(w<sub>1:N</sub>) = ∏<sub>j</sub> P(w<sub>j</sub> | w<sub>1:j−1</sub>)</div>
+    <p>Den fanger alle avhengigheter, men er upraktisk: med et ordforråd på 100 000 ord og setninger på 40 ord får vi rundt 10<sup>200</sup> parametre. Løsningen er <span class="term" data-en="Markov assumption">Markov-antakelsen<span class="def">Antakelsen om at bare de n−1 siste ordene påvirker sannsynligheten for neste ord: P(w_j | w_1:j−1) ≈ P(w_j | w_j−n+1:j−1).</span></span>: bare de <strong>n − 1 foregående</strong> ordene betyr noe. Det gir en <span class="term" data-en="n-gram model">n-gram-modell<span class="def">Språkmodell der hvert ord (eller tegn) avhenger av de n−1 foregående. n = 1: unigram, n = 2: bigram, n = 3: trigram. Parametrene estimeres ved å telle n-gram i et korpus.</span></span>:</p>
+    <div class="formula">P(w<sub>j</sub> | w<sub>1:j−1</sub>) ≈ P(w<sub>j</sub> | w<sub>j−n+1:j−1</sub>) &nbsp;&nbsp; slik at &nbsp;&nbsp; P(w<sub>1:N</sub>) ≈ ∏<sub>j</sub> P(w<sub>j</sub> | w<sub>j−n+1:j−1</sub>)</div>
+    <p>Forelesningen oppsummerer: kjerneregel (hvert ord gitt alle foregående) → Markov (behold bare n − 1) → produkt av korte kontekster (få parametre, estimert ved telling). Et <span class="term" data-en="n-gram">n-gram<span class="def">En sekvens av n påfølgende symboler (ord eller tegn). «a black cat» er et (ord-)trigram.</span></span> er en sekvens av n ord.</p>
+
+    <h3>Valg av n</h3>
+    <table>
+      <tr><th>n</th><th>Navn</th><th>Modell</th><th>Eksempel</th><th>Kommentar</th></tr>
+      <tr><td>1</td><td>unigram</td><td>P(w<sub>j</sub>)</td><td>P(cat)</td><td>Bare ordfrekvenser, som bag-of-words: ignorerer konteksten.</td></tr>
+      <tr><td>2</td><td>bigram</td><td>P(w<sub>j</sub> | w<sub>j−1</sub>)</td><td>P(cat | black)</td><td>Hvert ord avhenger av ett foregående ord.</td></tr>
+      <tr><td>3</td><td>trigram</td><td>P(w<sub>j</sub> | w<sub>j−2</sub>, w<sub>j−1</sub>)</td><td>P(cat | a, black)</td><td>Ser to ord bakover.</td></tr>
+    </table>
+    <p>Bigram og trigram fanger det meste av nyttig lokal struktur. Høyere n er mer realistisk, men gir <strong>sparsomme data</strong>: de fleste lange ordsekvenser forekommer aldri i treningskorpuset.</p>
+    <p>Estimering ved telling (maksimum likelihood), der c(·) er antall forekomster i korpuset:</p>
+    <div class="formula">P(w<sub>i</sub> | w<sub>i−1</sub>) = c(w<sub>i−1</sub> w<sub>i</sub>) / c(w<sub>i−1</sub>)</div>
+
+    <h3>Hva n-gram-modeller er gode til</h3>
+    <ul>
+      <li><strong>Avisseksjoner:</strong> klassifisere artikler som business, sport, vær …</li>
+      <li><strong>Spamfiltrering:</strong> skille spam fra vanlig e-post.</li>
+      <li><span class="term" data-en="sentiment analysis">Sentimentanalyse<span class="def">Å avgjøre om en tekst (anmeldelse, tweet …) uttrykker en positiv, negativ eller nøytral holdning. En tekstklassifiseringsoppgave.</span></span>: er en film- eller produktanmeldelse positiv eller negativ? (Sentimentanalyse er en <em>tekstklassifiseringsoppgave</em>, 2016 T/F: sant.)</li>
+      <li><strong>Forfatteridentifisering:</strong> Hemingways stil og ordforråd skiller seg fra Faulkners og Shakespeares.</li>
+    </ul>
+
+    <h3>Andre n-gram-modeller (24.1.3)</h3>
+    <p><strong>Tegnnivå-modeller</strong> lar hvert <em>tegn</em> avhenge av de n − 1 foregående tegnene: P(c<sub>j</sub> | c<sub>j−n+1:j−1</sub>). De håndterer ukjente ord («dextroamphetamine», «Kallenberger», «Plattsburg») og lange sammensatte ord (det danske «Speciallægepraksisplanlægningsstabiliseringsperiode»). De er svært gode til <strong>språkidentifikasjon</strong>: «Hello, world» → engelsk, «Wie geht's dir» → tysk, med over 99 % nøyaktighet selv på korte tekster. Svensk mot norsk er vanskeligere (≈ 95 %).</p>
+    <p><span class="term" data-en="skip-gram">Skip-gram<span class="def">Par (eller sekvenser) av ord som står nær hverandre, men med noen ord hoppet over. 1-skip-bigrammer i «je ne comprends pas» er «je comprends» og «ne pas».</span></span>-modeller teller par av ord som står <em>nær</em> hverandre, men med noen ord hoppet over. Vanlige n-gram ser ikke ord som står langt fra hverandre. I «je ne comprends pas» er 1-skip-bigrammene «je comprends» (bøyning: je … comprends) og «ne pas» (nektelse: ne … pas).</p>
+
+    <div class="widget" id="bigram-widget">
+      <p style="margin-top:0"><strong>Bigram-kalkulator.</strong> Hver linje i korpuset er én setning. Kalkulatoren legger til &lt;s&gt; først og &lt;/s&gt; sist i hver setning, teller bigrammer og regner sannsynligheten til testsetningen med og uten Laplace-glatting (seksjon 4). Prøv en setning med et bigram som ikke finnes i korpuset, f.eks. «the pit smells».</p>
+      <textarea class="nlp-src" id="bg-corpus">the wumpus is dead
+the wumpus smells
+the pit is breezy
+i feel a breeze
+the breeze is cold</textarea>
+      <div class="nlp-row"><label for="bg-sent">Testsetning:</label><input type="text" id="bg-sent" value="the wumpus is breezy"><button id="bg-go">Regn ut</button></div>
+      <div class="nlp-out" id="bg-out"></div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>4. Glatting (smoothing)</h2>
+    <p>Dette er det mest eksamensrelevante temaet i hele kapitlet (2025 Q12a, 2016 T/F). Problemet er <strong>sparsomme data</strong>:</p>
+    <ul>
+      <li><strong>Sjeldne n-gram</strong> gir støyete estimater (høy varians): med et annet korpus kunne tellingen blitt helt annerledes.</li>
+      <li><strong>Usette n-gram</strong> får P = 0, og da blir sannsynligheten til <em>hele setningen</em> 0, fordi den er et produkt.</li>
+      <li><strong>Målet:</strong> sett av litt sannsynlighet til det vi ikke har sett.</li>
+    </ul>
+    <p>Det er to ulike problemer: (1) <strong>ukjente ord</strong> som aldri forekom i treningen, og (2) <strong>usette n-gram</strong> av kjente ord, f.eks. «colorless aquamarine ideas»: kjente ord, ny rekkefølge.</p>
+
+    <h3>Problem 1: ukjente ord og &lt;UNK&gt;</h3>
+    <p>Et <span class="term" data-en="out-of-vocabulary word (OOV)">ukjent ord<span class="def">Et ord som aldri forekom i treningskorpuset (out-of-vocabulary). Uten spesialbehandling får det sannsynlighet 0.</span></span> (out-of-vocabulary) håndteres ved å bytte ut sjeldne ord i treningskorpuset med symbolet <span class="term" data-en="UNK token (unknown word)" data-title="&amp;lt;UNK&amp;gt;">&lt;UNK&gt;<span class="def">Spesialsymbol som erstatter sjeldne ord i treningskorpuset (f.eks. alt utenom de 50 000 vanligste). Et ukjent ord i testteksten får sannsynligheten til &lt;UNK&gt;.</span></span>, f.eks. alt utenom de 50 000 vanligste ordene. Så teller vi n-gram som vanlig, med &lt;UNK&gt; som et vanlig ord. Et ukjent ord i en testtekst får sannsynligheten til &lt;UNK&gt;. Man kan også ha egne <strong>typede tokens</strong>: &lt;NUM&gt; for tall, &lt;EMAIL&gt; for e-postadresser, &lt;URL&gt; for nettadresser, og &lt;S&gt; for start/slutt av tekst (så bigrammet for første ord har et «forrige ord»).</p>
+    <div class="box warning"><span class="box-title">Ikke nok alene</span><p>&lt;UNK&gt; løser bare ukjente <em>ord</em>. Usette n-gram av kjente ord får fortsatt P = 0. Derfor trengs glatting.</p></div>
+
+    <h3>Problem 2: usette n-gram → glatting</h3>
+    <p><span class="term" data-en="smoothing">Glatting<span class="def">Teknikker som flytter litt sannsynlighetsmasse fra sette (hyppige) n-gram til sjeldne og usette, slik at ingen n-gram får sannsynlighet 0 og variansen i estimatene reduseres.</span></span> betyr å flytte litt sannsynlighetsmasse fra n-gram vi har sett, til n-gram vi ikke har sett. Hensikten er å unngå de dramatiske effektene av lave tellinger (2016 T/F: sant).</p>
+
+    <h3>Laplace (add-one) glatting</h3>
+    <p>Laplace ville anslå sannsynligheten for at sola <em>ikke</em> står opp i morgen. Den hadde stått opp alle N ≈ 2 millioner dager (ifølge hans teori om solsystemets alder). Ingen feil så langt, men P bør likevel ikke være 0. Laplaces anslag er 1/(N + 2). For n-gram gir <span class="term" data-en="Laplace smoothing / add-one smoothing">Laplace-glatting<span class="def">Legg til 1 i alle tellinger: P(w_i | w_i−1) = (c(w_i−1 w_i) + 1) / (c(w_i−1) + V), der V er størrelsen på ordforrådet. Enkel, men flytter ofte for mye masse til usette n-gram.</span></span> (add-one) denne formelen:</p>
+    <div class="formula">P(w<sub>i</sub> | w<sub>i−1</sub>) = ( c(w<sub>i−1</sub> w<sub>i</sub>) + 1 ) / ( c(w<sub>i−1</sub>) + V )</div>
+    <p><strong>+1 i telleren:</strong> ingen telling er null. <strong>+V i nevneren:</strong> vi har lagt til V ekstra tellinger totalt (én for hvert mulig neste ord), så sannsynlighetene summerer fortsatt til 1. V er størrelsen på ordforrådet.</p>
+    <table>
+      <tr><th>Bigram</th><th>Telling</th><th>Uten glatting</th><th>Add-one</th></tr>
+      <tr><td>«black cat»</td><td>0</td><td>0 / 50 = 0</td><td>1 / 100 050 ≈ 0,00001</td></tr>
+      <tr><td>«black dog»</td><td>10</td><td>10 / 50 = 0,2</td><td>11 / 100 050 ≈ 0,0001</td></tr>
+    </table>
+    <p class="lex" style="text-align:center">Forelesningens eksempel: «black» er sett 50 ganger, ordforrådet er V = 100 000.</p>
+    <div class="box warning">
+      <span class="box-title">Ulempen med Laplace</span>
+      <p>Ingen nuller lenger, men bigrammet vi faktisk <em>så</em> 10 ganger, faller fra 0,2 til 0,0001. Når V er stor, flytter add-one altfor mye masse til usette n-gram. Boka: «a step in the right direction, but for many natural language applications it performs poorly».</p>
+    </div>
+
+    <div class="check" data-answer="0.00417" data-mode="number" data-tol="0.00002">
+      <p class="q">«the» forekommer 200 ganger i et korpus, og «the cat» 4 ganger. Ordforrådet har V = 1000 ord. Hva er P(cat | the) med Laplace-glatting? (Svar med 5 desimaler.)</p>
+      <div class="explain">(4 + 1) / (200 + 1000) = 5/1200 ≈ <strong>0,00417</strong>. Uten glatting ville svaret vært 4/200 = 0,02, altså nesten fem ganger høyere. Laplace straffer de sette bigrammene hardt når V er stor i forhold til c(the).</div>
+    </div>
+
+    <h3>Backoff og lineær interpolasjon</h3>
+    <div class="box algo">
+      <span class="box-title">To bedre alternativer</span>
+<pre><b>Backoff</b> (ett nivå om gangen):
+  Trigram P(cat | a black)  – høy nok telling? Bruk den.
+     ↓ ellers
+  Bigram  P(cat | black)    – rygg tilbake hit.
+     ↓ ellers
+  Unigram P(cat)
+
+<b>Lineær interpolasjon</b> (bland alltid alle tre):
+  P̂(cat | a black) = λ₃·P(cat | a black) + λ₂·P(cat | black) + λ₁·P(cat)
+  der λ₃ + λ₂ + λ₁ = 1   (faste, eller lært med EM)</pre>
+    </div>
+    <p>En <span class="term" data-en="backoff model">backoff-modell<span class="def">Bruk n-gram-estimatet hvis tellingen er høy nok; ellers «rygg tilbake» til (n−1)-gram, og så videre ned til unigram.</span></span> starter med n-gram-tellingen og rygger tilbake til (n − 1)-gram når tellingen er lav eller null. <span class="term" data-en="linear interpolation smoothing">Lineær interpolasjon<span class="def">Glatting som alltid blander trigram-, bigram- og unigramestimater med vekter λ₃ + λ₂ + λ₁ = 1. Vektene kan være faste, læres med EM, eller avhenge av tellingene.</span></span> blander alltid alle nivåene. Vektene kan også avhenge av tellingene: mange trigram → mer vekt på trigrammodellen. (Mer avanserte metoder som Witten-Bell og Kneser-Ney finnes; den andre «leiren» sier bare: skaff et større korpus, f.eks. «stupid backoff».)</p>
+    <div class="box example">
+      <span class="box-title">Eksempel (forelesningen)</span>
+      <p>λ₃ = 0,6, λ₂ = 0,3, λ₁ = 0,1. «a black cat» er aldri sett, så P(cat | a black) = 0. Med P(cat | black) = 0,02 og P(cat) = 0,001:</p>
+      <div class="formula">P̂ = 0,6 · 0 + 0,3 · 0,02 + 0,1 · 0,001 = 0,0061</div>
+      <p>Trigrammet er usett, men estimatet er ikke null.</p>
+    </div>
+    <div class="check" data-answer="0.0125" data-mode="number" data-tol="0.00001">
+      <p class="q">Interpolasjon med λ₃ = 0,5, λ₂ = 0,4, λ₁ = 0,1. P(dog | the big) = 0,01, P(dog | big) = 0,015, P(dog) = 0,02. Hva er P̂(dog | the big)?</p>
+      <div class="explain">0,5 · 0,01 + 0,4 · 0,015 + 0,1 · 0,02 = 0,005 + 0,006 + 0,002 = <strong>0,0125</strong>.</div>
+    </div>
+
+    <div class="box exam">
+      <span class="box-title">Modellsvar på 2025 Q12a (2 p)</span>
+      <p><em>«Explain why smoothing is necessary in n-gram language models. In your answer, briefly describe a possible type of smoothing.»</em></p>
+      <p>Mange n-gram forekommer aldri i treningskorpuset, selv om de er helt lovlige. Uten glatting får de sannsynlighet 0, og siden sannsynligheten til en setning er et <em>produkt</em> av n-gram-sannsynligheter, blir hele setningen umulig (P = 0). Sjeldne n-gram har dessuten støyete estimater. Glatting flytter litt sannsynlighetsmasse fra hyppige til sjeldne og usette n-gram. <strong>Eksempel:</strong> Laplace (add-one): legg 1 til alle tellinger, P = (c(w<sub>i−1</sub>w<sub>i</sub>) + 1)/(c(w<sub>i−1</sub>) + V). (Alternativt: backoff eller lineær interpolasjon.)</p>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>5. Sammenligne språkmodeller</h2>
+    <p>Boka trente unigram-, bigram-, trigram- og 4-gram-modeller på teksten i selve læreboka og trakk tilfeldige setninger fra dem (24.1.7):</p>
+    <table>
+      <tr><th>Modell</th><th>Tilfeldig trukket tekst</th><th>Hva vi ser</th></tr>
+      <tr><td>n = 1</td><td>«logical are as are confusion a may right tries agent goal the was»</td><td>Ordsalat</td></tr>
+      <tr><td>n = 2</td><td>«systems are very similar computational approach would be represented»</td><td>Lokale par</td></tr>
+      <tr><td>n = 3</td><td>«planning and scheduling are integrated the success of naive Bayes model is»</td><td>Korte fraser</td></tr>
+      <tr><td>n = 4</td><td>«… the structure of Bayesian networks and developed various languages for writing “templates” with logical variables …»</td><td>Nesten en setning</td></tr>
+    </table>
+    <p>Mer kontekst gir mer flytende tekst, men <strong>ingen av modellene forstår noe</strong>: de kopierer lokal statistikk. Med stor n reproduserer modellen bare lange passasjer fra treningsteksten ordrett. Bedre modeller trenger <em>struktur</em> (grammatikk, seksjon 7) eller <em>lærte ordrepresentasjoner</em> (seksjon 6).</p>
+    <div class="box intuition">
+      <span class="box-title">Blikk fremover: transformere (kap. 25)</span>
+      <p>GPT-2 er en <span class="term" data-en="transformer">transformer<span class="def">Nevral nettverksarkitektur basert på «attention» (oppmerksomhet), som lar hvert ord se på alle andre ord i konteksten. Grunnlaget for moderne språkmodeller som GPT. Kap. 25.4.</span></span>-modell (kap. 25.4). Den skriver tekst som er flytende og holder seg til temaet, men setningene bygger ikke et sammenhengende resonnement. Kapittel 25 (dyp læring for NLP) bygger videre på dette kapitlet med ordinnbygginger (word embeddings, 25.1), rekurrente nett (RNN) og transformere. Forelesningen nevner dem bare som «moderne utvidelser».</p>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>6. Ordrepresentasjoner og WordNet</h2>
+    <p>n-gram-modeller lærer <strong>bare fra tellinger</strong>. «a black cat» er sett i ca. 0,000014 % av treningstrigrammene → gyldig. «cat black a» er aldri sett → ugyldig. Men for modellen er hvert ord <strong>atomisk</strong> (som de atomiske tilstandene i modul 1): et eget symbol uten indre struktur og uten relasjoner til andre ord.</p>
+    <p>Mennesker generaliserer mye bedre. «the fulvous kitten» er gjenkjennelig engelsk selv om vi aldri har hørt det:</p>
+    <table class="mini-table">
+      <tr><th><span class="term" data-en="morphology">Morfologi<span class="def">Læren om hvordan ord er bygd opp av mindre deler (stammer, endelser). F.eks. at ord som slutter på «-ous» nesten alltid er adjektiver.</span></span></th><th><span class="term" data-en="syntax">Syntaks<span class="def">Reglene for hvordan ord settes sammen til fraser og setninger (ordstilling, struktur).</span></span></th><th><span class="term" data-en="semantics">Semantikk<span class="def">Meningen til ord, fraser og setninger.</span></span></th></tr>
+      <tr><td>Ord som slutter på «-ous» er nesten alltid adjektiver</td><td>«a» og «the» spiller samme rolle: artikkel + adjektiv + substantiv</td><td>«kitten» er nært beslektet med «cat»</td></tr>
+    </table>
+    <p>Derfor er det å ha sett «a black cat» et belegg for at «the fulvous kitten» også er gyldig. Problemet med ord som atomer er at modellen mangler morfologi (-ous, -ed, -ing), syntaktiske roller (substantiv, verb, adjektiv) og semantiske klasser (cat, kitten, dog). Løsningen er <strong>faktoriserte eller strukturerte</strong> ordmodeller, som beskriver ord ved egenskaper og relasjoner:</p>
+    <ul>
+      <li>Håndbygde ordbøker, f.eks. <strong>WordNet</strong> (under).</li>
+      <li><strong>Ordklassetagger</strong> (seksjon 7).</li>
+      <li>Lærte <span class="term" data-en="word embedding">ordinnbygginger<span class="def">Lærte vektorer (lister med tall) som representerer ord, slik at ord med lignende bruk får lignende vektorer. Bygger på distribusjonshypotesen. Kap. 25.1.</span></span> (word embeddings, kap. 25.1), som bygger på <span class="term" data-en="distributional hypothesis">distribusjonshypotesen<span class="def">Antakelsen om at ord som brukes i lignende sammenhenger, har lignende betydning («you shall know a word by the company it keeps»).</span></span>: ord som brukes likt, betyr omtrent det samme.</li>
+    </ul>
+
+    <h3>WordNet: en håndbygd ordbok</h3>
+    <p><span class="term" data-en="WordNet">WordNet<span class="def">En håndlaget, maskinlesbar ordbok der ord er knyttet sammen med relasjoner som «er en» (kitten → young mammal → mammal → animal). Skiller ordklasser og betydninger.</span></span> er en ordbok skrevet for hånd der ordene er <strong>lenket</strong> til hverandre:</p>
+    <figure>
+      <svg viewBox="0 0 640 70" width="640" role="img" aria-label="WordNet-kjede: kitten er en young mammal er en mammal er en animal">
+        <rect class="box-accent" x="5" y="20" width="120" height="34" rx="8"/><text x="65" y="42" text-anchor="middle" class="label">kitten</text>
+        <rect class="box" x="175" y="20" width="135" height="34" rx="8"/><text x="242" y="42" text-anchor="middle" class="label">young mammal</text>
+        <rect class="box" x="360" y="20" width="115" height="34" rx="8"/><text x="417" y="42" text-anchor="middle" class="label">mammal</text>
+        <rect class="box" x="525" y="20" width="110" height="34" rx="8"/><text x="580" y="42" text-anchor="middle" class="label">animal</text>
+        <line class="edge" x1="125" y1="37" x2="175" y2="37"/><text x="150" y="14" text-anchor="middle" class="small">er en</text>
+        <line class="edge" x1="310" y1="37" x2="360" y2="37"/><text x="335" y="14" text-anchor="middle" class="small">er en</text>
+        <line class="edge" x1="475" y1="37" x2="525" y2="37"/><text x="500" y="14" text-anchor="middle" class="small">er en</text>
+      </svg>
+      <figcaption>Figur 1: Et utsnitt av WordNet (forelesningen). «kitten» har også to betydninger: substantiv (a young domestic cat) og verb (to give birth to kittens).</figcaption>
+    </figure>
+    <p><strong>Nyttig:</strong> WordNet skiller substantiv fra verb og gir de grunnleggende kategoriene. <strong>Begrensning:</strong> den sier ingenting om hvordan en kattunge ser ut eller oppfører seg.</p>
+
+    <!-- ===================================================== -->
+    <h2>7. Ordklassetagging (POS-tagging)</h2>
+    <p>En <span class="term" data-en="part of speech (POS)">ordklasse<span class="def">Den grammatiske kategorien et ord tilhører i en setning: substantiv, verb, adjektiv, preposisjon … Kalles også en tag (POS-tag).</span></span> (part of speech, tag) er substantiv, verb, adjektiv osv. Ordklasser forklarer mønstre som at adjektiver kommer foran substantivet på engelsk, men etter på fransk. <span class="term" data-en="part-of-speech tagging">Ordklassetagging<span class="def">Å gi hvert ord i en setning riktig ordklasse (tag). Et første steg for spørsmålssvar, oversettelse og tekst-til-tale.</span></span> betyr å gi hvert ord sin ordklasse. Det er et første steg for spørsmålssvar, oversettelse og tekst-til-tale (uttalen av «record» avhenger av om det er substantiv eller verb).</p>
+
+    <h3>Penn Treebank</h3>
+    <p><span class="term" data-en="Penn Treebank">Penn Treebank<span class="def">Et korpus på over 3 millioner ord som er merket med ordklasser (45 tagger) og parsetrær. Standard treningsdata for taggere og parsere.</span></span> bruker 45 tagger og er brukt til å merke et korpus på over 3 millioner ord. En tagget setning fra korpuset:</p>
+    <div class="tagrow">
+      <span>From<b>IN</b></span><span>the<b>DT</b></span><span>start<b>NN</b></span><span>,<b>,</b></span><span>it<b>PRP</b></span><span>took<b>VBD</b></span><span>a<b>DT</b></span><span>person<b>NN</b></span><span>with<b>IN</b></span><span>great<b>JJ</b></span><span>qualities<b>NNS</b></span><span>to<b>TO</b></span><span>succeed<b>VB</b></span>
+    </div>
+    <p class="lex">IN preposisjon · DT determinativ · NN substantiv entall · NNS substantiv flertall · PRP personlig pronomen · VBD verb preteritum · JJ adjektiv · TO «to» · VB verb grunnform · MD modalverb · VBZ verb 3. pers. entall presens · VBP verb presens, ikke 3. pers. entall</p>
+
+    <h3>Riktig tag avhenger av konteksten</h3>
+    <table>
+      <tr><th>Ord</th><th>Mulige tagger</th><th>Eksempler</th></tr>
+      <tr><td>can</td><td>NN (substantiv), MD (modal)</td><td>a tin <b>can</b> (NN) · I <b>can</b> swim (MD)</td></tr>
+      <tr><td>flies</td><td>NNS (substantiv), VBZ (verb)</td><td>fruit <b>flies</b> (NNS) · time <b>flies</b> (VBZ)</td></tr>
+      <tr><td>record</td><td>NN, VB</td><td>play the <b>record</b> (NN) · <b>record</b> the song (VB)</td></tr>
+      <tr><td>cut</td><td>NN, VBD, VBP</td><td>Yesterday I <b>cut</b> the rope (VBD) · Now I <b>cut</b> the rope (VBP)</td></tr>
+    </table>
+    <p>En tagger må derfor velge <strong>hele sekvensen av tagger</strong> som passer best til setningen, ikke hver tag for seg.</p>
+
+    <h3>7.1 Tagging med en skjult Markov-modell (HMM)</h3>
+    <p>En <span class="term" data-en="hidden Markov model (HMM)">skjult Markov-modell<span class="def">Sannsynlighetsmodell med skjulte tilstander (her: taggene C_t) som følger en Markov-kjede, og observasjoner (her: ordene W_t) som avhenger av den nåværende skjulte tilstanden. Definert av en overgangsmodell og en sensor-/emisjonsmodell.</span></span> (HMM) ser taggene som <strong>skjulte tilstander</strong> C<sub>1:N</sub> og ordene som <strong>observasjoner (evidens)</strong> W<sub>1:N</sub>:</p>
+    <figure>
+      <svg viewBox="0 0 460 150" width="460" role="img" aria-label="HMM: taggene IN, DT, NN er skjulte tilstander med piler mellom seg; hver tag sender ut et ord: from, the, start">
+        <rect class="box-accent" x="40" y="15" width="80" height="36" rx="8"/><text x="80" y="38" text-anchor="middle" class="label">IN</text>
+        <rect class="box-accent" x="190" y="15" width="80" height="36" rx="8"/><text x="230" y="38" text-anchor="middle" class="label">DT</text>
+        <rect class="box-accent" x="340" y="15" width="80" height="36" rx="8"/><text x="380" y="38" text-anchor="middle" class="label">NN</text>
+        <line class="edge-hl" x1="120" y1="33" x2="190" y2="33"/><line class="edge-hl" x1="270" y1="33" x2="340" y2="33"/>
+        <text x="155" y="26" text-anchor="middle" class="small">P(C<tspan baseline-shift="sub" font-size="8">t</tspan> | C<tspan baseline-shift="sub" font-size="8">t−1</tspan>)</text>
+        <line class="edge" x1="80" y1="51" x2="80" y2="95"/><line class="edge" x1="230" y1="51" x2="230" y2="95"/><line class="edge" x1="380" y1="51" x2="380" y2="95"/>
+        <text x="300" y="78" class="small">P(W<tspan baseline-shift="sub" font-size="8">t</tspan> | C<tspan baseline-shift="sub" font-size="8">t</tspan>)</text>
+        <rect class="box" x="40" y="95" width="80" height="34" rx="8"/><text x="80" y="117" text-anchor="middle" class="label">from</text>
+        <rect class="box" x="190" y="95" width="80" height="34" rx="8"/><text x="230" y="117" text-anchor="middle" class="label">the</text>
+        <rect class="box" x="340" y="95" width="80" height="34" rx="8"/><text x="380" y="117" text-anchor="middle" class="label">start</text>
+      </svg>
+      <figcaption>Figur 2: HMM for tagging. Øverst de skjulte taggene, nederst de observerte ordene. Generativ historie: i hver tag sendes et ord ut, deretter går vi til neste tag.</figcaption>
+    </figure>
+    <ul>
+      <li><span class="term" data-en="transition model">Overgangsmodellen<span class="def">I en HMM: P(C_t | C_t−1), sannsynligheten for neste skjulte tilstand (tag) gitt den forrige.</span></span> P(C<sub>t</sub> | C<sub>t−1</sub>): hvor sannsynlig er en tag gitt forrige tag?</li>
+      <li><span class="term" data-en="sensor model / emission model">Sensor-/emisjonsmodellen<span class="def">I en HMM: P(W_t | C_t), sannsynligheten for å observere ordet W_t gitt at den skjulte tilstanden (taggen) er C_t.</span></span> P(W<sub>t</sub> | C<sub>t</sub>): hvor sannsynlig er ordet gitt taggen?</li>
+    </ul>
+    <div class="formula">P(C<sub>1:N</sub>, W<sub>1:N</sub>) = P(C<sub>1</sub>) · ∏<sub>t</sub> P(C<sub>t</sub> | C<sub>t−1</sub>) · ∏<sub>t</sub> P(W<sub>t</sub> | C<sub>t</sub>)</div>
+    <p>(første tag × hver overgang × hvert utsendt ord). Algoritmen <span class="term" data-en="Viterbi algorithm">Viterbi<span class="def">Dynamisk programmeringsalgoritme som finner den mest sannsynlige sekvensen av skjulte tilstander (her: tagger) i en HMM gitt observasjonene. Kap. 14.2.3.</span></span> (kap. 14.2.3) finner den mest sannsynlige tagsekvensen effektivt. En HMM-tagger når ≈ <strong>97 % nøyaktighet</strong>.</p>
+
+    <h3>Trening av HMM-taggeren: telling</h3>
+    <p>Begge modellene estimeres ved å telle i et tagget korpus, og sjeldne hendelser glattes, akkurat som for n-gram:</p>
+    <ul>
+      <li><strong>Overgangsmodell:</strong> etter et modalverb (would), hvor ofte kommer et verb i grunnform (think)? P(VB | MD) = 10 471 / 13 124 ≈ 0,8 (telleren: MD fulgt av VB; nevneren: alle MD i Penn Treebank).</li>
+      <li><strong>Emisjonsmodell:</strong> blant alle modalverb, hvor ofte er ordet «would»? P(would | MD) ≈ 0,1.</li>
+    </ul>
+
+    <div class="box example">
+      <span class="box-title">Regneeksempel (oppdiktede tall): «time flies»</span>
+      <p>Anta P(C<sub>1</sub> = NN) = 0,3, P(VBZ | NN) = 0,2, P(NNS | NN) = 0,1, P(time | NN) = 0,01, P(flies | VBZ) = 0,004 og P(flies | NNS) = 0,002. Sammenlign de to tagsekvensene:</p>
+      <ul>
+        <li>NN VBZ: 0,3 · 0,2 · 0,01 · 0,004 = 2,4 · 10<sup>−6</sup></li>
+        <li>NN NNS: 0,3 · 0,1 · 0,01 · 0,002 = 6,0 · 10<sup>−7</sup></li>
+      </ul>
+      <p>Taggeren velger NN VBZ («tiden flyr»), fordi hele sekvensen er fire ganger mer sannsynlig. Viterbi gjør denne sammenligningen effektivt for lange setninger, uten å liste opp alle sekvensene.</p>
+    </div>
+    <div class="check" data-answer="0.000002" data-mode="number" data-tol="0.0000001">
+      <p class="q">Med tallene over, og i tillegg P(C<sub>1</sub> = NNS) = 0,1, P(VBZ | NNS) = 0,5 og P(time | NNS) = 0,01: hva er P(NNS VBZ, «time flies»)? (Skriv som desimaltall.)</p>
+      <div class="explain">P(C₁ = NNS) · P(VBZ | NNS) · P(time | NNS) · P(flies | VBZ) = 0,1 · 0,5 · 0,01 · 0,004 = <strong>0,000002</strong> = 2 · 10⁻⁶. Fortsatt litt lavere enn NN VBZ (2,4 · 10⁻⁶).</div>
+    </div>
+
+    <h3>Begrensninger ved HMM-taggeren</h3>
+    <ul>
+      <li>En tag avhenger bare av det nåværende ordet og forrige tag, ikke av bredere kontekst.</li>
+      <li>Det er ingen enkel måte å legge inn eksplisitt språkkunnskap på, som «ord som slutter på <b>-ous</b>, er trolig adjektiver» eller «i <b>attorney general</b> er attorney et substantiv, ikke et adjektiv».</li>
+    </ul>
+    <p>Logistisk regresjon kan representere slik informasjon.</p>
+
+    <h3>7.2 Tagging med logistisk regresjon</h3>
+    <p>En <span class="term" data-en="logistic regression">logistisk regresjon<span class="def">Diskriminativ klassifikator: P(klasse | x) = σ(w · x), der x er en vektor av (binære) trekk, w vekter og σ den logistiske funksjonen som klemmer tallet inn i [0, 1]. Trenes med gradient descent.</span></span>-tagger er <strong>diskriminativ</strong>: den lærer P(C | W) direkte. Det trenes én klassifikator per tag (45 stk.) med gradient descent:</p>
+    <div class="formula">P(tag | x) = σ(w · x) &nbsp;&nbsp; x: binære trekk → w · x: vektet sum → σ: klem til [0, 1] → høyest P gir tag</div>
+    <p>Typiske <strong>trekk</strong> (features): nabordene, suffikser og prefikser, forrige tag, store bokstaver og sifre, tempus på nabordene. For en hel setning tagger man enten <strong>grådig fra venstre mot høyre</strong> (raskt, men kan ikke gå tilbake) eller med <span class="term" data-en="beam search">beam search<span class="def">Søk som bare beholder de b beste delløsningene på hvert steg. Raskt, men ikke garantert optimalt. Beam search med b = 1 er grådig søk.</span></span> (behold de b beste).</p>
+
+    <h3>7.3 Generative vs. diskriminative modeller</h3>
+    <table>
+      <tr><th>Aspekt</th><th><span class="term" data-en="generative model">Generativ<span class="def">Modell som lærer den felles fordelingen P(W, C) (f.eks. naiv Bayes, HMM). Kan generere nye eksempler ved sampling.</span></span> (naiv Bayes, HMM)</th><th><span class="term" data-en="discriminative model">Diskriminativ<span class="def">Modell som lærer den betingede fordelingen P(C | W) direkte (f.eks. logistisk regresjon). Kan ikke generere tekst, men kan bruke vilkårlige trekk.</span></span> (logistisk regresjon)</th></tr>
+      <tr><td>Lærer</td><td>Felles fordeling P(W, C)</td><td>Betinget fordeling P(C | W)</td></tr>
+      <tr><td>Kan generere setninger?</td><td>Ja, ved sampling</td><td>Nei</td></tr>
+      <tr><td>Trekk</td><td>Begrenset av modellens struktur</td><td>Vilkårlige, håndlagde trekk</td></tr>
+      <tr><td>Feilrate</td><td>Generelt høyere</td><td>Generelt lavere</td></tr>
+      <tr><td>Trening</td><td>Konvergerer raskere; foretrukket med lite data eller lite treningstid</td><td>Konvergerer langsommere</td></tr>
+    </table>
+    <p>Begge tagger godt: HMM-taggeren når allerede ca. 97 %.</p>
+    <div class="quiz" data-answer="c">
+      <p class="q">Hvilken påstand om generative og diskriminative modeller er riktig?</p>
+      <ul class="opts">
+        <li data-why="Det er motsatt: HMM er generativ (lærer P(W, C)).">En HMM-tagger er diskriminativ</li>
+        <li data-why="Diskriminative modeller lærer bare P(C | W) og kan ikke sample tekst.">Logistisk regresjon kan generere nye setninger</li>
+        <li>Med lite treningsdata er en generativ modell ofte å foretrekke</li>
+        <li data-why="Det er diskriminative modeller som kan bruke vilkårlige trekk som suffikser og nabord.">Generative modeller kan ta inn vilkårlige håndlagde trekk</li>
+      </ul>
+      <div class="feedback">Generative modeller konvergerer raskere og er foretrukket med lite data eller lite treningstid. Diskriminative modeller har typisk lavere feilrate når det er nok data.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>8. Grammatikk og PCFG</h2>
+    <p>En <span class="term" data-en="grammar">grammatikk<span class="def">Et sett med regler som definerer trestrukturen til tillatte fraser. Språket er mengden setninger som følger reglene.</span></span> er et sett regler som definerer trestrukturen til tillatte fraser, og et <strong>språk</strong> er mengden setninger som følger reglene (samme idé som BNF-grammatikken for logikk i kap. 7).</p>
+    <table>
+      <tr><th>Egenskap</th><th>Formelt språk (FOL, BNF)</th><th>Naturlig språk</th></tr>
+      <tr><td>Grense</td><td>Skarp: lovlige vs. ulovlige setninger</td><td>Uskarp, fleksibel bruk</td></tr>
+      <tr><td>Trestruktur</td><td>Entydig, veldefinert</td><td>Ofte flere mulige parsetrær</td></tr>
+    </table>
+
+    <h3>Setninger er trær, ikke strenger</h3>
+    <p>n-gram ser en flat streng av ord, men språk har <strong>nøstede fraser</strong>. <span class="term" data-en="syntactic category">Syntaktiske kategorier<span class="def">Kategorier for fraser og ord, som setning (S), substantivfrase (NP), verbfrase (VP), preposisjonsfrase (PP), og ordklasser som Noun og Verb.</span></span> som NP (substantivfrase) og VP (verbfrase) begrenser hvilke ord som er sannsynlige på hvert sted (bedre språkmodeller), og <span class="term" data-en="phrase structure">frasestrukturen<span class="def">Den hierarkiske oppdelingen av en setning i fraser (NP, VP, PP …). Gir et rammeverk for meningen: hvem gjør hva.</span></span> gir en ramme for meningen: hvem gjør hva (semantikken).</p>
+    <figure>
+      <svg viewBox="0 0 420 220" width="420" role="img" aria-label="Parsetre for the wumpus is dead">
+        <g class="tree-edges">
+          <line class="edge" x1="210" y1="28" x2="105" y2="68"/><line class="edge" x1="210" y1="28" x2="300" y2="68"/>
+          <line class="edge" x1="105" y1="82" x2="55" y2="118"/><line class="edge" x1="105" y1="82" x2="155" y2="118"/>
+          <line class="edge" x1="300" y1="82" x2="250" y2="118"/><line class="edge" x1="300" y1="82" x2="355" y2="118"/>
+          <line class="edge" x1="250" y1="132" x2="250" y2="152"/>
+          <line class="edge" x1="55" y1="132" x2="55" y2="192"/><line class="edge" x1="155" y1="132" x2="155" y2="192"/><line class="edge" x1="250" y1="166" x2="250" y2="192"/><line class="edge" x1="355" y1="132" x2="355" y2="192"/>
+        </g>
+        <rect class="box-accent" x="185" y="12" width="50" height="22" rx="5"/><text x="210" y="28" text-anchor="middle" class="label">S</text>
+        <rect class="box-accent" x="80" y="64" width="50" height="22" rx="5"/><text x="105" y="80" text-anchor="middle" class="label">NP</text>
+        <rect class="box-accent" x="275" y="64" width="50" height="22" rx="5"/><text x="300" y="80" text-anchor="middle" class="label">VP</text>
+        <rect class="box" x="20" y="114" width="70" height="22" rx="5"/><text x="55" y="130" text-anchor="middle" class="small">Article</text>
+        <rect class="box" x="122" y="114" width="66" height="22" rx="5"/><text x="155" y="130" text-anchor="middle" class="small">Noun</text>
+        <rect class="box-accent" x="225" y="114" width="50" height="22" rx="5"/><text x="250" y="130" text-anchor="middle" class="label">VP</text>
+        <rect class="box" x="315" y="114" width="80" height="22" rx="5"/><text x="355" y="130" text-anchor="middle" class="small">Adjective</text>
+        <rect class="box" x="220" y="148" width="60" height="22" rx="5"/><text x="250" y="164" text-anchor="middle" class="small">Verb</text>
+        <text x="55" y="208" text-anchor="middle" class="label">the</text><text x="155" y="208" text-anchor="middle" class="label">wumpus</text><text x="250" y="208" text-anchor="middle" class="label">is</text><text x="355" y="208" text-anchor="middle" class="label">dead</text>
+      </svg>
+      <figcaption>Figur 3: Parsetreet for «the wumpus is dead» (forelesningen og boka fig. 24.4).</figcaption>
+    </figure>
+
+    <h3>PCFG: regler med sannsynligheter</h3>
+    <p>En <span class="term" data-en="probabilistic context-free grammar (PCFG)">probabilistisk kontekstfri grammatikk<span class="def">Kontekstfri grammatikk der hver regel har en sannsynlighet; sannsynlighetene for alle regler med samme venstreside summerer til 1. Gir en sannsynlighet til hvert parsetre og hver streng.</span></span> (PCFG) er en grammatikk der hver regel har en sannsynlighet. <span class="term" data-en="context-free">Kontekstfri<span class="def">En regel som NP → Article Noun kan brukes hvor som helst, uavhengig av hva som står rundt. Samme frase får samme sannsynlighet uansett hvor i setningen den står.</span></span> betyr at en regel som NP → Article Noun kan bygge <em>enhver</em> substantivfrase, uansett hvor i setningen den står. En regel som</p>
+    <div class="formula">Adjs → Adjective [0,80] | Adjective Adjs [0,20]</div>
+    <p>betyr at Adjs er ett adjektiv med sannsynlighet 0,80, eller et adjektiv fulgt av en ny Adjs med sannsynlighet 0,20. For hver venstreside summerer sannsynlighetene til 1.</p>
+
+    <h3>E<sub>0</sub>: en liten grammatikk for wumpus-verdenen</h3>
+    <table>
+      <tr><th>Regel</th><th>P</th><th>Eksempel</th><th>Regel</th><th>P</th><th>Eksempel</th></tr>
+      <tr><td>S → NP VP</td><td>0,90</td><td>I + feel a breeze</td><td>VP → Verb</td><td>0,40</td><td>stinks</td></tr>
+      <tr><td>S → S Conj S</td><td>0,10</td><td>… + and + it stinks</td><td>VP → VP NP</td><td>0,35</td><td>feel + a breeze</td></tr>
+      <tr><td>NP → Pronoun</td><td>0,25</td><td>I</td><td>VP → VP Adjective</td><td>0,05</td><td>smells + dead</td></tr>
+      <tr><td>NP → Article Noun</td><td>0,25</td><td>the + wumpus</td><td>VP → VP PP</td><td>0,10</td><td>is + in 1 3</td></tr>
+      <tr><td>NP → Article Adjs Noun</td><td>0,05</td><td>the + smelly dead + wumpus</td><td>VP → VP Adverb</td><td>0,10</td><td>go + ahead</td></tr>
+      <tr><td>NP → NP PP</td><td>0,10</td><td>the wumpus + in 1 3</td><td>PP → Prep NP</td><td>1,00</td><td>to + the east</td></tr>
+      <tr><td>NP → Name / Noun / Digit Digit</td><td>0,10 / 0,10 / 0,05</td><td>Ali / pits / 3 4</td><td>NP → NP RelClause / NP Conj NP</td><td>0,05 / 0,05</td><td>the wumpus + that is smelly</td></tr>
+    </table>
+    <p>Sannsynlighetene for ordene (leksikonet, fig. 24.3) trengs når vi regner trær, f.eks. Article → the [0,40] | a [0,30] | every [0,05]; Noun → wumpus [0,15] | breeze [0,10]; Verb → is [0,10] | smells [0,10] | stinks [0,05]; Adjective → dead [0,05] | smelly [0,02]. (Selve diskusjonen av leksikonet i 24.2.1 er ikke pensum.) E<sub>0</sub> genererer setninger som «I feel a breeze.», «It stinks.» og «The smelly dead wumpus is in 1 3.»</p>
+
+    <h3>Sannsynligheten til et parsetre</h3>
+    <p>Hver node bærer sannsynligheten til regelen som ble brukt der. <strong>Sannsynligheten til treet er produktet</strong> av alle disse. Boka fig. 24.6, «every wumpus smells»:</p>
+    <div class="formula">[S [NP [Article every] [Noun wumpus]] [VP [Verb smells]]]<br>0,90 · 0,25 · 0,05 · 0,15 · 0,40 · 0,10 = 0,0000675</div>
+    <p class="lex">S → NP VP (0,90) · NP → Article Noun (0,25) · Article → every (0,05) · Noun → wumpus (0,15) · VP → Verb (0,40) · Verb → smells (0,10).</p>
+    <div class="check" data-answer="0.00000135" data-mode="number" data-tol="0.00000001">
+      <p class="q">Regn sannsynligheten til treet i figur 3 («the wumpus is dead») med E<sub>0</sub>. Skriv svaret som desimaltall.</p>
+      <div class="explain">Regler: S → NP VP (0,90), NP → Article Noun (0,25), Article → the (0,40), Noun → wumpus (0,15), VP → VP Adjective (0,05), VP → Verb (0,40), Verb → is (0,10), Adjective → dead (0,05).<br>0,90 · 0,25 · 0,40 · 0,15 · 0,05 · 0,40 · 0,10 · 0,05 = <strong>1,35 · 10⁻⁶ = 0,00000135</strong>. CYK-widgeten i neste seksjon finner det samme tallet.</div>
+    </div>
+
+    <h3>Begrensninger ved E<sub>0</sub>: over- og undergenerering</h3>
+    <table>
+      <tr><th><span class="term" data-en="overgeneration">Overgenerering<span class="def">Grammatikken genererer setninger som ikke er grammatiske, f.eks. «Me go I.»</span></span></th><th><span class="term" data-en="undergeneration">Undergenerering<span class="def">Grammatikken avviser setninger som er gyldig språk, f.eks. «I think the wumpus is smelly.»</span></span></th></tr>
+      <tr><td>Genererer setninger som ikke er grammatiske: «Me go I.»</td><td>Avviser setninger som er gyldig engelsk: «I think the wumpus is smelly.»</td></tr>
+    </table>
+    <p>Grammatikken er likevel god nok til neste spørsmål: gitt en setning, hvordan finner vi treet dens? Det er parsing.</p>
+
+    <!-- ===================================================== -->
+    <h2>9. Parsing: top-down, bottom-up og CYK</h2>
+    <p><span class="term" data-en="parsing">Parsing<span class="def">Å analysere en streng av ord for å finne frasestrukturen (parsetreet) ifølge reglene i en grammatikk. Kan ses som et søk etter et parsetre der bladene er ordene.</span></span> er å finne frasestrukturen til en streng av ord ifølge grammatikken. Det er et <strong>søk</strong> etter et parsetre der bladene er ordene. Det kan gjøres i to retninger:</p>
+    <table>
+      <tr><th><span class="term" data-en="top-down parsing">Top-down<span class="def">Parsing som starter i startsymbolet S og ekspanderer med regler (X → Y …) til man når ordene. Ulempe: kan utforske mange utvidelser som aldri passer med de faktiske ordene.</span></span></th><th><span class="term" data-en="bottom-up parsing">Bottom-up<span class="def">Parsing som starter med ordene og slår dem sammen til større fraser (erstatter Y … med X for en regel X → Y …) til man når S. Ulempe: kan bygge delstrukturer som ikke inngår i noen fullstendig parse.</span></span></th></tr>
+      <tr><td>Start i S og ekspander med regler til vi når ordene. I hvert steg erstattes en kategori X med høyresiden i en regel X → Y …</td><td>Start med ordene og slå dem sammen til vi når S. I hvert steg erstattes en sekvens Y … med X for en regel X → Y … («the» → Article, deretter Article Noun → NP).</td></tr>
+      <tr><td><strong>Ulempe:</strong> kan utforske mange regelutvidelser som aldri passer med de faktiske ordene i input (f.eks. prøve S → S Conj S når setningen ikke har noen konjunksjon).</td><td><strong>Ulempe:</strong> kan bygge delstrukturer som ikke inngår i noen fullstendig parse av setningen (f.eks. tolke et ord som Noun selv om det må være Verb her).</td></tr>
+    </table>
+    <p><strong>Felles ulempe</strong> (boka): rene top-down- og bottom-up-strategier kan gjenta det samme arbeidet i de delene av søkerommet som leder til blindveier.</p>
+
+    <div class="stepper" data-label="Steg">
+      <div class="step"><p><strong>Boka fig. 24.4.</strong> Les tabellen <em>nedover</em> for top-down og <em>oppover</em> for bottom-up. Vi starter top-down med <code>S</code>.</p></div>
+      <div class="step"><p><code>S</code> → <code>NP VP</code> &nbsp; (regel S → NP VP)</p></div>
+      <div class="step"><p><code>NP VP</code> → <code>NP VP Adjective</code> &nbsp; (VP → VP Adjective)</p></div>
+      <div class="step"><p><code>NP VP Adjective</code> → <code>NP Verb Adjective</code> &nbsp; (VP → Verb)</p></div>
+      <div class="step"><p><code>NP Verb Adjective</code> → <code>NP Verb dead</code> &nbsp; (Adjective → dead)</p></div>
+      <div class="step"><p><code>NP Verb dead</code> → <code>NP is dead</code> &nbsp; (Verb → is)</p></div>
+      <div class="step"><p><code>NP is dead</code> → <code>Article Noun is dead</code> &nbsp; (NP → Article Noun)</p></div>
+      <div class="step"><p><code>Article Noun is dead</code> → <code>Article wumpus is dead</code> &nbsp; (Noun → wumpus)</p></div>
+      <div class="step"><p><code>Article wumpus is dead</code> → <code>the wumpus is dead</code> &nbsp; (Article → the). Ferdig: alle bladene er ord og stemmer med input.</p><p><strong>Bottom-up</strong> er nøyaktig de samme radene lest nedenfra og opp: «the» → Article, «wumpus» → Noun, Article Noun → NP, «is» → Verb, «dead» → Adjective, Verb → VP, VP Adjective → VP, NP VP → S.</p></div>
+    </div>
+
+    <h3>Hvorfor naiv parsing er treg</h3>
+    <div class="box example">
+      <span class="box-title">«Have the students in section 2 of Computer Science 101 take / taken the exam»</span>
+      <p>De første 10 ordene er like, men setningene har helt ulike parsetrær: «… take the exam.» er en <strong>kommando</strong>, «… taken the exam?» er et <strong>spørsmål</strong>. En parser fra venstre mot høyre må gjette på «Have» og finner først ut ved ord 11 om gjetningen var riktig. Gjettet den feil, må den gå tilbake til ord 1 og parse den lange substantivfrasen «the students in section 2 of Computer Science 101» <em>på nytt</em>: det samme arbeidet gjøres to ganger.</p>
+    </div>
+    <p><strong>Løsningen er dynamisk programmering:</strong> parse hver frase én gang, lagre den i en tabell (en <span class="term" data-en="chart">chart<span class="def">Tabell i en chart-parser som lagrer alle fraser som er funnet for hver delstreng, slik at de kan gjenbrukes i stedet for å parses på nytt.</span></span>) og gjenbruk den. Det kalles en <span class="term" data-en="chart parser">chart-parser<span class="def">Parser som bruker dynamisk programmering: hver analysert delstreng lagres i en tabell (chart) og gjenbrukes. CYK er en bottom-up chart-parser.</span></span>. Fordi grammatikken er kontekstfri, kan en frase som er funnet i én gren av søket, brukes like godt i alle andre grener.</p>
+
+    <h3>CYK-algoritmen</h3>
+    <p><span class="term" data-en="CYK algorithm (Cocke–Younger–Kasami)">CYK<span class="def">Bottom-up, probabilistisk chart-parser (Cocke, Younger, Kasami). Fyller en tabell P[X, i, k] med sannsynligheten til det beste treet av kategori X over ordene i..k, fra korte til lange spenn. Krever Chomsky-normalform. Tid O(n³m), plass O(n²m).</span></span> (Cocke–Younger–Kasami) er en <strong>bottom-up, probabilistisk chart-parser</strong>. Den fyller tabellen fra enkeltord opp til hele setningen. Hver celle holder det beste treet for hver kategori X over ordene i … k, med sannsynligheten P[X, i, k].</p>
+    <div class="box algo">
+      <span class="box-title">CYK-PARSE (boka fig. 24.5, forenklet)</span>
+<pre>// 1. Leksikalske kategorier for hvert ord
+for i = 1 to n:
+    for each regel X → words[i] [p]:   P[X, i, i] ← p
+
+// 2. Bygg X over i..k av Y over i..j og Z over j+1..k, korteste spenn først
+for length = 2 to n:
+  for i = 1 to n+1−length:
+    k ← i + length − 1
+    for j = i to k−1:
+      for each regel X → Y Z [p]:
+        P_YZ ← P[Y, i, j] · P[Z, j+1, k] · p
+        if P_YZ > P[X, i, k]:   P[X, i, k] ← P_YZ  (og lagre treet)
+return tabellen  (P[S, 1, n] er sannsynligheten til beste parse)</pre>
+    </div>
+    <ul>
+      <li><strong>Krever</strong> <span class="term" data-en="Chomsky Normal Form (CNF)">Chomsky-normalform<span class="def">Grammatikkformat der alle regler er enten leksikalske, X → ord [p], eller har nøyaktig to kategorier på høyresiden, X → Y Z [p]. Enhver kontekstfri grammatikk kan gjøres om automatisk.</span></span>: alle regler er enten X → ord [p] eller X → Y Z [p]. Enhver kontekstfri grammatikk kan gjøres om automatisk.</li>
+      <li><strong>Kompleksitet:</strong> tid O(n³m), plass O(n²m), der n er antall ord og m antall ikke-terminaler. For vilkårlige kontekstfrie grammatikker går det ikke bedre.</li>
+    </ul>
+
+    <div class="widget" id="cyk-widget">
+      <p style="margin-top:0"><strong>CYK steg for steg.</strong> Grammatikken er en Chomsky-normalform-versjon av E<sub>0</sub>: enhetsregelen VP → Verb er bakt inn i leksikonet (VP → is får 0,40 · 0,10 = 0,04), og NP → Pronoun likeså. Skriv en setning med ordene under og trykk «Neste celle».</p>
+      <p class="lex" id="cyk-lex"></p>
+      <div class="nlp-row"><input type="text" id="cyk-sent" value="the wumpus is dead"><button id="cyk-reset">Start</button><button id="cyk-step">Neste celle</button><button class="secondary" id="cyk-all">Fyll alt</button></div>
+      <div class="cyk-wrap"><table class="cyk" id="cyk-table"></table></div>
+      <div class="nlp-status" id="cyk-status"></div>
+      <div class="log cyk-log" id="cyk-log"></div>
+    </div>
+    <div class="box warning">
+      <span class="box-title">Legg merke til</span>
+      <p>I «the wumpus is dead» finner CYK også en S over de tre første ordene, «the wumpus is», fordi E<sub>0</sub> godtar den som en hel setning (VP → Verb). CYK finner <em>alle</em> fraser over <em>alle</em> delstrenger, også de som ikke blir brukt i den endelige parsen. (Forelesningens figur viser bare cellene som inngår i hovedtreet.)</p>
+    </div>
+
+    <h3>Raskere parsing: mot O(n)</h3>
+    <p>Naturlige språk har utviklet seg til å være lette å forstå i sanntid, så de burde kunne parses raskere enn vilkårlige kontekstfrie grammatikker:</p>
+    <table>
+      <tr><th>A*-søk</th><th>Beam search</th><th>Shift-reduce</th></tr>
+      <tr><td>Start = ordene, mål = S, kostnad fra regelsannsynlighetene. Med admissibel heuristikk er den første parsen som blir funnet, den mest sannsynlige.</td><td>Behold de b beste delparsene. O(n), finner som regel den beste parsen (men er ikke garantert).</td><td>Beam med b = 1 (en <span class="term" data-en="deterministic parser">deterministisk parser<span class="def">Parser som bare følger én kandidat (beam search med b = 1). Shift-reduce er et eksempel.</span></span>). Gå gjennom setningen ord for ord: <span class="term" data-en="shift-reduce parsing" data-title="shift-reduce">shift<span class="def">Shift-reduce parsing: legg neste ord på en stakk (shift), eller slå sammen de øverste elementene på stakken med en grammatikkregel (reduce).</span></span> ordet over på en stakk, eller <em>reduce</em> de øverste elementene med en regel.</td></tr>
+    </table>
+
+    <div class="box exam">
+      <span class="box-title">Modellsvar på 2025 Q12b (3 p)</span>
+      <p><em>«Explain the difference between top-down and bottom-up parsing strategies. In your answer, briefly describe how each strategy constructs a parse and mention one drawback of each approach.»</em></p>
+      <p><strong>Top-down</strong> starter i startsymbolet S og bruker grammatikkreglene til å ekspandere det til stadig mindre bestanddeler, og sjekker om utvidelsene kan matche ordene i input. <em>Ulempe:</em> den kan utforske mange regelutvidelser som aldri passer med de faktiske ordene, og sløser regnetid.</p>
+      <p><strong>Bottom-up</strong> starter med ordene i input og slår dem gradvis sammen til større bestanddeler etter grammatikkreglene, til den forhåpentligvis når en hel setning S. <em>Ulempe:</em> den kan bygge delstrukturer som ikke inngår i noen gyldig fullstendig parse.</p>
+      <p>Felles: begge kan gjenta arbeid i blindveier (løses med chart parsing / CYK).</p>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>10. NLP-oppgaver (24.6)</h2>
+    <p>NLP knytter sammen tale, tekst og mening:</p>
+    <table>
+      <tr><th>Oppgave</th><th>Fra → til</th><th>Hovedpunkter fra forelesningen</th></tr>
+      <tr><td><span class="term" data-en="speech recognition">Talegjenkjenning<span class="def">Å gjøre om lyd (tale) til tekst. Ordfeilrate ≈ 3–5 % i dag, omtrent som menneskelige transkribenter.</span></span></td><td>lyd → tekst</td><td>Ordfeilrate ≈ 3–5 %, som menneskelige transkribenter. Boka: RNN kombinert med HMM. Dype nevrale nett ga ≈ 30 % lavere feilrate (2011).</td></tr>
+      <tr><td><span class="term" data-en="text-to-speech (TTS)">Tekst-til-tale<span class="def">Det motsatte av talegjenkjenning: fra tekst til talt lyd. Må uttale ord riktig («record»), ha naturlige pauser og trykk, og kunne bruke ulike stemmer.</span></span></td><td>tekst → lyd</td><td>Uttale hvert ord riktig («record»), naturlige pauser og trykk, ulike stemmer. ≈ ⅔ av lytterne foretrakk det nevrale WaveNet (2016).</td></tr>
+      <tr><td><span class="term" data-en="machine translation">Maskinoversettelse<span class="def">Å oversette tekst fra ett språk til et annet. Trenes på parallelle tekster (samme dokument på to språk), uten annen annotering.</span></span></td><td>språk → språk</td><td>Trenes på <em>parallelle</em> dokumenter (f.eks. engelsk–fransk), ingen annen annotering trengs. 2000-tallet: n-gram (meningen OK, syntaksfeil, n ≤ 7) → 2014: rekurrent seq2seq (ordinnbygginger, kontekst fra hele setningen) → 2017: transformere (attention, stort kvalitetshopp) → hybrider nær menneskelig nivå for noen språkpar.</td></tr>
+      <tr><td><span class="term" data-en="information extraction (IE)">Informasjonsekstraksjon<span class="def">Å finne objekter og relasjoner mellom dem i tekst og gjøre dem om til strukturerte fakta, f.eks. adresser → (gate, by, stat, postnummer). Ofte basert på maler (templates).</span></span></td><td>tekst → strukturerte fakta</td><td>Finn objekter og relasjoner: adresser → (gate, by, stat, postnr.), stormer → (temperatur, vind, nedbør). Metoder: tabeller/maler → regulære uttrykk; åpne relasjoner → TEXTRUNNER; fri tekst → HMM, regellæring (NELL); i dag nevrale nett med ordinnbygginger.</td></tr>
+      <tr><td><span class="term" data-en="information retrieval (IR)">Informasjonsgjenfinning<span class="def">Å finne dokumentene som er relevante og viktige for et søk (query). Kjernen i søkemotorer. Returnerer en rangert liste med dokumenter, ikke et svar.</span></span></td><td>søk → relevante dokumenter</td><td>Kjernen i søkemotorer (Google, Baidu), milliarder av ganger om dagen. Resultatene rangeres etter relevans og viktighet.</td></tr>
+      <tr><td><span class="term" data-en="question answering (QA)">Spørsmålssvar<span class="def">Å returnere et svar på et spørsmål, ikke en liste med dokumenter. F.eks. ASKMSR, som søker etter mønstre som «* founded the U.S. Coast Guard».</span></span></td><td>spørsmål → svar</td><td>Returnerer et <em>svar</em>, ikke en dokumentliste. 1960-tallet: syntaktisk parsing; 1997: START (Katz); fra 2001: nettsøk gir mye bedre dekning, f.eks. ASKMSR. Evaluering: TREC (fra 1991), AI2 ARC.</td></tr>
+    </table>
+    <div class="box example">
+      <span class="box-title">Hvordan ASKMSR svarer</span>
+      <p>«Who founded the U.S. Coast Guard?» skrives om til søkemønstre: [* founded the U.S. Coast Guard] og [the U.S. Coast Guard was founded by *]. «Who» betyr at svaret er en person, og det vanligste treffet er <strong>Alexander Hamilton</strong>.</p>
+    </div>
+
+    <div class="box warning">
+      <span class="box-title">Klassiske eksamensfeller</span>
+      <ul>
+        <li><strong>IR returnerer ikke svaret</strong>, men en rangert liste med relevante dokumenter. Det er QA som returnerer et svar (2016 T/F: «The task of Information Retrieval is to return the answer to a user query» → <strong>usant</strong>).</li>
+        <li><strong>Informasjonsekstraksjon</strong> er ofte basert på maler (templates) (2016 T/F: sant), og er den mest nyttige teknikken for å bygge et semantisk nett automatisk fra dokumenter (2015 flervalg).</li>
+        <li><span class="term" data-en="stop words">Stoppord<span class="def">Svært vanlige funksjonsord (the, a, of, is …) som ofte fjernes før f.eks. informasjonsgjenfinning fordi de bærer lite innhold. Ikke alltid riktig å fjerne dem.</span></span> er svært vanlige funksjonsord som «the», «of», «is». «Freeze», «halt», «cease» og «finish» er <em>ikke</em> stoppord (2016 T/F: usant). Og det er ikke alltid riktig å fjerne dem (2024).</li>
+      </ul>
+    </div>
+
+    <h3>10.1 Evaluering: presisjon, recall og F1</h3>
+    <p>Eldre eksamener (2015–2018) spør om hvordan et IR-system evalueres. Tenk deg at systemet returnerer noen dokumenter, og at vi vet hvilke dokumenter som er relevante:</p>
+    <table class="mini-table">
+      <tr><th></th><th>Returnert</th><th>Ikke returnert</th></tr>
+      <tr><th>Relevant</th><td>TP (riktig funnet)</td><td>FN (oversett)</td></tr>
+      <tr><th>Ikke relevant</th><td>FP (falsk alarm)</td><td>TN</td></tr>
+    </table>
+    <div class="formula"><span class="term" data-en="precision">Presisjon<span class="def">Andelen av de returnerte dokumentene som faktisk er relevante: TP / (TP + FP). «Hvor mye av det jeg fant, er riktig?»</span></span> = TP / (TP + FP) &nbsp;&nbsp;·&nbsp;&nbsp; <span class="term" data-en="recall">Recall<span class="def">Andelen av alle relevante dokumenter som ble returnert: TP / (TP + FN). «Hvor mye av det riktige fant jeg?»</span></span> = TP / (TP + FN) &nbsp;&nbsp;·&nbsp;&nbsp; <span class="term" data-en="F1 score">F1<span class="def">Det harmoniske gjennomsnittet av presisjon og recall: 2PR / (P + R).</span></span> = 2PR / (P + R)</div>
+    <ul>
+      <li><strong>Presisjon:</strong> hvor mye av det jeg returnerte, er relevant? (2015: «Recall … measures the proportion of returned documents that are truly relevant» → <strong>usant</strong>, det er presisjon.)</li>
+      <li><strong>Recall:</strong> hvor mye av alt det relevante fant jeg? (2018: «Precision measures an NLP system's ability not to exclude a relevant document» → <strong>usant</strong>, det er recall.)</li>
+    </ul>
+    <p>Et beslektet begrep: <span class="term" data-en="term frequency (TF)">term frequency<span class="def">Antall ganger et ord (term) forekommer i ett enkelt dokument. Brukes til å vekte søkeord i informasjonsgjenfinning.</span></span> (TF) er antall forekomster av et ord i <em>ett</em> dokument, ikke i hele samlingen (2015 T/F: usant).</p>
+    <div class="check" data-answer="0.667" data-mode="number" data-tol="0.002">
+      <p class="q">(Eksamen 2016) Et IR-system returnerte 80 dokumenter, hvorav 60 var relevante. Totalt fantes 100 relevante dokumenter. Hva er F1? (3 desimaler)</p>
+      <div class="explain">P = 60/80 = 0,75. R = 60/100 = 0,60. F1 = 2 · 0,75 · 0,60 / (0,75 + 0,60) = 0,9/1,35 = <strong>2/3 ≈ 0,667</strong>.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>11. Eksamensoppgaver</h2>
+    <p>Her er NLP-oppgavene fra eksamenene 2015–2025, med oppgaveteksten på engelsk slik den sto. Løs dem på papir før du åpner løsningsforslaget. Til slutt kommer nye regneoppgaver i samme stil.</p>
+    <div class="box exam">
+      <span class="box-title">Oppskrift for teorispørsmål i NLP</span>
+      <ol>
+        <li><strong>Definer</strong> begrepet med én setning (hva er en språkmodell / glatting / top-down parsing?).</li>
+        <li><strong>Forklar mekanismen</strong> (hvordan regnes det, hva gjør algoritmen?).</li>
+        <li><strong>Gi et eksempel</strong> med tall eller ord fra forelesningen (black cat, the wumpus is dead).</li>
+        <li><strong>Nevn en ulempe eller begrensning</strong> hvis oppgaven ber om det. Sensor ser etter nøyaktig de delene oppgaven nevner.</li>
+      </ol>
+    </div>
+
+    <div class="exercise" data-title="11.1 Natural Language Processing" data-meta="Eksamen 2025 · Q12 · 5 p">
+      <p><em>a) Explain why smoothing is necessary in n-gram language models. In your answer, briefly describe a possible type of smoothing. (2 pts.)</em></p>
+      <p><em>b) Explain the difference between top-down and bottom-up parsing strategies. In your answer, briefly describe how each strategy constructs a parser and mention one drawback of each approach. (3 pts.)</em></p>
+      <details class="hint"><summary>Hint</summary><p>a) Hva skjer med sannsynligheten til en hel setning hvis ett bigram har telling 0? b) Hvor starter hver strategi (S eller ordene), og hva slags bortkastet arbeid kan hver av dem gjøre?</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><strong>a)</strong> Noen ordsekvenser forekommer ikke i treningskorpuset. Uten glatting får disse usette n-grammene sannsynlighet 0, og da blir sannsynligheten til enhver setning som inneholder dem, også 0 (produktet blir 0). Glatting omfordeler litt sannsynlighetsmasse fra hyppige n-gram til sjeldne og usette. Et enkelt eksempel er <strong>Laplace (add-one)</strong>-glatting, som legger 1 til hver n-gram-telling slik at alle mulige ordsekvenser får sannsynlighet større enn 0: P(w<sub>i</sub> | w<sub>i−1</sub>) = (c(w<sub>i−1</sub>w<sub>i</sub>) + 1)/(c(w<sub>i−1</sub>) + V).</p>
+        <p><strong>b)</strong> <strong>Top-down:</strong> parseren starter i startsymbolet (vanligvis S) og bruker gjentatte ganger grammatikkregler til å ekspandere det til mindre bestanddeler, og sjekker om utvidelsene kan matche input-setningen. Ulempe: den kan utforske mange regelutvidelser som aldri svarer til de faktiske ordene, og sløser regnetid.</p>
+        <p><strong>Bottom-up:</strong> parseren starter med ordene i input og slår dem gradvis sammen til større bestanddeler etter grammatikkreglene, til den forsøker å bygge en hel setning. Ulempe: den kan bygge delstrukturer som ikke bidrar til noen gyldig fullstendig parse, noe som også gir ineffektivitet.</p>
+        <p>Løsningsforslaget legger til: for begge er hovedulempen gjentatt arbeid, blindveier og ineffektivitet. Boka: «Pure top-down or bottom-up parsing strategies can be inefficient, however, because they can end up repeating effort in areas of the search space that lead to dead ends.»</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="11.2 NLP (flervalg)" data-meta="Eksamen 2024 · Q19">
+      <p><em>Select only one correct statement from the below that is correct about Natural Language Processing (NLP).</em></p>
+      <div class="quiz" data-answer="d">
+        <p class="q">Velg det ene riktige alternativet:</p>
+        <ul class="opts">
+          <li data-why="NER (named entity recognition) finner og klassifiserer navn, steder, datoer osv. i tekst. Den kvantifiserer ikke hvor «viktige» de er.">Named Entity Recognition (NER) in NLP is used to quantify entities' importances like names, locations, and dates in text.</li>
+          <li data-why="NLP handler i høy grad om mening (semantikk): spørsmålssvar, oversettelse, sentimentanalyse …">NLP techniques are solely based on syntactic analysis, ignoring semantic meaning.</li>
+          <li data-why="«No matter the task» er for sterkt. I f.eks. sentimentanalyse («not good») eller spørsmålssvar kan stoppord bære viktig mening.">No matter the task, Stop Words must be removed in NLP because they do not carry significant meaning.</li>
+          <li>NLP enables computers to interpret and generate human language.</li>
+          <li data-why="Tokenisering deler (ustrukturert) tekst opp i tokens (ord, tegn). Det gjør ikke strukturerte data om til tekst.">Tokenization is a technique in NLP used to transform structured data into unstructured text.</li>
+        </ul>
+        <div class="feedback">NLP gjør datamaskiner i stand til å tolke og generere menneskelig språk. Se etter absolutte formuleringer («solely», «no matter the task, must») – de er nesten alltid feil.</div>
+      </div>
+    </div>
+
+    <div class="exercise" data-title="11.3 Natural Language Processing" data-meta="Eksamen 2016 · Task 6 · 20 p">
+      <p><strong>a) (6p) True or False</strong> <em>(correct answer = 1p; wrong answer = −½p; total score will be 0–6p)</em></p>
+      <ol>
+        <li><em>Sentiment analysis is a text classification application.</em></li>
+        <li><em>The purpose of smoothing is to avoid dramatic effects of low-frequency counts.</em></li>
+        <li><em>The bag of words model can be seen as a simple language model.</em></li>
+        <li><em>'Freeze', 'halt', 'cease' and 'finish' are examples of stop words.</em></li>
+        <li><em>The task of Information Retrieval is to return the answer to a user query.</em></li>
+        <li><em>Information Extraction systems are often based on templates.</em></li>
+      </ol>
+      <p><strong>b) (2p)</strong> <em>What are the main features of human languages that make parsing of these different from the parsing of programming languages?</em></p>
+      <p><strong>c) (2p)</strong> <em>Sentiment analysis of Twitter messages (tweets) faces several challenges. Give examples of at least four problems that need to be addressed.</em></p>
+      <p><strong>d) (4p)</strong> <em>The documents in a collection that were returned respectively not returned by an Information Retrieval system in response to a given query were analysed for relevance and shown to be distributed as follows:</em></p>
+      <table class="mini-table"><tr><th></th><th>Returned</th><th>Not returned</th></tr><tr><th>Relevant</th><td>60</td><td>40</td></tr><tr><th>Not relevant</th><td>20</td><td>180</td></tr></table>
+      <p><em>What was the system's precision? What was the system's recall? What is F1 score? Calculate the F1 score of the system.</em></p>
+      <p><strong>e) (6p)</strong> <em>Suppose you have access to the following knowledge sources: dictionaries of basic word forms (lemmas) for English and Norwegian; morphological inflection rules for the same two languages; a large set of English e-mails already classified as spam; a large set of Norwegian e-mails already classified as spam; a large set of English e-mails already classified as not being spam; a large set of Norwegian e-mails already classified as not being spam; a huge set of unclassified e-mails written in a wide range of human languages; and a stream of incoming messages, each of the length of no more than one sentence. Describe how you would go about building a system which would analyze each incoming message and produce one of the following outputs: not a human language / a human language which is neither English nor Norwegian / English and spam / Norwegian and spam / English and not spam / Norwegian and not spam. You do not need to produce a complete solution, but rather sketch the steps that would have to be taken.</em></p>
+      <details class="hint"><summary>Hint</summary><p>e) Hvilke modeller fra denne modulen er gode til språkidentifikasjon (seksjon 3), og hvilke til spamklassifisering? Hvor mange modeller trenger du?</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><strong>a)</strong> 1 <strong>T</strong> · 2 <strong>T</strong> · 3 <strong>T</strong> · 4 <strong>F</strong> (dette er vanlige innholdsord; stoppord er «the», «of», «and» …) · 5 <strong>F</strong> (IR returnerer relevante dokumenter, ikke svaret; det er spørsmålssvar) · 6 <strong>T</strong>.</p>
+        <p><strong>b)</strong> Tvetydighet og redundans. I tillegg er menneskelige språk i stadig endring og i større grad kontekstavhengige. (En setning i et programmeringsspråk har ett entydig parsetre; naturlig språk har ofte mange.)</p>
+        <p><strong>c)</strong> For eksempel: ordbetydning kan være domeneavhengig; modifikatorer (f.eks. negasjon) kan endre eller snu meningen; billedlig språk (sarkasme, ironi, humor); svært korte meldinger; kortform, idiomer, ukonvensjonell grammatikk, stavefeil og hashtags; referanser til andre brukere og tweets; lenker og bilder; blanding av språk.</p>
+        <p><strong>d)</strong> Presisjon = 60/(60 + 20) = <strong>0,75</strong>. Recall = 60/(60 + 40) = <strong>0,60</strong>. F1 er det harmoniske gjennomsnittet av presisjon og recall, 2PR/(P + R) = 2 · 0,75 · 0,60/(0,75 + 0,60) = 0,9/1,35 = <strong>2/3 ≈ 0,67</strong>.</p>
+        <p><strong>e)</strong> Flere løsninger er mulige. Én er å se det som språkmodellering og klassifisering:</p>
+        <ol>
+          <li>Forbehandle ordene i de klassifiserte og uklassifiserte e-postene: fjern tegnsetting, gjør om til små bokstaver.</li>
+          <li>Normaliser ordene i de forhåndsklassifiserte e-postene: bruk bøyningsreglene og map hvert ord til grunnformen (lemma) med ordbøkene.</li>
+          <li>Lag fem språkmodeller (f.eks. bag-of-words eller bigram): engelsk spam, engelsk ikke-spam, norsk spam, norsk ikke-spam, og «menneskelig språk» (fra den store uklassifiserte samlingen; gjerne en tegnnivå-modell).</li>
+          <li>For hver innkommende melding: finn hvilken modell den passer best med, enten ved å bruke sannsynlighetene fra modellene direkte eller ved å trene en maskinlæringsklassifikator på dataene. Lav sannsynlighet under «menneskelig språk» → ikke menneskelig språk; høy under den, men lav under alle fire engelsk/norsk-modellene → annet språk.</li>
+        </ol>
+        <p>Alternativt som et IR-problem: behandle hver melding som et søk, hent de N (f.eks. 100) mest like dokumentene, og gi meldingen klassen som flertallet av dem har.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="11.4 Flervalg om NLP" data-meta="Eksamen 2017 · Problem 7 (del) · 2 p per spørsmål, −1 for feil svar">
+      <div class="quiz" data-answer="b,c">
+        <p class="q"><em>Suppose you were given the task of creating an artificial human language (like Esperanto) that would not give anybody an advantage. Which of the following would you say would be most important to try to restrict?</em></p>
+        <ul class="opts">
+          <li data-why="Ordforrådet kan læres; det er ikke hovedkilden til vansker for maskiner eller mennesker.">The lexicon.</li>
+          <li>The grammar.</li>
+          <li>Ambiguity.</li>
+          <li data-why="Redundans gjør språk mer robust, ikke vanskeligere.">Redundancy.</li>
+        </ul>
+        <div class="feedback">Løsningsforslaget godtar både 2 (grammatikken) og 3 (tvetydighet).</div>
+      </div>
+      <div class="quiz" data-answer="b">
+        <p class="q"><em>Two search engines were evaluated on a web search query. Engine A returned 27 web pages, 18 of which were deemed relevant to the query. Engine B returned 9 pages, all of which were relevant to the query. Which of the following statements is definitely correct?</em></p>
+        <ul class="opts">
+          <li data-why="Løsningsforslaget godtar ikke dette: recall = relevante funnet / alle relevante, og vi kjenner ikke det totale antallet relevante sider. Bare presisjonen kan regnes ut direkte fra tallene.">System A had a higher recall than system B.</li>
+          <li>System B had a higher precision than system A.</li>
+          <li data-why="F1 avhenger av recall, som vi ikke kan regne ut uten totalt antall relevante sider.">System B had a higher F1-score than system A.</li>
+          <li data-why="«Bedre ytelse» er ikke definert uten et mål, og avhenger av recall.">System A had a better performance than system B.</li>
+        </ul>
+        <div class="feedback">Presisjon A = 18/27 ≈ 0,67, presisjon B = 9/9 = 1. Recall og F1 kan ikke regnes ut uten totalt antall relevante sider.</div>
+      </div>
+      <div class="quiz" data-answer="c">
+        <p class="q"><em>When performing sentiment analysis, it is normally important to find out:</em></p>
+        <ul class="opts">
+          <li data-why="Nyttig i noen anvendelser, men ikke kjernen i oppgaven.">Who the opinion holder is.</li>
+          <li data-why="Nyttig i aspektbasert sentimentanalyse, men ikke kjernen.">What object the opinion is expressed on.</li>
+          <li>If the opinion is positive, negative or neutral.</li>
+          <li data-why="Løsningsforslaget sier 3.">All of the above.</li>
+        </ul>
+        <div class="feedback">Løsningsforslaget: 3. Sentimentanalyse er en klassifiseringsoppgave: positiv, negativ eller nøytral.</div>
+      </div>
+      <div class="quiz" data-answer="d">
+        <p class="q"><em>Which of the following statements is not correct?</em></p>
+        <ul class="opts">
+          <li data-why="Riktig: dette er distribusjonshypotesen (grunnlaget for ordinnbygginger).">The distributional hypothesis assumes that words with similar usage have similar meanings.</li>
+          <li data-why="Riktig: bag-of-words ignorerer rekkefølge og dermed grammatisk struktur.">The bag of words model ignores the grammatical structure of the language.</li>
+          <li data-why="Riktig: n-gram-modeller er språkmodeller (sannsynlighetsfordelinger over strenger).">An n-gram model is an example of a language model.</li>
+          <li>Grounding means that a speaker defines the basis for a dialogue.</li>
+        </ul>
+        <div class="feedback">Svar 4. «Grounding» handler om å knytte ord og symboler til det de viser til i verden (eller om at deltakerne i en samtale etablerer felles forståelse), ikke om at én taler definerer grunnlaget.</div>
+      </div>
+    </div>
+
+    <div class="exercise" data-title="11.5 Sant/usant fra 2015 og 2018" data-meta="Eksamen 2015 P1 og P2 · 2018 P3 · 2 p hver (+2/−1)">
+      <ol>
+        <li><em>(2015) Recall is an evaluation metric used in information retrieval that measures the proportion of returned documents that are truly relevant.</em></li>
+        <li><em>(2015) Term Frequency (TF) defines the count of a term t in a collection of documents.</em></li>
+        <li><em>(2018) Precision measures an NLP system's ability not to exclude a relevant document from the list of retrieved documents.</em></li>
+        <li><em>(2015, flervalg) Which of the following may be most useful in generation of a semantic network automatically from documents? Information retrieval / Sentiment analysis / Syntactic parsing / Information extraction / none of the above.</em></li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol>
+          <li><strong>Usant.</strong> Det beskriver presisjon. Recall er andelen av alle relevante dokumenter som ble returnert.</li>
+          <li><strong>Usant.</strong> TF er antall forekomster i <em>ett</em> dokument.</li>
+          <li><strong>Usant.</strong> Evnen til ikke å utelate relevante dokumenter er recall.</li>
+          <li><strong>Informasjonsekstraksjon.</strong> Den henter objekter og relasjoner ut av tekst, og det er nettopp det et semantisk nett består av.</li>
+        </ol>
+      </details>
+    </div>
+
+    <h3>Nye øvingsoppgaver</h3>
+    <div class="exercise" data-title="11.6 Bigram med og uten glatting" data-meta="Øving i eksamensstil · ca. 5 p">
+      <p>Et lite korpus består av de tre setningene (med &lt;s&gt; og &lt;/s&gt; som start- og sluttmerker):</p>
+      <pre>&lt;s&gt; i feel a breeze &lt;/s&gt;
+&lt;s&gt; i smell a wumpus &lt;/s&gt;
+&lt;s&gt; a wumpus is near &lt;/s&gt;</pre>
+      <p>a) Regn P(«i smell a breeze») med en bigrammodell uten glatting (husk P(i | &lt;s&gt;) og P(&lt;/s&gt; | breeze)).<br>
+      b) Regn P(«a breeze is near») uten glatting. Hva skjer, og hvorfor?<br>
+      c) Regn det samme med Laplace-glatting. Ordforrådet (mulige neste token) er {i, feel, a, breeze, smell, wumpus, is, near, &lt;/s&gt;}, altså V = 9.</p>
+      <details class="hint"><summary>Hint</summary><p>Tell c(&lt;s&gt;) = 3, c(i) = 2, c(a) = 3, c(breeze) = 1 … og bigrammene. Du kan kontrollere med bigram-kalkulatoren i seksjon 3 (lim inn setningene uten &lt;s&gt;/&lt;/s&gt;).</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><strong>a)</strong> P(i | &lt;s&gt;) = 2/3, P(smell | i) = 1/2, P(a | smell) = 1/1, P(breeze | a) = 1/3, P(&lt;/s&gt; | breeze) = 1/1. Produkt: 2/3 · 1/2 · 1 · 1/3 · 1 = <strong>1/9 ≈ 0,111</strong>. (Setningen er ny, men alle bigrammene er sett.)</p>
+        <p><strong>b)</strong> P(a | &lt;s&gt;) = 1/3, P(breeze | a) = 1/3, P(is | breeze) = 0/1 = <strong>0</strong> → hele setningen får P = 0, selv om den er helt grei engelsk. Bigrammet «breeze is» finnes ikke i korpuset. Dette er nøyaktig problemet glatting løser.</p>
+        <p><strong>c)</strong> Laplace: (c + 1)/(c(forrige) + 9).<br>
+        P(a | &lt;s&gt;) = (1 + 1)/(3 + 9) = 2/12; P(breeze | a) = (1 + 1)/(3 + 9) = 2/12; P(is | breeze) = (0 + 1)/(1 + 9) = 1/10; P(near | is) = (1 + 1)/(1 + 9) = 2/10; P(&lt;/s&gt; | near) = (1 + 1)/(1 + 9) = 2/10.<br>
+        Produkt: (1/6)(1/6)(1/10)(1/5)(1/5) = 1/9000 ≈ <strong>1,1 · 10<sup>−4</sup></strong>. Ikke lenger null.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="11.7 Sannsynlighet for et parsetre" data-meta="Øving i eksamensstil · ca. 4 p">
+      <p>Bruk E<sub>0</sub>-reglene og leksikonet fra seksjon 8. Tegn parsetreet for «I feel a breeze» (bruk NP → Pronoun, Pronoun → I [0,10], VP → VP NP, VP → Verb, Verb → feel [0,10], NP → Article Noun, Article → a [0,30], Noun → breeze [0,10]), og regn ut sannsynligheten til treet. Skriv treet i lineær form.</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p>[S [NP [Pronoun I]] [VP [VP [Verb feel]] [NP [Article a] [Noun breeze]]]]</p>
+        <p>S → NP VP 0,90 · NP → Pronoun 0,25 · Pronoun → I 0,10 · VP → VP NP 0,35 · VP → Verb 0,40 · Verb → feel 0,10 · NP → Article Noun 0,25 · Article → a 0,30 · Noun → breeze 0,10.</p>
+        <p>0,90 · 0,25 · 0,10 · 0,35 · 0,40 · 0,10 · 0,25 · 0,30 · 0,10 = 0,0225 · 0,35 = 0,007875; · 0,04 = 0,000315; · 0,0075 = <strong>2,36 · 10<sup>−6</sup></strong>.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="11.8 Fyll ut en CYK-tabell" data-meta="Øving i eksamensstil · ca. 5 p">
+      <p>Bruk CNF-grammatikken i CYK-widgeten (seksjon 9) og fyll ut CYK-tabellen for «every wumpus smells» på papir: hvilke kategorier og sannsynligheter står i hver celle? Hva er P[S, 1, 3]? Kontroller med widgeten.</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><strong>Lengde 1:</strong> every: Article 0,05 · wumpus: Noun 0,15 · smells: Verb 0,10 og VP 0,40 · 0,10 = 0,04.</p>
+        <p><strong>Lengde 2:</strong> [1,2] «every wumpus»: NP → Article Noun = 0,25 · 0,05 · 0,15 = 0,001875. [2,3] «wumpus smells»: ingen regel X → Noun VP eller X → Noun Verb → tom.</p>
+        <p><strong>Lengde 3:</strong> [1,3]: j = 1 gir Article + [2,3] (tom) → ingenting; j = 2 gir NP[1,2] + VP[3,3]: S → NP VP = 0,90 · 0,001875 · 0,04 = <strong>0,0000675</strong>. Samme tall som i boka fig. 24.6.</p>
+      </details>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Forklar med egne ord hvorfor CYK unngår problemet med «Have the students in section 2 of Computer Science 101 take/taken the exam», og hvorfor det bare fungerer fordi grammatikken er kontekstfri.</p>
+      <details><summary>Vis et forslag</summary><p>CYK parser hver delstreng bare én gang og lagrer alle kategoriene den kan ha (her: NP over «the students … 101») i tabellen. Når parseren senere ser «take» eller «taken», brukes den lagrede NP-en i begge tolkningene; ingenting må parses på nytt. Det er trygt fordi grammatikken er kontekstfri: om en delstreng er en NP, og hvor sannsynlig den er, avhenger ikke av hva som står rundt den. Da kan resultatet gjenbrukes i alle grener av søket.</p></details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>12. Oppsummering / jukselapp</h2>
+    <div class="box key">
+      <span class="box-title">Språkmodeller</span>
+<pre style="margin:0">Språkmodell = sannsynlighetsfordeling over strenger.
+Bag-of-words / naiv Bayes:  P(Class | w1:N) ∝ P(Class) · ∏ P(wj | Class)     (rekkefølge ignoreres)
+Kjerneregel:  P(w1:N) = ∏ P(wj | w1:j−1)        → for mange parametre (~10^200)
+n-gram (Markov):  P(wj | w1:j−1) ≈ P(wj | wj−n+1:j−1);  bigram: c(w_{i−1} w_i) / c(w_{i−1})
+Glatting – hvorfor: usette n-gram → P = 0 → hele setningen P = 0; sjeldne n-gram → høy varians
+  &lt;UNK&gt; for ukjente ord (+ &lt;NUM&gt;, &lt;EMAIL&gt;, &lt;URL&gt;, &lt;S&gt;)
+  Laplace:      (c(w_{i−1} w_i) + 1) / (c(w_{i−1}) + V)      – enkel, men tar for mye masse
+  Backoff:      bruk trigram hvis telling høy nok, ellers bigram, ellers unigram
+  Interpolasjon: λ3·P(w|u,v) + λ2·P(w|v) + λ1·P(w),  Σλ = 1</pre>
+    </div>
+    <table>
+      <tr><th>Tema</th><th>Husk</th></tr>
+      <tr><td>Ordrepresentasjoner</td><td>n-gram: ord er atomer. Bedre: WordNet (håndbygd, «er en»-lenker), POS-tagger, ordinnbygginger (kap. 25).</td></tr>
+      <tr><td>HMM-tagger</td><td>Skjult: tagger. Observert: ord. P(C<sub>1:N</sub>, W<sub>1:N</sub>) = P(C<sub>1</sub>) ∏ P(C<sub>t</sub>|C<sub>t−1</sub>) ∏ P(W<sub>t</sub>|C<sub>t</sub>). Viterbi → beste sekvens. ≈ 97 %. Trenes ved telling + glatting.</td></tr>
+      <tr><td>Logistisk regresjon</td><td>Diskriminativ, P(tag | x) = σ(w · x), vilkårlige trekk, grådig eller beam over setningen.</td></tr>
+      <tr><td>Generativ vs. diskriminativ</td><td>P(W, C) vs. P(C | W). Generativ: kan sample, raskere trening, bra med lite data. Diskriminativ: lavere feilrate, vilkårlige trekk.</td></tr>
+      <tr><td>PCFG</td><td>Regler med sannsynligheter, Σ = 1 per venstreside. P(tre) = produktet av alle regelsannsynligheter. Kontekstfri: samme regel overalt.</td></tr>
+      <tr><td>Over-/undergenerering</td><td>«Me go I.» godtas / «I think the wumpus is smelly.» avvises.</td></tr>
+      <tr><td>Top-down / bottom-up</td><td>S → ord (ulempe: utvidelser som ikke matcher ordene) / ord → S (ulempe: delstrukturer som ikke inngår i noen parse). Begge: gjentatt arbeid i blindveier.</td></tr>
+      <tr><td>CYK</td><td>Bottom-up chart-parser, dynamisk programmering, krever CNF (X → ord, X → Y Z). Tid O(n³m), plass O(n²m).</td></tr>
+      <tr><td>Raskere</td><td>A* (admissibel → første parse er den mest sannsynlige), beam (b beste, O(n)), shift-reduce (b = 1, deterministisk).</td></tr>
+      <tr><td>Oppgaver (24.6)</td><td>Talegjenkjenning, tekst-til-tale, maskinoversettelse (parallelle tekster), informasjonsekstraksjon (maler, regex), informasjonsgjenfinning (rangert dokumentliste), spørsmålssvar (et svar).</td></tr>
+      <tr><td>Evaluering</td><td>Presisjon = TP/(TP + FP), recall = TP/(TP + FN), F1 = 2PR/(P + R).</td></tr>
+    </table>
+    <p><strong>Begreper å kunne forklare:</strong> språkmodell, korpus, tokenisering, bag-of-words, naiv Bayes-antakelsen, n-gram, Markov-antakelsen, tegnnivå-modell, skip-gram, &lt;UNK&gt;, glatting, Laplace, backoff, lineær interpolasjon, morfologi/syntaks/semantikk, WordNet, ordklasse, Penn Treebank, HMM (overgangs- og emisjonsmodell), Viterbi, logistisk regresjon, generativ/diskriminativ, grammatikk, PCFG, kontekstfri, over-/undergenerering, parsing, top-down, bottom-up, chart parser, CYK, Chomsky-normalform, beam search, shift-reduce, talegjenkjenning, tekst-til-tale, maskinoversettelse, informasjonsekstraksjon, informasjonsgjenfinning, spørsmålssvar, presisjon, recall, F1.</p>
+  </main>
+  <aside class="margin"></aside>
+</div>
+<script src="assets/course.js"></script>
+<script>
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  // Tallformat: små tall i vitenskapelig notasjon med norsk komma
+  function fmt(x) {
+    if (x === 0) return "0";
+    if (x >= 0.001) return (Math.round(x * 100000) / 100000).toString().replace(".", ",");
+    const e = Math.floor(Math.log10(x)), m = x / Math.pow(10, e);
+    const sup = String(e).replace("-", "⁻").replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[d]);
+    return `${(Math.round(m * 100) / 100).toString().replace(".", ",")}·10${sup}`;
+  }
+
+  /* ---------------- Bigram-kalkulator ---------------- */
+  function bigram() {
+    const lines = $("bg-corpus").value.split("\n").map(l => l.trim().toLowerCase()).filter(Boolean);
+    const uni = {}, bi = {}, vocab = new Set();
+    for (const l of lines) {
+      const t = ["<s>", ...l.split(/\s+/), "</s>"];
+      for (let i = 0; i < t.length; i++) {
+        if (i > 0) vocab.add(t[i]);
+        if (i < t.length - 1) { uni[t[i]] = (uni[t[i]] || 0) + 1; const k = t[i] + " " + t[i + 1]; bi[k] = (bi[k] || 0) + 1; }
+      }
+    }
+    const V = vocab.size;
+    const words = $("bg-sent").value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const t = ["<s>", ...words, "</s>"];
+    let pm = 1, pl = 1, rows = "";
+    const unknown = words.filter(w => !vocab.has(w));
+    for (let i = 1; i < t.length; i++) {
+      const prev = t[i - 1], w = t[i];
+      const cb = bi[prev + " " + w] || 0, cu = uni[prev] || 0;
+      const mle = cu ? cb / cu : 0, lap = (cb + 1) / (cu + V);
+      pm *= mle; pl *= lap;
+      rows += `<tr><td>P(${esc(w)} | ${esc(prev)})</td><td class="num">${cb}</td><td class="num">${cu}</td><td class="num ${mle === 0 ? "zero" : ""}">${cu ? cb + "/" + cu + " = " + fmt(mle) : "0 (ukjent kontekst)"}</td><td class="num">(${cb}+1)/(${cu}+${V}) = ${fmt(lap)}</td></tr>`;
+    }
+    rows += `<tr class="tot"><td>P(setning)</td><td></td><td></td><td class="num ${pm === 0 ? "zero" : ""}">${fmt(pm)}</td><td class="num">${fmt(pl)}</td></tr>`;
+    $("bg-out").innerHTML = `<p style="margin:.3rem 0">${lines.length} setninger · V = ${V} mulige neste token (alle ordtyper + &lt;/s&gt;)${unknown.length ? ` · <span style="color:var(--bad)">ukjente ord: ${esc(unknown.join(", "))} – i praksis ville de blitt &lt;UNK&gt;</span>` : ""}</p>
+      <table><tr><th>Bigram</th><th>c(bigram)</th><th>c(forrige ord)</th><th>Uten glatting</th><th>Laplace</th></tr>${rows}</table>
+      <p style="font-size:.85rem;color:var(--muted)">${pm === 0 ? "Ett eneste usett bigram gjør hele setningen umulig uten glatting." : "Alle bigrammene er sett, så setningen får P &gt; 0 også uten glatting. Legg merke til hvor mye Laplace senker sannsynligheten."}</p>`;
+    CourseKit.relayout();
+  }
+  $("bg-go").onclick = bigram;
+  $("bg-sent").addEventListener("keydown", e => { if (e.key === "Enter") bigram(); });
+  bigram();
+
+  /* ---------------- CYK ---------------- */
+  // CNF-versjon av E0 (enhetsregler bakt inn i leksikonet)
+  const LEX = {
+    the: [["Article", 0.40]], a: [["Article", 0.30]], every: [["Article", 0.05]],
+    wumpus: [["Noun", 0.15]], breeze: [["Noun", 0.10]], stench: [["Noun", 0.05]], pits: [["Noun", 0.05], ["NP", 0.10 * 0.05]],
+    is: [["Verb", 0.10], ["VP", 0.04]], feel: [["Verb", 0.10], ["VP", 0.04]], smells: [["Verb", 0.10], ["VP", 0.04]], stinks: [["Verb", 0.05], ["VP", 0.02]],
+    dead: [["Adjective", 0.05]], smelly: [["Adjective", 0.02]],
+    i: [["Pronoun", 0.10], ["NP", 0.025]], it: [["Pronoun", 0.10], ["NP", 0.025]],
+    in: [["Prep", 0.10]], near: [["Prep", 0.10]],
+    "1": [["Digit", 0.20]], "3": [["Digit", 0.20]]
+  };
+  const RULES = [
+    ["S", "NP", "VP", 0.90], ["NP", "Article", "Noun", 0.25], ["NP", "NP", "PP", 0.10], ["NP", "Digit", "Digit", 0.05],
+    ["VP", "VP", "NP", 0.35], ["VP", "VP", "Adjective", 0.05], ["VP", "VP", "PP", 0.10], ["PP", "Prep", "NP", 1.00]
+  ];
+  $("cyk-lex").innerHTML = "Ord: " + Object.keys(LEX).join(", ") + "<br>Regler: " + RULES.map(r => `${r[0]} → ${r[1]} ${r[2]} [${String(r[3]).replace(".", ",")}]`).join(" · ") + " · VP → Verb og NP → Pronoun/Noun er bakt inn i leksikonet.";
+
+  let W = [], P = {}, B = {}, spans = [], si = 0, logLines = [];
+  const key = (X, i, k) => `${X}|${i}|${k}`;
+  function cellCats(i, k) { return Object.keys(P).filter(s => s.endsWith(`|${i}|${k}`)).map(s => [s.split("|")[0], P[s]]).sort((a, b) => b[1] - a[1]); }
+  function lin(X, i, k) {
+    const b = B[key(X, i, k)];
+    if (!b) return `[${X} ?]`;
+    if (b.word !== undefined) return `[${X} ${b.word}]`;
+    return `[${X} ${lin(b.Y, i, b.j)} ${lin(b.Z, b.j + 1, k)}]`;
+  }
+  function cykReset() {
+    W = $("cyk-sent").value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    P = {}; B = {}; spans = []; si = 0; logLines = [];
+    const bad = W.filter(w => !LEX[w]);
+    if (bad.length) { $("cyk-status").innerHTML = `<span style="color:var(--bad)">Ukjente ord: ${esc(bad.join(", "))}. Bruk ordene i listen over.</span>`; $("cyk-table").innerHTML = ""; $("cyk-log").innerHTML = ""; return; }
+    W.forEach((w, idx) => { const i = idx + 1; for (const [X, p] of LEX[w]) { P[key(X, i, i)] = p; B[key(X, i, i)] = { word: w }; } logLines.push(`Lengde 1, «${w}» [${i},${i}]: ` + LEX[w].map(([X, p]) => `${X} ${fmt(p)}`).join(", ")); });
+    const n = W.length;
+    for (let len = 2; len <= n; len++) for (let i = 1; i <= n + 1 - len; i++) spans.push([i, i + len - 1]);
+    $("cyk-status").textContent = `Lengde-1-cellene er fylt fra leksikonet. ${spans.length} celler gjenstår.`;
+    draw(null);
+  }
+  function stepCell() {
+    if (si >= spans.length) return false;
+    const [i, k] = spans[si++];
+    const lines = [];
+    for (let j = i; j < k; j++) {
+      for (const [X, Y, Z, p] of RULES) {
+        const py = P[key(Y, i, j)], pz = P[key(Z, j + 1, k)];
+        if (!py || !pz) continue;
+        const v = py * pz * p;
+        const better = v > (P[key(X, i, k)] || 0);
+        lines.push(`  j=${j}: ${X} → ${Y}[${i},${j}] ${Z}[${j + 1},${k}] = ${fmt(py)} · ${fmt(pz)} · ${String(p).replace(".", ",")} = ${fmt(v)}${better ? "" : " (ikke bedre)"}`);
+        if (better) { P[key(X, i, k)] = v; B[key(X, i, k)] = { Y, Z, j }; }
+      }
+    }
+    logLines.push(`Spenn [${i},${k}] «${W.slice(i - 1, k).join(" ")}»:` + (lines.length ? "\n" + lines.join("\n") : " ingen regel passer → tom"));
+    draw([i, k]);
+    return true;
+  }
+  function draw(cur) {
+    const n = W.length; let h = "";
+    for (let len = n; len >= 1; len--) {
+      h += "<tr>";
+      for (let i = 1; i <= n + 1 - len; i++) {
+        const k = i + len - 1;
+        const filled = len === 1 || spans.slice(0, si).some(s => s[0] === i && s[1] === k);
+        const cats = filled ? cellCats(i, k) : [];
+        const isCur = cur && cur[0] === i && cur[1] === k;
+        const inner = !filled ? "" : cats.length ? cats.map(([X, p]) => `<span class="cat ${X === "S" ? "s" : ""}">${X} ${fmt(p)}</span>`).join("") : "–";
+        h += `<td class="${isCur ? "cur" : ""} ${filled && !cats.length ? "empty" : ""}" title="[${i},${k}] ${esc(W.slice(i - 1, k).join(" "))}" colspan="1">${inner}</td>`;
+      }
+      h += "</tr>";
+    }
+    h += "<tr>" + W.map(w => `<td class="word">${esc(w)}</td>`).join("") + "</tr>";
+    $("cyk-table").innerHTML = h;
+    $("cyk-log").innerHTML = logLines.map((l, idx) => `<div class="${idx === logLines.length - 1 && cur ? "cur" : ""}">${esc(l).replace(/\n/g, "<br>")}</div>`).join("");
+    $("cyk-log").scrollTop = 1e6;
+    if (si >= spans.length && W.length) {
+      const ps = P[key("S", 1, n)];
+      $("cyk-status").innerHTML = ps ? `<b style="color:var(--good)">Ferdig.</b> P[S, 1, ${n}] = ${fmt(ps)}. Beste parse: <code>${esc(lin("S", 1, n))}</code>` : `<b style="color:var(--bad)">Ferdig, men ingen S over hele setningen</b> – grammatikken godtar ikke setningen (undergenerering?).`;
+    } else if (cur) $("cyk-status").textContent = `Fylte celle [${cur[0]},${cur[1]}]. ${spans.length - si} celler gjenstår.`;
+    CourseKit.relayout();
+  }
+  $("cyk-reset").onclick = cykReset;
+  $("cyk-step").onclick = () => { if (!W.length) cykReset(); stepCell(); };
+  $("cyk-all").onclick = () => { if (!W.length) cykReset(); while (stepCell()); };
+  $("cyk-sent").addEventListener("keydown", e => { if (e.key === "Enter") cykReset(); });
+  cykReset();
+})();
+</script>
+</body>
+</html>

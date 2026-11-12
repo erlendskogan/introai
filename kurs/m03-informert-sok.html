@@ -1,0 +1,2156 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modul 03 — Informert søk: Greedy, A* og heuristikker · TDT4136</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  svg .node-done { fill: var(--code-bg); stroke: var(--muted); stroke-width: 1.6; }
+  svg text.hlab { font-size: 11px; fill: var(--purple); font-weight: 600; paint-order: stroke; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round; }
+  svg text.sub { font-size: 11px; fill: var(--accent); font-weight: 600; paint-order: stroke; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round; }
+  svg text.ew { font-size: 12px; fill: var(--muted); font-weight: 600; paint-order: stroke; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round; }
+  svg .goal-ring { fill: none; stroke: var(--good); stroke-width: 1.6; }
+  svg .start-arrow { stroke: var(--ink); stroke-width: 1.6; fill: none; }
+  svg .contour { fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-dasharray: 6 4; }
+  svg .contour2 { fill: none; stroke: var(--purple); stroke-width: 1.4; stroke-dasharray: 6 4; }
+  svg .tile { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.4; }
+  svg .tile-blank { fill: var(--code-bg); stroke: var(--line); stroke-width: 1.4; }
+  svg .tile-ok { fill: var(--good-soft); stroke: var(--good); stroke-width: 1.4; }
+  .gfig-wrap { overflow-x: auto; }
+  table.trace { font-size: .82rem; }
+  table.trace td, table.trace th { padding: .3rem .45rem; }
+  table.trace td.mono, table.trace .mono { font-family: var(--mono); font-size: .8rem; background: none; }
+  table.compact { font-size: .85rem; }
+  .ok { color: var(--good); font-weight: 700; }
+  .no { color: var(--bad); font-weight: 700; }
+  .widget table { font-size: .82rem; margin: .5rem 0; }
+  .widget table td, .widget table th { padding: .25rem .45rem; }
+  .widget tr.next-row td { background: var(--accent-soft); font-weight: 600; }
+  .widget tr.bad-row td { background: var(--bad-soft); }
+  .widget tr.good-row td { background: var(--good-soft); }
+  .widget .summary { font-family: var(--mono); font-size: .82rem; padding: .5rem .7rem; border-radius: 8px; background: var(--accent-soft); margin: .5rem 0; white-space: pre-wrap; }
+  .widget .legend { font-size: .78rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: .8rem; margin: .3rem 0; }
+  .widget .legend span::before { content: ""; display: inline-block; width: .8rem; height: .8rem; border-radius: 50%; margin-right: .3rem; vertical-align: -1px; border: 2px solid var(--muted); }
+  .widget .legend .lg-cur::before { background: var(--accent-soft); border-color: var(--accent); }
+  .widget .legend .lg-fr::before { background: var(--warn-soft); border-color: var(--warn); }
+  .widget .legend .lg-done::before { background: var(--code-bg); border-color: var(--muted); }
+  .widget .legend .lg-path::before { background: var(--good-soft); border-color: var(--good); }
+  .widget .legend .lg-bad::before { background: var(--bad-soft); border-color: var(--bad); }
+  .widget input.hin { width: 4.2rem; font-family: var(--mono); }
+  .widget input.wide { width: 16rem; font-family: var(--mono); }
+  .puzzle-grid { display: grid; grid-template-columns: repeat(3, 3.2rem); gap: 4px; margin: .4rem 0; }
+  .puzzle-grid div { height: 3.2rem; display: flex; align-items: center; justify-content: center; font-family: var(--font); font-weight: 700; font-size: 1.3rem; border-radius: 6px; border: 1.5px solid var(--accent); background: var(--accent-soft); cursor: pointer; user-select: none; }
+  .puzzle-grid div.blank { background: var(--code-bg); border-color: var(--line); cursor: default; }
+  .puzzle-grid div.okpos { border-color: var(--good); background: var(--good-soft); }
+  .puzzle-row { display: flex; gap: 2rem; flex-wrap: wrap; align-items: flex-start; }
+  .bigval { font-family: var(--mono); font-size: 1.05rem; font-weight: 700; }
+</style>
+</head>
+<body data-module="m03">
+<div class="layout">
+  <nav class="toc"></nav>
+  <main>
+    <div class="kicker">Modul 3 · Kap. 3.5–3.6</div>
+    <h1>Informert søk: Greedy, A* og heuristikker</h1>
+    <p class="lead">Uinformert søk leter i blinde. Med en god «magefølelse» for hvor målet ligger – en heuristikk – kan søket gå rett mot målet. Denne modulen gjør deg i stand til å kjøre A* for hånd slik sensor vil ha det, avgjøre om en heuristikk er admissibel og konsistent, og forklare hvorfor A* finner den billigste løsningen.</p>
+
+    <div class="box key">
+      <span class="box-title">Læringsmål</span>
+      <ul>
+        <li>Forklare hva en heuristisk funksjon <i>h(n)</i> og en evalueringsfunksjon <i>f(n)</i> er, og hvordan DFS, UCS, greedy best-first og A* bare er Best-First-Search med ulik <i>f</i>.</li>
+        <li>Kjøre greedy best-first search og A* for hånd på en graf, med frontier-tabell (g, h, f), alfabetisk tiebreaking og sen måltest – og skrive svaret i eksamensformat.</li>
+        <li>Definere og sjekke <b>admissibilitet</b> (h ≤ h*) og <b>konsistens</b> (h(n) ≤ c(n,n′) + h(n′)) på en gitt graf, og forklare sammenhengen mellom dem.</li>
+        <li>Forklare beviset for at A* er optimal, hva konturer er, og hvilke noder A* garantert ekspanderer.</li>
+        <li>Forklare forskjellen på tree-like search, graph search med gjenåpning og graph search med closed-liste – og hvorfor sistnevnte trenger konsistens.</li>
+        <li>Kjenne weighted A*, IDA*, RBFS, SMA* og beam search på overordnet nivå.</li>
+        <li>Lage heuristikker med relaxed problems, regne h<sub>1</sub>/h<sub>2</sub> for 8-puslespillet, avgjøre dominans og regne effektiv forgreningsfaktor.</li>
+      </ul>
+    </div>
+
+    <div class="box exam">
+      <span class="box-title">Hvorfor dette er viktig til eksamen</span>
+      <p>Informert søk er det temaet som har dukket opp <b>på absolutt hver eneste eksamen</b> 2015–2025, og ofte med høy vekt:</p>
+      <ul>
+        <li><b>A* for hånd på en graf</b> med oppgitte h-verdier og alfabetisk tiebreaking: 2015 (P7, 7 p), 2016 (Task 3, 20 p inkl. greedy), 2017 (P4, 15 p), 2018 (P4, 10 p), 2019 (Oppg. 3, 13 p), 2023 (2.1–2.2, 20 p), 2024 (Q4–Q5, flervalg 12 p), 2025 (Q6, 12 p).</li>
+        <li><b>Er h admissibel/konsistent?</b> 2017 (flervalg), 2018 (tabell for H1–H4, 10 p), 2023 («hvilke verdier av h(B) gjør h konsistent?»), 2025 (a+b, 4 p), samt sant/usant 2017 og 2022.</li>
+        <li><b>Dominans</b> (2018), <b>8-puslespillet og relaxed problems</b> (2015 P1g og P2a, 2016e), <b>lag en admissibel heuristikk</b> (2016, 2022).</li>
+        <li><b>Hvilken A*-variant?</b> 2016f, 2019 Oppg. 3 og øving 1 (bonus) handler om forskjellen på A* som gjenåpner noder og A* med closed-liste – en klassisk felle.</li>
+      </ul>
+      <p>Det gir typisk <b>10–20 % av totalpoengene</b>. Poengene ligger i å vise <i>hvert steg</i> (frontier med g+h=f), ikke bare svaret.</p>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>1. Fra blindt til informert søk</h2>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>Tenk deg at du står i Arad i Romania og skal til Bucharest, uten kart, men med et kompass og et skilt som sier «Bucharest: 366 miles i luftlinje». En blind agent (BFS, UCS) prøver alle veier like mye – også de som peker bort fra målet. En informert agent bruker skiltet: veier som fører nærmere Bucharest prøves først. Skiltet er ikke perfekt (veier svinger), men det er et godt <i>hint</i>.</p>
+    </div>
+
+    <p>I modul 2 så du at alle søkealgoritmene våre har samme skjelett: vi har en
+      <span class="term" data-en="frontier">grense (frontier)<span class="def">Mengden noder vi har generert (oppdaget), men ennå ikke ekspandert. Kalles også «open list».</span></span>
+      av noder som venter, og i hvert steg velger vi én node å <i>ekspandere</i> (generere barna til). Det eneste som skiller algoritmene, er <b>hvilken node vi velger</b>. Et
+      <span class="term" data-en="informed search / heuristic search">informert søk<span class="def">Søk som bruker domenespesifikk kunnskap om hvor målet ligger, i form av en heuristisk funksjon h(n), for å velge hvilken node som skal ekspanderes.</span></span>
+      bruker et estimat av hvor langt det er igjen til målet når det velger.</p>
+
+    <h3>Heuristisk funksjon h(n)</h3>
+    <p>En
+      <span class="term" data-en="heuristic function h(n)">heuristisk funksjon<span class="def">h(n) = estimert kostnad for billigste vei fra tilstanden i node n til en måltilstand. Avhenger bare av tilstanden, ikke av hvordan vi kom dit.</span></span>
+      er en funksjon <span class="logic">h : tilstander → ℝ</span> slik at</p>
+    <div class="formula">h(n) = estimert kostnad for den billigste veien fra tilstanden i n til en måltilstand</div>
+    <p>Tre ting å merke seg:</p>
+    <ul>
+      <li><b>h ser bare framover.</b> Den ser kun på tilstanden i <i>n</i>, ikke på veien dit. To noder med samme tilstand har samme h.</li>
+      <li><b>h(mål) = 0</b> i alle fornuftige heuristikker (det er ingenting igjen å gå).</li>
+      <li><b>h er domenekunnskap.</b> Den kan ikke regnes ut fra ACTIONS og RESULT alene – noen må ha lagt inn kunnskap om problemet. For Romania er det
+        <span class="term" data-en="straight-line distance, h_SLD">luftlinjeavstanden<span class="def">h<sub>SLD</sub>(n): avstanden i rett linje fra byen n til Bucharest. Klassisk heuristikk for ruteplanlegging.</span></span>
+        h<sub>SLD</sub> til Bucharest.</li>
+    </ul>
+
+    <figure class="gfig-wrap">
+      <svg class="gfig" data-graph="romania" data-hpos="below" role="img" aria-label="Romania-kartet med luftlinjeavstander"></svg>
+      <figcaption>Figur 1: Romania-kartet fra læreboka (byene er forkortet med forbokstav: A = Arad, B = Bucharest, F = Fagaras, P = Pitesti, R = Rimnicu Vilcea, S = Sibiu, T = Timisoara, Z = Zerind, …). Tall på kantene er veilengder; lilla tall under nodene er h<sub>SLD</sub> = luftlinje til Bucharest.</figcaption>
+    </figure>
+
+    <table class="compact">
+      <tr><th>By</th><th>h<sub>SLD</sub></th><th>By</th><th>h<sub>SLD</sub></th><th>By</th><th>h<sub>SLD</sub></th><th>By</th><th>h<sub>SLD</sub></th></tr>
+      <tr><td>Arad</td><td>366</td><td>Drobeta</td><td>242</td><td>Lugoj</td><td>244</td><td>Rimnicu Vilcea</td><td>193</td></tr>
+      <tr><td>Bucharest</td><td>0</td><td>Eforie</td><td>161</td><td>Mehadia</td><td>241</td><td>Sibiu</td><td>253</td></tr>
+      <tr><td>Craiova</td><td>160</td><td>Fagaras</td><td>176</td><td>Neamt</td><td>234</td><td>Timisoara</td><td>329</td></tr>
+      <tr><td>Giurgiu</td><td>77</td><td>Hirsova</td><td>151</td><td>Oradea</td><td>380</td><td>Urziceni</td><td>80</td></tr>
+      <tr><td>Iasi</td><td>226</td><td>Pitesti</td><td>100</td><td>Vaslui</td><td>199</td><td>Zerind</td><td>374</td></tr>
+    </table>
+    <p style="font-size:.85rem;color:var(--muted)">Merk: Noen av forelesningsfoliene viser Fagaras = 178 og Pitesti = 98 i kartbildet, men A*-gjennomgangen på foilene (og boka) bruker 176 og 100. Vi bruker bokas verdier.</p>
+
+    <h3>Evalueringsfunksjonen f(n) og Best-First-Search</h3>
+    <p>Boka (fig. 3.7, s. 91) har én generell algoritme,
+      <span class="term" data-en="best-first search">Best-First-Search<span class="def">Generell søkealgoritme som i hvert steg tar ut (pop) noden med lavest f(n) fra en prioritetskø. Ulike valg av f gir DFS, UCS, greedy og A*.</span></span>,
+      som alltid ekspanderer noden med lavest verdi av en
+      <span class="term" data-en="evaluation function f(n)">evalueringsfunksjon<span class="def">f(n): tallet som bestemmer rekkefølgen i prioritetskøen. Lavest f ekspanderes først.</span></span>
+      f(n). Grensen er en
+      <span class="term" data-en="priority queue">prioritetskø<span class="def">Kø der elementet med lavest prioritet (her f-verdi) alltid tas ut først, uansett når det ble lagt inn.</span></span>
+      sortert på f. Forelesningen bruker nøyaktig denne algoritmen for alt unntatt BFS:</p>
+
+    <div class="box algo"><span class="box-title">Algoritme: Best-First-Search (R&amp;N fig. 3.7)</span>
+<pre>function BEST-FIRST-SEARCH(problem, f) returns a solution node or failure
+ 1  node ← NODE(STATE = problem.INITIAL)
+ 2  frontier ← a priority queue ordered by f, with node as an element
+ 3  reached ← a lookup table, with one entry with key problem.INITIAL and value node
+ 4  while not IS-EMPTY(frontier) do
+ 5     node ← POP(frontier)                         <i>// lavest f (likhet: alfabetisk)</i>
+ 6     if problem.IS-GOAL(node.STATE) then return node   <i>// SEN måltest</i>
+ 7     for each child in EXPAND(problem, node) do
+ 8        s ← child.STATE
+ 9        if s is not in reached or child.PATH-COST &lt; reached[s].PATH-COST then
+10           reached[s] ← child
+11           add child to frontier
+12  return failure</pre>
+    </div>
+    <p>Linje for linje:</p>
+    <ul>
+      <li><b>1–3:</b> Start med startnoden i grensen og i tabellen <code>reached</code> (alle tilstander vi har sett, med beste kjente vei).</li>
+      <li><b>5:</b> Ta ut noden med lavest f. På eksamen brytes likhet (tie) nesten alltid <b>alfabetisk</b>.</li>
+      <li><b>6:</b> Måltesten skjer når noden <i>tas ut</i> av grensen (sen måltest / «late goal test»), ikke når den genereres. Dette er avgjørende for at A* skal være optimal – en dårlig vei til målet kan ligge i grensen en stund uten å bli valgt.</li>
+      <li><b>7–11:</b> Generer barna. Et barn legges bare inn hvis tilstanden er ny, <i>eller</i> vi har funnet en <b>billigere</b> vei dit enn før. Dette er det som gjør algoritmen til graph search (den husker hvor den har vært), og det er linje 9 som lar A* «ombestemme seg» – mer om det i seksjon 7.</li>
+    </ul>
+
+    <p>Valget av f gir oss hele familien (tabellen er rett fra foilene):</p>
+    <table>
+      <tr><th>Algoritme</th><th>f(n)</th><th>Hva betyr det?</th></tr>
+      <tr><td>Depth-first search</td><td><span class="logic">−depth(n)</span></td><td>Dypeste node først</td></tr>
+      <tr><td>Uniform-cost search (Dijkstra)</td><td><span class="logic">g(n)</span></td><td>Billigste vei <i>hittil</i> først (uinformert)</td></tr>
+      <tr><td>Greedy best-first search</td><td><span class="logic">h(n)</span></td><td>Det som <i>ser ut</i> til å være nærmest målet først</td></tr>
+      <tr><td>A* search</td><td><span class="logic">g(n) + h(n)</span></td><td>Lavest estimert total kostnad for løsning gjennom n</td></tr>
+      <tr><td>Weighted A*</td><td><span class="logic">g(n) + W·h(n)</span>, W &gt; 1</td><td>«Litt grådig» A* (seksjon 9)</td></tr>
+    </table>
+    <p>Her er
+      <span class="term" data-en="path cost g(n)">g(n)<span class="def">Faktisk kostnad for veien fra start til node n (summen av alle kantkostnadene langs veien).</span></span>
+      den <b>faktiske</b> kostnaden fra start til n langs veien vi fulgte. BFS er unntaket: den har egen pseudokode med <i>tidlig</i> måltest (se modul 2).</p>
+
+    <div class="box warning"><span class="box-title">Vanlig feil (fra foilene: «common gotchas»)</span>
+      <p><b>g(n) er summen av hele veien</b> fra start til n, mens <b>h(n) er bare tallet som står ved n</b>. Studenter legger ofte sammen h-verdiene langs veien, eller glemmer å summere g. Eksempel: Veien S→A→C med kostnader 4 og 4 gir g(C) = 8, og f(C) = 8 + h(C) – ikke 4 + h(C), og ikke 8 + h(A) + h(C).</p>
+    </div>
+
+    <div class="quiz" data-answer="c">
+      <p class="q">Hvilken evalueringsfunksjon gjør Best-First-Search til uniform-cost search?</p>
+      <ul class="opts">
+        <li data-why="f = h gir greedy best-first search – den ser bare framover.">f(n) = h(n)</li>
+        <li data-why="Det er A*.">f(n) = g(n) + h(n)</li>
+        <li>f(n) = g(n)</li>
+        <li data-why="f = −depth gir dybde-først-oppførsel (dypeste node først).">f(n) = −depth(n)</li>
+      </ul>
+      <div class="feedback">UCS velger billigste vei hittil, altså f = g. Merk også: A* med h(n) = 0 for alle n er nøyaktig UCS (eksamen 2017 4d: «Uniform cost search is a special case of A*» – True).</div>
+    </div>
+
+    <div class="check" data-answer="15" data-mode="number">
+      <p class="q">Veien S → A → C har kantkostnader 4 og 4. h(S) = 5, h(A) = 3, h(C) = 7. Hva er f(C) for A*?</p>
+      <div class="explain">g(C) = 4 + 4 = 8 (hele veien), h(C) = 7 (bare ved C). f(C) = 8 + 7 = 15. h(S) og h(A) har ingenting å si for f(C).</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>2. Greedy best-first search</h2>
+
+    <p><span class="term" data-en="greedy best-first search">Greedy best-first search<span class="def">Best-first search med f(n) = h(n): ekspanderer alltid den noden som ser ut til å være nærmest målet, uten å bry seg om hva det har kostet å komme dit.</span></span>
+      bruker <span class="logic">f(n) = h(n)</span>. Den er «grådig» fordi den i hvert steg prøver å komme så nær målet som mulig, uten å se på hva veien har kostet så langt.</p>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>Greedy er som å kjøre bil ved å alltid velge avkjøringen som peker mest mot målet. Ofte kommer du fram fort – men du kan havne på en lang omvei, i en blindvei, eller kjøre i ring.</p>
+    </div>
+
+    <h3>Eksempel: Arad → Bucharest</h3>
+    <div class="stepper" data-label="Steg">
+      <div class="step">
+        <svg class="gfig" data-graph="romania" data-hpos="below" data-cls="A:node-hl" role="img" aria-label="Steg 1"></svg>
+        <p><b>Start:</b> frontier = {Arad:366}. Arad er ikke mål. Vi ekspanderer Arad og får Sibiu (h = 253), Timisoara (329) og Zerind (374).</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="romania" data-hpos="below" data-cls="A:node-done;S:node-hl;T:node-warn;Z:node-warn" data-ecls="A-S:edge-hl" role="img" aria-label="Steg 2"></svg>
+        <p>frontier = {Sibiu:253, Timisoara:329, Zerind:374}. <b>Sibiu</b> har lavest h → ekspander Sibiu. Barn: Arad (366), Fagaras (176), Oradea (380), Rimnicu Vilcea (193).</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="romania" data-hpos="below" data-cls="A:node-done;S:node-done;F:node-hl;R:node-warn;O:node-warn;T:node-warn;Z:node-warn" data-ecls="A-S:edge-hl;S-F:edge-hl" role="img" aria-label="Steg 3"></svg>
+        <p>frontier = {Fagaras:176, R.Vilcea:193, Timisoara:329, Zerind:374, Oradea:380} (i tree-like søk ville også Arad:366 ligget der igjen). <b>Fagaras</b> har lavest h → ekspander. Barn: Sibiu (253) og Bucharest (0).</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="romania" data-hpos="below" data-cls="A:node-good;S:node-good;F:node-good;B:node-good;R:node-warn;O:node-warn;T:node-warn;Z:node-warn" data-ecls="A-S:edge-good;S-F:edge-good;F-B:edge-good" role="img" aria-label="Steg 4"></svg>
+        <p>Bucharest (h = 0) tas ut og er målet. Løsning: <b>Arad → Sibiu → Fagaras → Bucharest, kostnad 140 + 99 + 211 = 450</b>. Greedy ekspanderte bare noder på løsningsveien – veldig effektivt – men løsningen er <b>ikke optimal</b>: veien via Rimnicu Vilcea og Pitesti koster 418.</p>
+      </div>
+    </div>
+
+    <h3>Eksempel: greedy i en løkke</h3>
+    <p>Grafen under er fra forelesningen (og eksamen 2023, oppg. 2.1). Kantene er rettet, og A har en løkke tilbake til seg selv med kostnad 13. h(A) = h(B) = h(C) = 3, h(G) = 0.</p>
+    <figure>
+      <svg class="gfig" data-graph="lecture" role="img" aria-label="Forelesningsgrafen med løkke på A"></svg>
+      <figcaption>Figur 2: Forelesningsgrafen. Start S, mål G (dobbel ring). Lilla tall er h-verdier.</figcaption>
+    </figure>
+    <ul>
+      <li>Ekspander S: A og B har begge h = 3 → alfabetisk vinner <b>A</b>.</li>
+      <li>Ekspander A: genererer A igjen (via løkken, h = 3) og C (h = 3). Frontier = {A:3, B:3, C:3} → alfabetisk vinner <b>A</b> igjen.</li>
+      <li>Ekspander A: nøyaktig det samme skjer. Med <b>tree-like search</b> gjentar dette seg <b>i det uendelige</b>: S, A, A, A, … – ingen løsning.</li>
+      <li>Med <b>graph search</b> (husker <code>reached</code>) blir A-kopien via løkken forkastet (g = 17 er ikke bedre enn 4). Da: S, A, B, (G) med veien S→B→G, kostnad 17 – mens den optimale er S→A→C→G med kostnad 12.</li>
+    </ul>
+
+    <h3>Egenskaper</h3>
+    <table>
+      <tr><th>Egenskap</th><th>Greedy best-first</th></tr>
+      <tr><td><span class="term" data-en="complete">Komplett?<span class="def">En algoritme er komplett hvis den garantert finner en løsning når en finnes (og rapporterer feil ellers).</span></span></td><td>Tree-like: <b>nei</b> (kan gå i løkker). Graph search: ja i endelige tilstandsrom, nei i uendelige.</td></tr>
+      <tr><td><span class="term" data-en="cost-optimal">Optimal?<span class="def">Kostnadsoptimal: algoritmen finner alltid løsningen med lavest total veikostnad blant alle løsninger.</span></span></td><td><b>Nei</b> – ser ikke på g (Romania: 450 i stedet for 418).</td></tr>
+      <tr><td>Tid / minne</td><td>Verste fall O(|V|) for graph search (O(b<sup>m</sup>) for tree-like). Med god heuristikk kan det bli så lite som O(bm).</td></tr>
+    </table>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">Eksamen 2019 (T/F 1): «Greedy best-first search algorithm is guaranteed to find an optimal path.»</p>
+      <ul class="opts">
+        <li data-why="Romania-eksempelet viser at greedy finner en vei på 450 når 418 finnes.">True</li>
+        <li>False</li>
+      </ul>
+      <div class="feedback">False. Greedy ser bare på h og tar den første veien til målet den finner; den ignorerer hva veien har kostet (g).</div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Greedy fant Bucharest uten å ekspandere en eneste node utenfor løsningsveien. Hvorfor er det likevel ikke nok til at vi foretrekker greedy framfor A*?</p>
+      <details><summary>Vis et forslag</summary><p>Fordi effektivitet og optimalitet er to ulike ting. Greedy er rask fordi den ignorerer kostnaden bak seg, men det er nettopp derfor den kan velge en dyr vei (Fagaras-veien har en lang kant på 211). Hvis vi trenger den <i>billigste</i> veien (ruteplanlegging, logistikk), må vi også ta hensyn til g. Hvis vi bare trenger <i>en</i> løsning raskt, kan greedy (eller weighted A*) være et godt valg.</p></details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>3. A*-søk: f(n) = g(n) + h(n)</h2>
+
+    <p><span class="term" data-en="A* search">A*-søk<span class="def">Best-first search med f(n) = g(n) + h(n): estimert kostnad for den billigste løsningen som går gjennom n. Uttales «A-stjerne» / «A-star».</span></span>
+      kombinerer det beste fra UCS (g, det vi vet) og greedy (h, det vi gjetter):</p>
+    <div class="formula">f(n) = g(n) + h(n)  =  (kostnad hit) + (estimert kostnad herfra til mål)</div>
+    <p>f(n) er altså et estimat av <b>totalkostnaden for den beste løsningen som går gjennom n</b>. A* ekspanderer alltid noden med lavest slikt estimat.</p>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>UCS sier «jeg har gått minst», greedy sier «jeg er nærmest». A* sier «hele turen min, inkludert det jeg allerede har gått, ser kortest ut». En node langt fra start men nær mål kan tape mot en node som er litt lenger fra mål men mye billigere å ha nådd.</p>
+    </div>
+
+    <h3>Eksempel: Arad → Bucharest med A*</h3>
+    <div class="stepper" data-label="Steg">
+      <div class="step">
+        <svg class="gfig" data-graph="romania" data-hpos="below" data-cls="A:node-hl" data-sub="A:f=366" role="img" aria-label="A* steg 1"></svg>
+        <p>Start i Arad: g = 0, h = 366, f = 366. Ekspander Arad: Sibiu f = 140 + 253 = <b>393</b>, Timisoara f = 118 + 329 = 447, Zerind f = 75 + 374 = 449.</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="romania" data-hpos="below" data-cls="A:node-done;S:node-hl;T:node-warn;Z:node-warn" data-ecls="A-S:edge-hl" data-sub="S:f=393;T:f=447;Z:f=449" role="img" aria-label="A* steg 2"></svg>
+        <p>frontier = {Sibiu:393, Timisoara:447, Zerind:449}. Ekspander <b>Sibiu</b>: Fagaras 239 + 176 = 415, Oradea 291 + 380 = 671, R. Vilcea 220 + 193 = <b>413</b>. (Arad via Sibiu: 280 + 366 = 646 – i graph search forkastes den fordi Arad allerede er nådd billigere.)</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="romania" data-hpos="below" data-cls="A:node-done;S:node-done;R:node-hl;F:node-warn;O:node-warn;T:node-warn;Z:node-warn" data-ecls="A-S:edge-hl;S-R:edge-hl" data-sub="R:f=413;F:f=415;O:f=671;T:f=447;Z:f=449" role="img" aria-label="A* steg 3"></svg>
+        <p>frontier = {R.Vilcea:413, Fagaras:415, Timisoara:447, Zerind:449, Oradea:671}. Ekspander <b>Rimnicu Vilcea</b>: Craiova 366 + 160 = 526, Pitesti 317 + 100 = <b>417</b>.</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="romania" data-hpos="below" data-cls="A:node-done;S:node-done;R:node-done;F:node-hl;P:node-warn;C:node-warn;O:node-warn;T:node-warn;Z:node-warn" data-ecls="A-S:edge-hl;S-F:edge-hl" data-sub="F:f=415;P:f=417;C:f=526;O:f=671;T:f=447;Z:f=449" role="img" aria-label="A* steg 4"></svg>
+        <p>frontier = {Fagaras:415, Pitesti:417, Timisoara:447, Zerind:449, Craiova:526, Oradea:671}. Ekspander <b>Fagaras</b>: Bucharest genereres med f = 450 + 0 = <b>450</b>. Men Bucharest er <i>ikke</i> billigst i grensen – Pitesti (417) er det. Vi stopper ikke!</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="romania" data-hpos="below" data-cls="A:node-done;S:node-done;R:node-done;F:node-done;P:node-hl;B:node-warn;C:node-warn;O:node-warn;T:node-warn;Z:node-warn" data-ecls="A-S:edge-hl;S-R:edge-hl;R-P:edge-hl" data-sub="P:f=417;B:f=450;C:f=526;O:f=671;T:f=447;Z:f=449" role="img" aria-label="A* steg 5"></svg>
+        <p>frontier = {Pitesti:417, Timisoara:447, Zerind:449, Bucharest:450, Craiova:526, Oradea:671}. Ekspander <b>Pitesti</b>: ny vei til Bucharest med g = 317 + 101 = 418, f = <b>418 &lt; 450</b>. Den billigere veien erstatter den gamle i grensen.</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="romania" data-hpos="below" data-cls="A:node-good;S:node-good;R:node-good;P:node-good;B:node-good;F:node-done;C:node-warn;O:node-warn;T:node-warn;Z:node-warn" data-ecls="A-S:edge-good;S-R:edge-good;R-P:edge-good;P-B:edge-good" data-sub="B:f=418" role="img" aria-label="A* steg 6"></svg>
+        <p>Bucharest (418) er nå lavest og tas ut → mål! Løsning: <b>Arad → Sibiu → Rimnicu Vilcea → Pitesti → Bucharest, kostnad 418</b> – den optimale. Ekspansjonsrekkefølge: A, S, R, F, P, (B). Legg merke til at Timisoara og Zerind <i>aldri</i> ble ekspandert.</p>
+      </div>
+    </div>
+
+    <div class="box key"><span class="box-title">Nøkkelpoeng: sen måltest</span>
+      <p>Bucharest lå i grensen med f = 450 i ett helt steg uten å bli valgt. Hadde vi testet for mål da noden ble <i>generert</i> (slik BFS gjør), ville vi returnert 450-veien. A* tester først når noden <b>tas ut</b> av grensen – da vet vi at ingen annen node i grensen har lavere f.</p>
+    </div>
+
+    <h3>Eksempel: forelesningsgrafen med A*</h3>
+    <p>Samme graf som i figur 2, nå med f = g + h (tree-like search, slik foilene og eksamen 2023 gjør det):</p>
+    <table class="trace">
+      <tr><th>Steg</th><th>Ekspanderer</th><th>Barn generert (g + h = f)</th><th>Frontier etterpå (sortert)</th></tr>
+      <tr><td>1</td><td>S (0+0)</td><td>A: 4+3 = 7, B: 7+3 = 10</td><td class="mono">A(7), B(10)</td></tr>
+      <tr><td>2</td><td>A (4+3=7)</td><td>A (løkke): 17+3 = 20, C: 8+3 = 11</td><td class="mono">B(10), C(11), A(20)</td></tr>
+      <tr><td>3</td><td>B (7+3=10)</td><td>G: 17+0 = 17 – mål generert, men vi stopper <i>ikke</i></td><td class="mono">C(11), G(17), A(20)</td></tr>
+      <tr><td>4</td><td>C (8+3=11)</td><td>G: 12+0 = 12 – billigere vei til G</td><td class="mono">G(12), G(17), A(20)</td></tr>
+      <tr><td>5</td><td>G (12) tas ut</td><td>Mål!</td><td></td></tr>
+    </table>
+    <p><b>Order of expansion:</b> S, A, B, C, (G) · <b>Path:</b> S→A→C→G · <b>Cost:</b> 4 + 4 + 4 = 12. Løkken på A (f = 20) blir aldri ekspandert fordi alt annet er billigere – g vokser for hver runde i løkka, så A* går ikke i ring slik greedy gjorde.</p>
+
+    <h3>Egenskaper til A*</h3>
+    <table>
+      <tr><th>Egenskap</th><th>A*</th></tr>
+      <tr><td>Komplett?</td><td><b>Ja</b>, hvis alle kantkostnader er ≥ ε &gt; 0 og tilstandsrommet er endelig eller har en løsning.</td></tr>
+      <tr><td>Optimal?</td><td><b>Ja, hvis h er admissibel</b> (bokas graph search med gjenåpning, eller tree-like search). Med closed-liste uten gjenåpning kreves <b>konsistent</b> h. (Seksjon 5–7.)</td></tr>
+      <tr><td>Tid</td><td>Eksponentiell i verste fall; avhenger sterkt av hvor god h er.</td></tr>
+      <tr><td>Minne</td><td>Holder alle genererte noder i minnet – <b>hovedproblemet</b> med A* (seksjon 10).</td></tr>
+      <tr><td>Spesialtilfelle</td><td>h(n) = 0 for alle n ⇒ A* = UCS.</td></tr>
+    </table>
+
+    <div class="quiz" data-answer="a">
+      <p class="q">I steg 4 av Romania-eksempelet ligger Bucharest i grensen med f = 450, og Pitesti med f = 417. Hvorfor stopper ikke A* allerede da?</p>
+      <ul class="opts">
+        <li>Fordi A* bare stopper når målnoden blir tatt ut av grensen, og Pitesti har lavere f.</li>
+        <li data-why="A* bruker ikke dybde i det hele tatt.">Fordi Pitesti ligger dypere i søketreet.</li>
+        <li data-why="Bucharest er generert, men det er ikke nok – det er måltesten ved POP som teller.">Fordi Bucharest ikke er generert ennå.</li>
+        <li data-why="h(Bucharest) = 0, men det spiller ingen rolle her.">Fordi h(Bucharest) er for høy.</li>
+      </ul>
+      <div class="feedback">Sen måltest: Pitesti med f = 417 betyr at det <i>kan</i> finnes en løsning gjennom Pitesti som koster bare 417. A* godtar ikke en løsning til 450 før alle slike muligheter er utelukket.</div>
+    </div>
+
+    <div class="check" data-answer="S, A, B, C, G" data-mode="seq" data-alt="S A B C (G)|SABCG">
+      <p class="q">Kjør UCS (f = g) på forelesningsgrafen i figur 2 med tree-like search. Skriv ekspansjonsrekkefølgen, inkludert målnoden til slutt.</p>
+      <div class="explain">S: A(4), B(7). A: A(17), C(8). B(7) tas ut: G(17). C(8): G(12). Frontier: G(12), A(17), G(17) → G(12) tas ut. Rekkefølge S, A, B, C, (G), sti S→A→C→G, kostnad 12 – samme som A* her, fordi h er lik (3) for A, B og C og derfor ikke skiller dem.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>4. Slik skriver du ut en A*-kjøring på eksamen</h2>
+
+    <p>Sensor gir poeng for <b>stegene</b>. Eksamensløsningene (2016, 2017, 2023, 2025) viser alle samme mønster: for hvert steg står det hvilken node som tas ut, hvilke barn som genereres med g + h = f, og hvordan grensen ser ut etterpå. Slik gjør du det:</p>
+
+    <div class="box algo"><span class="box-title">Oppskrift: A* for hånd</span>
+<pre>0. Skriv antakelsene dine:
+     - graph search (husker reached) eller tree-like search?  (står ofte i oppgaven)
+     - sen måltest (når noden tas ut av grensen)
+     - tiebreaking: alfabetisk (står nesten alltid i oppgaven)
+1. Start: frontier = [ S(0 + h(S) = f) ]
+2. Gjenta:
+     a) Ta ut noden med lavest f (likhet → alfabetisk). Er den målet? → stopp.
+     b) Skriv den på lista over ekspanderte noder.
+     c) For hvert barn: regn g = g(forelder) + c, slå opp h, skriv g + h = f.
+          - ny tilstand              → legg til
+          - kjent, men billigere vei → erstatt (eller gjenåpne om den var ekspandert)
+          - kjent, ikke billigere    → forkast (skriv gjerne «skip»)
+     d) Skriv hele grensen sortert på f.
+3. Svar: «Order of expansion: …, (G)», «Path: …», «Cost: …»</pre>
+    </div>
+
+    <p>Formatet fra eksamensløsningen 2025 (oppg. 6) ser slik ut – kort og presist:</p>
+    <pre>Add B(5=1+4), A(9=4+5), K(9=6+3) to the frontier
+Choose B(5)
+   – B is not goal
+   – Add C(8=1+2+5) to the frontier
+   – Frontier is [C(8), A(9), K(9)]
+Choose C(8)
+   ...
+Reconstruct from parents: reverse([G, K, S]) with cost 9, 4 expansions.</pre>
+    <p>En tabell (som i 2016- og 2017-løsningene) er like bra og ofte ryddigere. Det viktige er at <b>f = g + h står eksplisitt for hver node</b>, at grensen vises etter hvert steg, og at du skriver hvilken vei som returneres og kostnaden.</p>
+
+    <div class="box warning"><span class="box-title">Vanlige feil i A*-oppgaver</span>
+      <ul>
+        <li><b>Stoppe når målet genereres</b> i stedet for når det tas ut (det er BFS som har tidlig måltest).</li>
+        <li><b>Glemme å oppdatere</b> en node i grensen når en billigere vei dukker opp (Bucharest 450 → 418).</li>
+        <li><b>Feil tiebreaking:</b> «alfabetisk» gjelder ved lik f. Ved lik f mellom «127» og «127A» kommer «127» først (kortere streng er alfabetisk først) – se 2016-oppgaven.</li>
+        <li><b>Glemme at grafen er urettet:</b> i en urettet graf er forelderen også et barn. I graph search forkastes den (allerede nådd billigere), i tree-like search legges den inn igjen.</li>
+        <li><b>Regne f med h langs hele veien</b> i stedet for bare h ved noden.</li>
+      </ul>
+    </div>
+
+    <div class="widget" id="w-astar">
+      <p><b>A*/greedy/UCS steg for steg.</b> Velg graf, algoritme og variant, og klikk deg gjennom. Frontier-tabellen viser g, h og f for hver node; øverste rad (markert) er den som tas ut neste gang. Tiebreaking er alfabetisk, og måltesten skjer når noden tas ut. Du kan overstyre h-verdier (f.eks. <code>B=8</code> for eksamen 2023 2.2, eller <code>A=2</code> for 2024 Q5).</p>
+      <div class="controls">
+        <label>Graf: <select id="wa-graph"></select></label>
+      </div>
+      <div class="controls">
+        <label>Algoritme: <select id="wa-algo">
+          <option value="astar">A* (f = g + h)</option>
+          <option value="greedy">Greedy best-first (f = h)</option>
+          <option value="ucs">Uniform-cost (f = g)</option>
+          <option value="wastar">Weighted A* (f = g + W·h)</option>
+        </select></label>
+        <label>W: <input id="wa-w" type="number" value="2" step="0.5" min="0" style="width:4.2rem"></label>
+      </div>
+      <div class="controls">
+        <label>Variant: <select id="wa-var">
+          <option value="graph">Graph search, bokas versjon (reached + gjenåpning ved billigere vei)</option>
+          <option value="closed">Graph search med closed-liste (ekspanderte noder åpnes aldri igjen)</option>
+          <option value="tree">Tree-like search (husker ingenting)</option>
+        </select></label>
+      </div>
+      <div class="controls">
+        <label>Overstyr h: <input id="wa-h" class="wide" placeholder="f.eks. B=8, C=4"></label>
+        <button id="wa-apply" class="secondary">Bruk</button>
+      </div>
+      <div class="gfig-wrap"><svg id="wa-svg" role="img" aria-label="Søkegraf"></svg></div>
+      <div class="legend"><span class="lg-cur">ekspanderes nå</span><span class="lg-fr">i grensen</span><span class="lg-done">ekspandert</span><span class="lg-path">funnet vei</span></div>
+      <div class="controls">
+        <button id="wa-prev" class="secondary">← Forrige</button>
+        <button id="wa-next">Neste steg →</button>
+        <button id="wa-end" class="secondary">Kjør til slutt</button>
+        <button id="wa-reset" class="secondary">Start på nytt</button>
+        <span id="wa-count" style="color:var(--muted);font-size:.8rem"></span>
+      </div>
+      <div id="wa-msg" class="summary"></div>
+      <table id="wa-front"></table>
+      <div class="log" id="wa-log"></div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Velg «Øving 1: Doom E1M8» i widgeten og kjør A*. Hvilken vei finner A*, og er den optimal? Sammenlign med UCS. Prøv så å overstyre h med <code>A=10, B=7, C=4, D=1, E=3, G=10, H=4, I=9</code> (h′ fra øvingens figur 2). Hva skjer?</p>
+      <details><summary>Vis et forslag</summary>
+        <p>Med h fra figur 1 ekspanderer A* A, I, B, C, E, D, (F) og finner A→I→B→C→E→D→F med kostnad 11 – akkurat som greedy. UCS finner A→I→B→H→E→D→F med kostnad 10. Grunnen er at h er <b>sterkt inadmissibel</b> (h(A) = 25, men den sanne kostnaden er 10): de store h-verdiene drukner g, så A* oppfører seg nesten som greedy. Med h′ (som her er lik den sanne kostnaden h* overalt) finner A* kostnad 10 og ekspanderer bare noder på den optimale veien: A, I, B, H, E, D, (F).</p>
+      </details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>5. Admissibilitet og hvorfor A* er optimal</h2>
+
+    <p>A* er bare så god som heuristikken sin. Den viktigste egenskapen er:</p>
+    <div class="box key"><span class="box-title">Definisjon: admissibel heuristikk</span>
+      <p>En heuristikk h er
+        <span class="term" data-en="admissible heuristic">admissibel<span class="def">h overestimerer aldri: h(n) ≤ h*(n) for alle n, der h*(n) er den sanne kostnaden for billigste vei fra n til et mål. En admissibel heuristikk er optimistisk.</span></span>
+        hvis den <b>aldri overestimerer</b> kostnaden til målet:</p>
+      <div class="formula">h(n) ≤ h*(n)   for alle noder n</div>
+      <p>der <span class="term" data-en="h*(n), true cost-to-go">h*(n)<span class="def">Den sanne (optimale) kostnaden fra n til nærmeste mål. Finnes ved å regne billigste vei baklengs fra målet.</span></span> er den faktiske kostnaden for den billigste veien fra n til et mål. En admissibel heuristikk er <i>optimistisk</i>.</p>
+    </div>
+
+    <ul>
+      <li><b>Luftlinje er admissibel:</b> ingen vei kan være kortere enn en rett linje.</li>
+      <li><b>h(n) = 0 er admissibel</b> (men gir ingen informasjon – A* blir UCS).</li>
+      <li><b>h(mål) må være 0</b> for at h skal være admissibel (h*(mål) = 0).</li>
+      <li>Admissibilitet er en egenskap ved <b>hver node</b>: det holder med én node der h(n) &gt; h*(n) for at h <i>ikke</i> er admissibel.</li>
+    </ul>
+
+    <h3>Slik sjekker du admissibilitet på en eksamensgraf</h3>
+    <p>Regn ut h*(n) for alle noder – billigste vei til målet (gjør Dijkstra baklengs fra målet, eller se på grafen). Sammenlign så h(n) med h*(n) node for node. Eksempel: eksamen 2025 (grafen i oppgave 6, se også widgeten over):</p>
+    <table class="compact">
+      <tr><th>n</th><th>s</th><th>a</th><th>b</th><th>c</th><th>d</th><th>e</th><th>f</th><th>h</th><th>i</th><th>j</th><th>k</th><th>g</th></tr>
+      <tr><td>h(n)</td><td>5</td><td>5</td><td>4</td><td>5</td><td>5</td><td>4</td><td>5</td><td>6</td><td>6</td><td>5</td><td>3</td><td>0</td></tr>
+      <tr><td>h*(n)</td><td>9</td><td>13</td><td>10</td><td>8</td><td>6</td><td>4</td><td>5</td><td>6</td><td>7</td><td>6</td><td>3</td><td>0</td></tr>
+      <tr><td>h ≤ h*?</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+    </table>
+    <p>Alle h(n) ≤ h*(n), så h er admissibel. (Noen er eksakte: h(e) = h*(e) = 4, h(k) = 3, h(f) = 5, h(h) = 6. Det er lov – admissibel betyr ≤, ikke &lt;.)</p>
+
+    <h3>Bevis: admissibel h ⇒ A* er kostnadsoptimal</h3>
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>Når h er optimistisk, er f(n) en <i>nedre grense</i> for hva en løsning gjennom n kan koste. Så lenge det ligger en node på den optimale veien i grensen, har den f ≤ C*. En dårligere målnode har f = C &gt; C*, så den kommer alltid bak i køen – den optimale veien «vinner» alltid køen.</p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 520 210" width="520" role="img" aria-label="Illustrasjon av optimalitetsbeviset">
+        <defs><marker id="ar-pf" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker></defs>
+        <line class="edge-good" x1="68" y1="105" x2="182" y2="105"/>
+        <line class="edge-bad" x1="218" y1="105" x2="432" y2="105"/>
+        <path class="edge" d="M60,90 C140,10 330,10 430,45" marker-end="url(#ar-pf)"/>
+        <circle class="node-done" cx="50" cy="105" r="18"/><text x="50" y="110" text-anchor="middle" class="label">S</text>
+        <circle class="node-warn" cx="200" cy="105" r="18"/><text x="200" y="110" text-anchor="middle" class="label">n</text>
+        <circle class="node-good" cx="450" cy="105" r="18"/><circle class="goal-ring" cx="450" cy="105" r="22"/><text x="450" y="110" text-anchor="middle" class="label">G*</text>
+        <circle class="node-bad" cx="450" cy="45" r="18"/><text x="450" y="50" text-anchor="middle" class="label">G₂</text>
+        <text x="125" y="95" text-anchor="middle" class="small">g*(n)</text>
+        <text x="325" y="95" text-anchor="middle" class="small">h*(n) ≥ h(n)</text>
+        <text x="250" y="22" text-anchor="middle" class="small">suboptimal vei, kostnad C &gt; C*</text>
+        <text x="200" y="150" text-anchor="middle" class="small">n ligger i grensen:</text>
+        <text x="200" y="166" text-anchor="middle" class="small">f(n) = g*(n) + h(n) ≤ C*</text>
+        <text x="450" y="150" text-anchor="middle" class="small">f(G₂) = C &gt; C*</text>
+        <text x="450" y="166" text-anchor="middle" class="small">⇒ n tas ut før G₂</text>
+      </svg>
+      <figcaption>Figur 3: Kjernen i optimalitetsbeviset. Så lenge den optimale veien ikke er ferdig utforsket, ligger en node n fra den i grensen med f(n) ≤ C*, og den slår enhver suboptimal målnode.</figcaption>
+    </figure>
+
+    <p>Boka gir et <b>motsigelsesbevis</b>. Anta at den optimale løsningen koster C*, men A* returnerer en vei med kostnad C &gt; C*. Da må det finnes en node n på den optimale veien som ennå ikke er ekspandert (ellers ville vi ha returnert den optimale). La g*(n) være optimal kostnad fra start til n og h*(n) optimal kostnad fra n til mål. Da gjelder:</p>
+    <div class="formula">f(n) &gt; C*                  (ellers ville n ha blitt ekspandert før målet med kostnad C)
+f(n) = g(n) + h(n)          (definisjon)
+f(n) = g*(n) + h(n)         (n ligger på en optimal vei, så g(n) = g*(n))
+f(n) ≤ g*(n) + h*(n)        (admissibilitet: h(n) ≤ h*(n))
+f(n) ≤ C*                   (definisjon: C* = g*(n) + h*(n))</div>
+    <p>Første og siste linje motsier hverandre. Altså kan A* ikke returnere en suboptimal vei. ∎</p>
+
+    <h3>Hva skjer når h overestimerer?</h3>
+    <p>Forelesningens eksempel («Essence of the proof»): A–B–C–G med kostnad 1 på hver kant, og en direkte kant A–C med kostnad 999. h(A) = 3, <b>h(B) = 1000</b>, h(C) = 1, h(G) = 0.</p>
+    <figure>
+      <svg class="gfig" data-graph="proof" role="img" aria-label="Graf der h(B) overestimerer"></svg>
+      <figcaption>Figur 4: h(B) = 1000 &gt; h*(B) = 2 – heuristikken er ikke admissibel.</figcaption>
+    </figure>
+    <p>A* fra A: B får f = 1 + 1000 = 1001, C får f = 999 + 1 = 1000. C tas ut først, deretter G med f = 1000. A* returnerer A→C→G med <b>kostnad 1000</b>, mens A→B→C→G koster 3. Den overestimerte h(B) fikk den optimale veien til å se dyr ut, så den ble aldri utforsket.</p>
+
+    <h3>Negative heuristikker (fra forelesningen)</h3>
+    <ol>
+      <li><i>Blir A* optimal hvis h kan være negativ?</i> Negative h-verdier er formelt «optimistiske», men hvis vi tillater h(mål) ≠ 0 (f.eks. h(g) = −999) mister vi garantien – en målnode kan se kunstig billig ut.</li>
+      <li><i>Hva betyr en negativ heuristikk?</i> Egentlig ingenting meningsfullt: h skal estimere gjenværende kostnad, og den er aldri negativ når kantkostnadene er positive.</li>
+      <li><i>Er det lurt?</i> Nei. Å trekke en stor konstant fra alle h endrer ikke rekkefølgen, og h = 0 (UCS) er i snitt mer informativt enn tilfeldige negative verdier.</li>
+    </ol>
+
+    <div class="box example"><span class="box-title">Fra boka: når en inadmissibel h likevel gir optimal løsning</span>
+      <p>(1) Hvis det finnes én optimal vei der h er admissibel for <i>alle</i> nodene på veien, finnes den uansett hva h sier om andre noder. (2) Hvis optimal kostnad er C* og nest beste er C<sub>2</sub>, og h aldri overestimerer med mer enn C<sub>2</sub> − C*, er A* fortsatt optimal.</p>
+    </div>
+
+    <div class="quiz" data-answer="a">
+      <p class="q">Eksamen 2023: «If h<sub>1</sub>(s) and h<sub>2</sub>(s) are two admissible A* heuristics, would their average h<sub>3</sub>(s) = ½h<sub>1</sub>(s) + ½h<sub>2</sub>(s) be admissible?»</p>
+      <ul class="opts">
+        <li>Ja – gjennomsnittet er aldri større enn den største av dem, som er ≤ h*.</li>
+        <li data-why="Gjennomsnittet kan ikke bli større enn max(h1, h2), og begge er ≤ h*.">Nei – gjennomsnittet kan overestimere.</li>
+        <li data-why="Admissibilitet krever ikke konsistens; spørsmålet handler bare om h ≤ h*.">Bare hvis h<sub>1</sub> og h<sub>2</sub> også er konsistente.</li>
+      </ul>
+      <div class="feedback">½h<sub>1</sub> + ½h<sub>2</sub> ≤ ½h* + ½h* = h*. Det samme gjelder max(h<sub>1</sub>, h<sub>2</sub>) og min(h<sub>1</sub>, h<sub>2</sub>), og enhver vektet sum med vekter som summerer til ≤ 1. Men h<sub>1</sub> + h<sub>2</sub> er generelt <i>ikke</i> admissibel.</div>
+    </div>
+
+    <div class="check" data-answer="3" data-mode="number">
+      <p class="q">I grafen fra eksamen 2018 (S→G koster 6, S→A koster 2, A→G koster 3): hva er h*(A)?</p>
+      <div class="explain">Den eneste veien fra A til G er A→G med kostnad 3, så h*(A) = 3. (Og h*(S) = min(6, 2 + 3) = 5.) Derfor er H2 med h(A) = 4 ikke admissibel.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>6. Konsistens (monotonisitet)</h2>
+
+    <div class="box key"><span class="box-title">Definisjon: konsistent heuristikk</span>
+      <p>h er
+        <span class="term" data-en="consistent heuristic">konsistent<span class="def">For hver node n og hvert barn n′ (via handling a): h(n) ≤ c(n, a, n′) + h(n′). Estimatet kan ikke falle mer enn det koster å ta steget.</span></span>
+        hvis det for <b>hver</b> node n og <b>hvert</b> barn n′ generert av en handling a gjelder:</p>
+      <div class="formula">h(n) ≤ c(n, a, n′) + h(n′)</div>
+      <p>Ekvivalent: <span class="logic">h(n) − h(n′) ≤ c(n, a, n′)</span> – h kan ikke synke mer langs en kant enn kanten koster. Konsistens kalles også
+        <span class="term" data-en="monotonic heuristic">monotonisitet<span class="def">Synonym for konsistens. Navnet kommer av at f = g + h da aldri synker langs en vei (er monotont ikke-avtagende).</span></span>.</p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 380 200" width="380" role="img" aria-label="Trekantulikheten">
+        <line class="edge" x1="66" y1="160" x2="190" y2="52"/>
+        <line class="edge" x1="210" y1="52" x2="314" y2="150"/>
+        <line class="edge-hl" x1="70" y1="168" x2="310" y2="168"/>
+        <circle class="node" cx="55" cy="168" r="18"/><text x="55" y="173" text-anchor="middle" class="label">n</text>
+        <circle class="node" cx="200" cy="40" r="18"/><text x="200" y="45" text-anchor="middle" class="label">n′</text>
+        <circle class="node-good" cx="325" cy="168" r="18"/><circle class="goal-ring" cx="325" cy="168" r="22"/><text x="325" y="173" text-anchor="middle" class="label">G</text>
+        <text x="100" y="95" text-anchor="middle" class="small">c(n, a, n′)</text>
+        <text x="290" y="95" text-anchor="middle" class="small">h(n′)</text>
+        <text x="190" y="190" text-anchor="middle" class="accent">h(n)</text>
+      </svg>
+      <figcaption>Figur 5: Trekantulikheten (R&amp;N fig. 3.19). Den direkte «siden» h(n) kan ikke være lengre enn omveien via n′: c(n, a, n′) + h(n′).</figcaption>
+    </figure>
+
+    <p>Dette er en form for
+      <span class="term" data-en="triangle inequality">trekantulikheten<span class="def">I en trekant er én side aldri lengre enn summen av de to andre. For heuristikker: h(n) ≤ c(n,n′) + h(n′).</span></span>:
+      å «gå direkte» fra n til målet (estimatet h(n)) skal ikke være dyrere enn å først gå til naboen n′ og så ta estimatet derfra. Luftlinjeavstand er konsistent: i Romania er luftlinjen fra Arad aldri lengre enn veien til Sibiu pluss luftlinjen fra Sibiu.</p>
+
+    <h3>Slik sjekker du konsistens på en graf</h3>
+    <ol>
+      <li>List opp <b>alle</b> kanter. Er grafen <b>urettet</b>, må hver kant sjekkes i <b>begge</b> retninger – det blir det samme som <span class="logic">|h(n) − h(n′)| ≤ c(n, n′)</span>.</li>
+      <li>For hver retning n → n′: sjekk <span class="logic">h(n) ≤ c + h(n′)</span>.</li>
+      <li>Én eneste kant som bryter betingelsen, gjør h <b>inkonsistent</b>. Ta med kanter inn til målet G (h(G) = 0) – eksamen 2017 presiserer at «all pairs, including G» må sjekkes.</li>
+    </ol>
+
+    <div class="box example"><span class="box-title">Eksempel: eksamen 2025 – er h konsistent?</span>
+      <p>Urettet graf, så vi sjekker |h(n) − h(n′)| ≤ c for hver kant:</p>
+      <table class="compact">
+        <tr><th>Kant</th><th>c</th><th>|h − h′|</th><th>OK?</th><th>Kant</th><th>c</th><th>|h − h′|</th><th>OK?</th></tr>
+        <tr><td>s–a</td><td>4</td><td>|5−5| = 0</td><td class="ok">✓</td><td>e–g</td><td>4</td><td>|4−0| = 4</td><td class="ok">✓ (likhet)</td></tr>
+        <tr><td>s–b</td><td>1</td><td>|5−4| = 1</td><td class="ok">✓ (likhet)</td><td>k–g</td><td>3</td><td>|3−0| = 3</td><td class="ok">✓ (likhet)</td></tr>
+        <tr><td>s–k</td><td>6</td><td>|5−3| = 2</td><td class="ok">✓</td><td>k–j</td><td>3</td><td>|3−5| = 2</td><td class="ok">✓</td></tr>
+        <tr><td>b–c</td><td>2</td><td>|4−5| = 1</td><td class="ok">✓</td><td>j–i</td><td>1</td><td>|5−6| = 1</td><td class="ok">✓ (likhet)</td></tr>
+        <tr><td>c–d</td><td>2</td><td>|5−5| = 0</td><td class="ok">✓</td><td>i–h</td><td>1</td><td>|6−6| = 0</td><td class="ok">✓</td></tr>
+        <tr><td>d–e</td><td>2</td><td>|5−4| = 1</td><td class="ok">✓</td><td>h–f</td><td>1</td><td>|6−5| = 1</td><td class="ok">✓ (likhet)</td></tr>
+        <tr><td></td><td></td><td></td><td></td><td>f–g</td><td>5</td><td>|5−0| = 5</td><td class="ok">✓ (likhet)</td></tr>
+      </table>
+      <p>Alle kanter oppfyller betingelsen ⇒ h er konsistent (og dermed også admissibel).</p>
+    </div>
+
+    <h3>Teorem 1: konsistent ⇒ admissibel (men ikke omvendt)</h3>
+    <p><b>Bevis (induksjon langs den optimale veien).</b> La n = n<sub>0</sub>, n<sub>1</sub>, …, n<sub>k</sub> = G være en billigste vei fra n til målet, og anta h(G) = 0. Ved å bruke konsistens gang på gang:</p>
+    <div class="formula">h(n₀) ≤ c(n₀,n₁) + h(n₁) ≤ c(n₀,n₁) + c(n₁,n₂) + h(n₂) ≤ … ≤ Σ c(nᵢ,nᵢ₊₁) + h(G) = h*(n)</div>
+    <p>Altså h(n) ≤ h*(n) for alle n. ∎</p>
+    <p><b>Omvendt gjelder ikke.</b> Moteksempel fra eksamen 2019: h(B) = 6, h(C) = 2, c(B, C) = 2. h*(B) = 6 (B→C→G = 2 + 4), så h(B) er admissibel, men h(B) = 6 &gt; c(B,C) + h(C) = 4 – inkonsistent.</p>
+
+    <h3>Teorem 2: konsistent ⇒ f er ikke-avtagende langs enhver vei</h3>
+    <p>Hvis n′ er et barn av n, er g(n′) = g(n) + c(n, a, n′), og derfor</p>
+    <div class="formula">f(n′) = g(n) + c(n, a, n′) + h(n′)  ≥  g(n) + h(n) = f(n)</div>
+    <p>der ulikheten er nøyaktig konsistensbetingelsen. Faktisk er det «hvis og bare hvis»: f er monoton langs alle veier ⇔ h er konsistent.</p>
+    <p><b>Konsekvens:</b> Med konsistent h tar A* ut noder i ikke-avtagende f-rekkefølge, og <b>første gang en tilstand tas ut av grensen, er det via en optimal vei</b>. Vi trenger derfor aldri å gjenåpne en ekspandert tilstand – det er dette som gjør closed-liste-varianten av A* trygg (seksjon 7).</p>
+
+    <div class="box warning"><span class="box-title">Vanlig feil</span>
+      <ul>
+        <li>Sjekke bare kanter langs løsningsveien, eller bare noen få kanter. <b>Alle</b> kanter må sjekkes (eksamen 2017 trakk poeng for delvis sjekk).</li>
+        <li>Sjekke bare én retning i en urettet graf.</li>
+        <li>Blande sammen begrepene: admissibel handler om <b>h mot h*</b> (node for node), konsistent handler om <b>h mot naboens h + kantkostnad</b> (kant for kant).</li>
+        <li>Tro at «admissibel ⇒ konsistent». Det er motsatt.</li>
+      </ul>
+    </div>
+
+    <div class="widget" id="w-heur">
+      <p><b>Er heuristikken admissibel og konsistent?</b> Endre h-verdiene i tabellen. Noder som bryter admissibilitet (h &gt; h*) blir røde, og kanter som bryter konsistens blir røde og stiplede. h* regnes ut automatisk (billigste vei baklengs fra målet).</p>
+      <div class="controls">
+        <label>Graf: <select id="wh-graph"></select></label>
+        <span id="wh-presets"></span>
+      </div>
+      <div class="gfig-wrap"><svg id="wh-svg" role="img" aria-label="Graf for heuristikksjekk"></svg></div>
+      <div id="wh-verdict" class="summary"></div>
+      <div style="display:flex;gap:1.2rem;flex-wrap:wrap;align-items:flex-start">
+        <table id="wh-nodes" style="width:auto"></table>
+        <table id="wh-edges" style="width:auto"></table>
+      </div>
+      <div class="controls">
+        <button id="wh-save" class="secondary">Husk denne h som h<sub>ref</sub></button>
+        <span id="wh-dom" style="font-size:.85rem"></span>
+      </div>
+    </div>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">Eksamen 2017 (T/F): «If h is a consistent heuristic, then h is also an admissible heuristic.»</p>
+      <ul class="opts">
+        <li data-why="Det motsatte er feil, men denne retningen holder – se teorem 1.">False</li>
+        <li>True</li>
+      </ul>
+      <div class="feedback">True. Bevis ved induksjon langs den optimale veien (forutsatt h(mål) = 0). Omvendt holder ikke: admissibel ⇏ konsistent.</div>
+    </div>
+
+    <div class="check" data-answer="4" data-mode="number">
+      <p class="q">I en urettet graf er c(X, Y) = 3 og h(Y) = 7. Hva er den minste verdien h(X) kan ha uten at kanten X–Y bryter konsistens?</p>
+      <div class="explain">Begge retninger: h(X) ≤ 3 + 7 = 10 og h(Y) ≤ 3 + h(X) ⇒ h(X) ≥ 4. Altså 4 ≤ h(X) ≤ 10, minste verdi 4.</div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Eksamen 2022 spurte: «Why is consistency a desired property of a heuristic?» Skriv et svar på 2–4 setninger før du ser på forslaget.</p>
+      <details><summary>Vis et forslag</summary><p>Med konsistent h er f = g + h ikke-avtagende langs enhver vei. Da tar A* ut tilstander i f-rekkefølge, og første gang en tilstand ekspanderes er det via en optimal vei. Vi slipper altså å gjenåpne noder eller oppdatere allerede ekspanderte noder, noe som sparer tid og minne og gjør implementasjonen enklere (closed-liste). I tillegg er konsistent h automatisk admissibel, så A* blir kostnadsoptimal – og A* med konsistent h er <i>optimalt effektiv</i>. (Den offisielle løsningen nevner trekantulikheten og at konsistens gir admissibilitet og dermed optimalitet.)</p></details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>7. Tree-like search vs. graph search – når trengs konsistens?</h2>
+
+    <p>«A* kan være mange forskjellige ting» – advarer foilene. Små implementasjonsdetaljer endrer garantiene. Du må kjenne tre varianter:</p>
+    <table>
+      <tr><th>Variant</th><th>Hva huskes?</th><th>Hva skjer når vi finner en billigere vei til en kjent tilstand?</th><th>Optimal hvis h er …</th></tr>
+      <tr><td><span class="term" data-en="tree-like search">Tree-like search<span class="def">Søk som ikke husker hvilke tilstander som er nådd; samme tilstand kan ligge i grensen mange ganger, og løkker er mulig.</span></span></td><td>Ingenting</td><td>Alle veier legges inn som egne noder – ingen sjekk</td><td>admissibel</td></tr>
+      <tr><td><span class="term" data-en="graph search (best-first with reached)">Graph search (bokas, fig. 3.7)<span class="def">Husker reached[s] = beste kjente vei til s. Et barn legges inn hvis tilstanden er ny eller veien er billigere – også hvis tilstanden allerede er ekspandert (gjenåpning).</span></span></td><td><code>reached</code> med beste g</td><td>Ny node legges i grensen – også hvis tilstanden allerede er ekspandert (<b>gjenåpning</b>)</td><td>admissibel</td></tr>
+      <tr><td>Graph search med <span class="term" data-en="closed list / explored set">closed-liste<span class="def">Mengden av ekspanderte tilstander. I den strenge varianten åpnes en tilstand i closed aldri igjen, selv om en billigere vei dukker opp.</span></span></td><td>Ekspanderte tilstander (closed)</td><td>Hvis tilstanden er i closed: <b>ignoreres</b>. Hvis den er i grensen: erstattes.</td><td><b>konsistent</b></td></tr>
+    </table>
+
+    <p>Den tredje varianten er «GRAPH-SEARCH» fra 3. utgave av boka, pseudokoden i eksamen 2019, og «nodes are added permanently to the closed list» i eksamen 2017. Den er enklere og raskere (hver tilstand ekspanderes maks én gang), men <b>krever konsistent h</b>: med bare admissibel h kan første vei til en tilstand være suboptimal, og da blir feilen permanent.</p>
+
+    <h3>Eksempel: eksamen 2019 – closed-liste med inkonsistent h</h3>
+    <div class="stepper" data-label="Steg">
+      <div class="step">
+        <svg class="gfig" data-graph="ex2019" data-cls="A:node-hl;B:node-warn;C:node-warn" data-sub="B:f=1+6=7;C:f=4+2=6" role="img" aria-label="2019 steg 1"></svg>
+        <p>Ta ut A (f = 0 + 7). Barn: B (g = 1, f = 1 + 6 = 7) og C (g = 4, f = 4 + 2 = 6). Frontier: [C(6), B(7)].</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="ex2019" data-cls="A:node-done;C:node-hl;B:node-warn;D:node-warn;G:node-warn" data-ecls="A-C:edge-hl" data-sub="B:f=7;D:f=7+2=9;G:f=8+0=8" role="img" aria-label="2019 steg 2"></svg>
+        <p>Ta ut C (6) – <b>via A med g = 4</b>. C legges i closed. Barn: B (g = 6, f = 12 – dårligere enn 7, forkastes), D (g = 7, f = 9), G (g = 8, f = 8). Frontier: [B(7), G(8), D(9)].</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="ex2019" data-cls="A:node-done;C:node-bad;B:node-hl;D:node-warn;G:node-warn" data-ecls="A-B:edge-hl;B-C:edge-bad" data-sub="C:g=3 ignoreres!;D:f=5+2=7;G:f=8" role="img" aria-label="2019 steg 3"></svg>
+        <p>Ta ut B (7). Barn: C med g = 1 + 2 = <b>3 &lt; 4</b> – en billigere vei til C! Men C er i closed, så den <b>ignoreres</b>. D: g = 5, f = 7 &lt; 9, erstattes. Frontier: [D(7), G(8)].</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="ex2019" data-cls="A:node-done;C:node-done;B:node-done;D:node-hl;G:node-warn" data-ecls="B-D:edge-hl" data-sub="G:f=8" role="img" aria-label="2019 steg 4"></svg>
+        <p>Ta ut D (7). Barn: B, C i closed; G med g = 11, f = 11 – dårligere enn 8. Frontier: [G(8)].</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="ex2019" data-cls="A:node-good;C:node-good;G:node-good;B:node-done;D:node-done" data-ecls="A-C:edge-good;C-G:edge-good" data-sub="G:g=8" role="img" aria-label="2019 steg 5"></svg>
+        <p>Ta ut G (8) → mål. Ekspandert: <b>A, C, B, D, (G)</b>. Returnert vei: <b>A→C→G, kostnad 8</b>. Men A→B→C→G koster 1 + 2 + 4 = <b>7</b>! Feilen: h(B) = 6 &gt; c(B,C) + h(C) = 4 er inkonsistent, så C ble ekspandert via en suboptimal vei og aldri åpnet igjen.</p>
+      </div>
+      <div class="step">
+        <svg class="gfig" data-graph="ex2019" data-cls="A:node-good;B:node-good;C:node-good;G:node-good;D:node-done" data-ecls="A-B:edge-good;B-C:edge-good;C-G:edge-good" data-sub="C:gjenåpnes g=3;G:g=7" role="img" aria-label="2019 med gjenåpning"></svg>
+        <p><b>Med bokas versjon (gjenåpning):</b> i steg 3 legges C inn igjen med g = 3, f = 5, og tas ut før alt annet. Da får G g = 3 + 4 = 7. Rekkefølge: A, C, B, C, D, (G) – vei <b>A→B→C→G, kostnad 7 (optimal)</b>. Prøv selv i widgeten i seksjon 4 med «Eksamen 2019» og de to graph-search-variantene.</p>
+      </div>
+    </div>
+
+    <div class="box exam"><span class="box-title">Eksamenstips: hvilken A* bruker oppgaven?</span>
+      <ul>
+        <li>Les oppgaveteksten nøye: «tree-like search», «nodes are added permanently to the closed list», «an implementation of A* which does not assume a consistent heuristic» (2016) eller oppgitt pseudokode (2019) avgjør hvilken variant du skal bruke.</li>
+        <li>Står det ingenting, bruk bokas Best-First-Search (fig. 3.7) – det er den forelesningen og øvingene bruker – og <b>skriv antakelsen</b>.</li>
+        <li>Eksamen 2016f spurte: «Must the heuristics be both admissible and consistent in order for the Russell and Norvig version of A* to be optimal when applied to graph search?» Fasit: <b>yes</b>. Det refererer til 3. utgaves GRAPH-SEARCH med closed-liste. For 4. utgaves fig. 3.7 (med gjenåpning) holder admissibel – skriv gjerne den nyansen i svaret.</li>
+        <li>Øving 1, bonusoppgave: «How would you have to change the code of the A* algorithm to make consistency necessary for cost optimality?» Svar: erstatt sjekken «s er ny <i>eller</i> billigere» med «s er ikke i closed» (aldri gjenåpne). Gevinst: enklere og raskere, hver tilstand ekspanderes maks én gang. Pris: optimalitet krever nå konsistens.</li>
+      </ul>
+    </div>
+
+    <div class="box warning"><span class="box-title">Vanlig feil: tree-like search i en urettet graf</span>
+      <p>I tree-like search husker vi ingenting, så i en urettet graf genereres forelderen som barn igjen (S → A → S → …). Med A* er det ufarlig for optimaliteten (g vokser, så slike noder havner bakerst), men det gir mange flere ekspansjoner, og samme tilstand kan ekspanderes flere ganger. Eksamen 2024 Q5 handlet nettopp om at tree-like A* ekspanderer en node mer enn én gang.</p>
+    </div>
+
+    <div class="quiz" data-answer="c">
+      <p class="q">Du bruker A* med closed-liste (ekspanderte noder åpnes aldri igjen). Heuristikken er admissibel, men ikke konsistent. Hva kan du si?</p>
+      <ul class="opts">
+        <li data-why="Admissibilitet er nok for bokas versjon og for tree-like search, men ikke for closed-liste-varianten.">A* finner garantert optimal løsning, fordi h er admissibel.</li>
+        <li data-why="A* er fortsatt komplett i endelige grafer med positive kostnader – problemet er optimalitet, ikke kompletthet.">A* kan gå i evig løkke.</li>
+        <li>A* finner en løsning, men den kan være suboptimal.</li>
+        <li data-why="Det finnes mange inkonsistente heuristikker der A* fortsatt finner det optimale (f.eks. eksamen 2017 med h(B)=2).">A* finner garantert en suboptimal løsning.</li>
+      </ul>
+      <div class="feedback">Med closed-liste kan en tilstand låses med en for dyr g hvis h er inkonsistent (eksamen 2019). Det <i>kan</i> gå bra (2017: S→B→C→G ble funnet), men det er ingen garanti.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>8. Konturer, «surely expanded» noder og optimal effektivitet</h2>
+
+    <p>En nyttig måte å se for seg søket på er
+      <span class="term" data-en="contour">konturer<span class="def">«Høydekurver» i tilstandsrommet: kontur c omslutter alle noder med f(n) ≤ c. A* utvider seg i bånd med økende f.</span></span>,
+      som høydekurver på et kart. Innenfor konturen merket 400 ligger alle noder med f = g + h ≤ 400. Fordi A* alltid ekspanderer lavest f, «fyller» den kontur for kontur utover fra start.</p>
+
+    <figure>
+      <svg viewBox="0 0 600 220" width="600" role="img" aria-label="Konturer for UCS og A*">
+        <text x="145" y="18" text-anchor="middle" class="label">UCS: konturer av g</text>
+        <circle class="contour" cx="110" cy="115" r="35"/>
+        <circle class="contour" cx="110" cy="115" r="65"/>
+        <circle class="contour" cx="110" cy="115" r="95"/>
+        <circle class="node-hl" cx="110" cy="115" r="12"/><text x="110" y="120" text-anchor="middle" class="label">S</text>
+        <circle class="node-good" cx="230" cy="115" r="12"/><text x="230" y="120" text-anchor="middle" class="label">G</text>
+        <text x="455" y="18" text-anchor="middle" class="label">A*: konturer av g + h</text>
+        <ellipse class="contour2" cx="390" cy="115" rx="45" ry="30"/>
+        <ellipse class="contour2" cx="430" cy="115" rx="90" ry="45"/>
+        <ellipse class="contour2" cx="465" cy="115" rx="128" ry="58"/>
+        <circle class="node-hl" cx="360" cy="115" r="12"/><text x="360" y="120" text-anchor="middle" class="label">S</text>
+        <circle class="node-good" cx="560" cy="115" r="12"/><text x="560" y="120" text-anchor="middle" class="label">G</text>
+        <text x="300" y="210" text-anchor="middle" class="small">UCS sprer seg likt i alle retninger; A* med god h strekker konturene mot målet.</text>
+      </svg>
+      <figcaption>Figur 6: Konturer (jf. R&amp;N fig. 3.20). Jo bedre h, desto smalere blir konturene rundt den optimale veien.</figcaption>
+    </figure>
+
+    <p>La C* være kostnaden til den optimale løsningen. Med konsistent h gjelder:</p>
+    <div class="box key"><span class="box-title">Hvilke noder ekspanderer A*?</span>
+      <ul>
+        <li>A* ekspanderer <b>alle</b> noder som kan nås fra start via en vei der <b>hver</b> node har <b>f(n) &lt; C*</b>. Disse kalles
+          <span class="term" data-en="surely expanded nodes">surely expanded nodes<span class="def">Noder som nås via en vei der alle noder har f(n) &lt; C*. A* (med konsistent h) må ekspandere alle disse.</span></span>.</li>
+        <li>A* <b>kan</b> ekspandere noen noder med <b>f(n) = C*</b> (på «målkonturen») før den velger målet – avhenger av tiebreaking.</li>
+        <li>A* ekspanderer <b>ingen</b> noder med <b>f(n) &gt; C*</b>.</li>
+      </ul>
+    </div>
+
+    <p>Dette gir to viktige begreper:</p>
+    <ul>
+      <li><span class="term" data-en="optimally efficient">Optimalt effektiv<span class="def">A* med konsistent h: enhver annen algoritme som utvider søkeveier fra start og bruker samme heuristikk, må ekspandere minst alle nodene A* garantert ekspanderer (bortsett fra likhet i f = C*).</span></span>:
+        A* med konsistent h er optimalt effektiv – enhver annen optimal algoritme som utvider veier fra start med samme heuristikk <b>må</b> ekspandere alle surely expanded nodes, for hvilken som helst av dem kunne ha ligget på en enda bedre løsning. (Foilene: «any other search algorithm with the same heuristic values must at least expand all nodes that A* expanded, ignoring ties».)</li>
+      <li><span class="term" data-en="pruning">Beskjæring<span class="def">Å utelukke deler av søketreet uten å undersøke dem. A* beskjærer alle noder med f &gt; C*.</span></span>:
+        I Romania-eksempelet har Timisoara f = 447 og Zerind f = 449 &gt; C* = 418. De er barn av roten og ville blitt ekspandert tidlig av BFS/UCS, men A* rører dem aldri – hele subtrærne deres er beskåret bort.</li>
+    </ul>
+
+    <div class="box warning"><span class="box-title">A* er ikke svaret på alt</span>
+      <p>Optimal effektivitet betyr ikke at A* er rask. For mange problemer er antallet noder med f &lt; C* fortsatt eksponentielt i løsningslengden. Bokas eksempel: en støvsuger som kan rengjøre en hvilken som helst rute for kostnad 1. Med N skitne ruter finnes 2<sup>N</sup> delmengder, og alle ligger på en optimal vei (f &lt; C*), så A* besøker alle.</p>
+    </div>
+
+    <div class="check" data-answer="A, S, R, F, P" data-mode="set" data-alt="Arad, Sibiu, Rimnicu Vilcea, Fagaras, Pitesti|Arad,Sibiu,Rimnicu,Fagaras,Pitesti">
+      <p class="q">Romania, C* = 418. Hvilke byer er «surely expanded» av A* (f &lt; 418 langs hele veien)? Bruk forkortelser (A, S, R, F, P, …), kommaseparert.</p>
+      <div class="explain">f(Arad) = 366, f(Sibiu) = 393, f(R. Vilcea) = 413, f(Fagaras) = 415, f(Pitesti) = 417 – alle &lt; 418. Timisoara (447), Zerind (449), Craiova (526), Oradea (671) har f &gt; 418 og ekspanderes aldri. Bucharest via Pitesti har f = 418 = C* og er målet.</div>
+    </div>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">Eksamen 2024 Q3 (ett av alternativene): «A* is guaranteed to be optimally efficient if we use a heuristic which is consistent.» Er utsagnet sant?</p>
+      <ul class="opts">
+        <li data-why="Boka sier nettopp at A* med konsistent heuristikk er optimalt effektiv.">Usant</li>
+        <li>Sant</li>
+      </ul>
+      <div class="feedback">Sant – det var ikke det falske alternativet i 2024 Q3. (Det falske var at UCS bruker «expected distance … our guess»; UCS bruker bare faktisk veikostnad g.)</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>9. Satisficing søk og weighted A*</h2>
+
+    <p>A* finner det optimale, men kan ekspandere enormt mange noder. Ofte er en løsning som er «god nok» bedre enn en perfekt løsning som kommer for sent. Slike løsninger kalles
+      <span class="term" data-en="satisficing solution">satisficing<span class="def">«Satisfy + suffice»: en løsning som er god nok, selv om den ikke er optimal. Vi bytter litt kvalitet mot mye raskere søk.</span></span>
+      (av <i>satisfy</i> + <i>suffice</i>).</p>
+
+    <p>Én måte er å bruke en <b>inadmissibel heuristikk</b> som er mer treffsikker. Veiingeniører bruker en
+      <span class="term" data-en="detour index">omveisindeks<span class="def">Detour index: faktor (typisk 1,2–1,6) som ganges med luftlinjen for å estimere faktisk veilengde. Gir et bedre, men inadmissibelt estimat.</span></span>
+      (detour index): luftlinje × 1,3 er et bedre estimat av veilengden – men det kan overestimere. Generelt gir dette
+      <span class="term" data-en="weighted A* search">weighted A*<span class="def">Best-first search med f(n) = g(n) + W·h(n), W &gt; 1. Raskere og mer målrettet enn A*, finner løsning med kostnad mellom C* og W·C*.</span></span>:</p>
+    <div class="formula">f(n) = g(n) + W · h(n),   W &gt; 1</div>
+
+    <figure>
+      <svg viewBox="0 0 600 120" width="600" role="img" aria-label="Spekteret fra UCS til greedy">
+        <line class="edge" x1="40" y1="60" x2="560" y2="60"/>
+        <circle class="node" cx="60" cy="60" r="7"/><circle class="node-hl" cx="200" cy="60" r="7"/><circle class="node-warn" cx="380" cy="60" r="7"/><circle class="node" cx="540" cy="60" r="7"/>
+        <text x="60" y="40" text-anchor="middle" class="label">W = 0</text><text x="60" y="88" text-anchor="middle" class="small">UCS / Dijkstra</text><text x="60" y="102" text-anchor="middle" class="small">f = g</text>
+        <text x="200" y="40" text-anchor="middle" class="label">W = 1</text><text x="200" y="88" text-anchor="middle" class="small">A*</text><text x="200" y="102" text-anchor="middle" class="small">f = g + h</text>
+        <text x="380" y="40" text-anchor="middle" class="label">1 &lt; W &lt; ∞</text><text x="380" y="88" text-anchor="middle" class="small">weighted A*</text><text x="380" y="102" text-anchor="middle" class="small">f = g + W·h</text>
+        <text x="540" y="40" text-anchor="middle" class="label">W = ∞</text><text x="540" y="88" text-anchor="middle" class="small">greedy best-first</text><text x="540" y="102" text-anchor="middle" class="small">f ≈ h</text>
+      </svg>
+      <figcaption>Figur 7: Generalisert heuristisk søk f(n) = g(n) + W·h(n) (forelesningen). Jo større W, desto mer grådig.</figcaption>
+    </figure>
+
+    <ul>
+      <li><b>Garanti:</b> Hvis optimal kostnad er C*, finner weighted A* (med admissibel h) en løsning med kostnad mellom <b>C* og W · C*</b>. I praksis ofte mye nærmere C*.</li>
+      <li>Boka viser et rutenett der weighted A* med W = 2 utforsker <b>7 ganger færre</b> tilstander og finner en vei som er bare 5 % dyrere.</li>
+      <li>Foilene kaller det «somewhat-greedy search»: det fokuserer mot målet, men ignorerer ikke kostnaden helt.</li>
+    </ul>
+
+    <p>Boka nevner også flere typer suboptimalt søk:</p>
+    <table>
+      <tr><th>Type</th><th>Krav til løsningen</th></tr>
+      <tr><td><span class="term" data-en="bounded suboptimal search">Bounded suboptimal search<span class="def">Søk som garanterer en løsning innenfor en konstant faktor W av optimal kostnad. Weighted A* gir denne garantien.</span></span></td><td>Kostnad ≤ W · C* (weighted A* gir dette)</td></tr>
+      <tr><td>Bounded-cost search</td><td>Kostnad &lt; en konstant C</td></tr>
+      <tr><td>Unbounded-cost search</td><td>Hvilken som helst kostnad, bare den finnes raskt. Eksempel: <i>speedy search</i> – greedy med h = estimert <i>antall handlinger</i> til mål, uansett kostnad.</td></tr>
+    </table>
+
+    <div class="check" data-answer="75" data-mode="number">
+      <p class="q">Den optimale løsningen koster C* = 50. Du kjører weighted A* med W = 1,5 og en admissibel heuristikk. Hva er den høyeste kostnaden løsningen kan ha?</p>
+      <div class="explain">Weighted A* garanterer kostnad ≤ W · C* = 1,5 · 50 = 75. (Og selvsagt ≥ 50.)</div>
+    </div>
+
+    <div class="quiz" data-answer="a">
+      <p class="q">Eksamen 2024 Q3: «Greedy Best First search can be understood as a special version of a weighted A* (with the form f(n) = w<sub>1</sub>g(n) + w<sub>2</sub>h(n)) with w<sub>1</sub> = 0 and w<sub>2</sub> = 1.» Sant eller usant?</p>
+      <ul class="opts">
+        <li>Sant</li>
+        <li data-why="Med w1 = 0 forsvinner g, og f = h – det er nettopp greedy.">Usant</li>
+      </ul>
+      <div class="feedback">Sant: f = 0·g + 1·h = h. (Med formen g + W·h tilsvarer greedy W → ∞; begge beskrivelser gir samme rekkefølge.)</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>10. Minnebegrenset søk: IDA*, RBFS, SMA* og beam search</h2>
+
+    <p>«The main issue of A* lies on its memory use» (foilene). A* lagrer hele grensen og alle nådde tilstander. Boka beskriver noen triks og noen nye algoritmer. Til eksamen holder det å vite <b>ideen, hva som huskes og egenskapene</b>.</p>
+
+    <h3>Implementasjonstriks</h3>
+    <ul>
+      <li><b>Reference count:</b> fjern en tilstand fra <code>reached</code> når det ikke finnes flere måter å nå den på (f.eks. i et rutenett: etter at den er nådd fra alle fire naboer).</li>
+      <li><b>Separasjonsegenskapen</b> + forbud mot «U-svinger»: da trenger vi bare sjekke grensen og kan droppe <code>reached</code>.</li>
+    </ul>
+
+    <h3>Beam search</h3>
+    <p><span class="term" data-en="beam search">Beam search<span class="def">Best-first search som bare beholder de k beste nodene (eller de innenfor δ av beste f) i grensen. Sparer minne, men er verken komplett eller optimal.</span></span>
+      beholder bare de <b>k</b> nodene med best f i grensen og kaster resten (variant: behold alle innenfor δ av beste f). Raskt og minnegjerrig, men <b>ikke komplett og ikke optimal</b> – den optimale veien kan bli kastet.</p>
+
+    <h3>IDA* – iterative deepening A*</h3>
+    <p><span class="term" data-en="iterative-deepening A* (IDA*)">IDA*<span class="def">Iterativ fordypning der grensen er en f-kostnad: dybde-først-søk som kutter noder med f &gt; grense; neste grense = minste f som ble kuttet. Lineært minne.</span></span>
+      er til A* det iterativ fordypning er til DFS. I stedet for en dybdegrense bruker vi en <b>f-grense</b>:</p>
+    <div class="box algo"><span class="box-title">Idé: IDA*</span>
+<pre>grense ← f(start) = h(start)
+loop:
+   kjør dybde-først-søk fra start, men kutt (ikke utvid) enhver node med f(n) &gt; grense
+   hvis målet ble funnet → returner det
+   grense ← den minste f-verdien som ble kuttet i denne iterasjonen</pre>
+    </div>
+    <p>Hver iterasjon søker gjennom én f-kontur. Minnet er lineært (bare veien), men noder besøkes mange ganger. Fungerer svært godt når f er heltall (8-puslespill: maks C* iterasjoner, f.eks. ≤ 31), dårlig når alle f er forskjellige (kan bli én ny node per iterasjon). Optimal med admissibel h.</p>
+
+    <figure>
+      <svg class="gfig" data-graph="e1" role="img" aria-label="Graf E"></svg>
+      <figcaption>Figur 8: «Graf E» (urettet), brukt her og i treningsoppgavene. Start S, mål G.</figcaption>
+    </figure>
+    <p><b>Eksempel (graf E, alfabetisk barnerekkefølge, ingen gjenbesøk av noder på gjeldende vei):</b></p>
+    <table class="trace">
+      <tr><th>Iterasjon</th><th>f-grense</th><th>Besøkte noder (f)</th><th>Kuttede f-verdier</th><th>Neste grense</th></tr>
+      <tr><td>1</td><td>6</td><td class="mono">S(6)</td><td>A:7, B:8</td><td>7</td></tr>
+      <tr><td>2</td><td>7</td><td class="mono">S(6) A(7) C(7)</td><td>B:8, D:8, D:9, E:10, B:10</td><td>8</td></tr>
+      <tr><td>3</td><td>8</td><td class="mono">S(6) A(7) C(7) D(8) B(8) C(7) D(8)</td><td>9, 10, …</td><td>9</td></tr>
+      <tr><td>4</td><td>9</td><td class="mono">S(6) A(7) C(7) D(8) G(9)</td><td></td><td>Mål! S→A→C→D→G, kostnad 9</td></tr>
+    </table>
+    <p>Legg merke til hvor mye arbeid som gjentas: S, A og C besøkes i alle iterasjonene.</p>
+
+    <h3>RBFS – recursive best-first search</h3>
+    <p><span class="term" data-en="recursive best-first search (RBFS)">RBFS<span class="def">Rekursiv best-first search med lineært minne. Følger beste barn så lenge f er under f_limit (beste alternativ ellers); ved tilbaketrekking lagres beste f i det glemte subtreet som «backed-up value».</span></span>
+      etterligner best-first search med lineært minne. Den går rekursivt ned langs beste barn, men holder styr på <code>f_limit</code> = f-verdien til beste alternativ et annet sted i treet. Når beste node i gjeldende subtre blir dårligere enn alternativet, trekker den seg tilbake og husker en
+      <span class="term" data-en="backed-up value">backed-up value<span class="def">Når RBFS/SMA* glemmer et subtre, lagres beste f-verdi i subtreet i foreldrenoden, slik at algoritmen vet om det lønner seg å gå tilbake dit senere.</span></span>
+      (beste f i det glemte subtreet) i forelderen.</p>
+    <div class="box algo"><span class="box-title">Algoritme: RBFS (R&amp;N fig. 3.22)</span>
+<pre>function RECURSIVE-BEST-FIRST-SEARCH(problem) returns a solution or failure
+   solution, fvalue ← RBFS(problem, NODE(problem.INITIAL), ∞)
+   return solution
+
+function RBFS(problem, node, f_limit) returns a solution or failure, and a new f-cost limit
+   if problem.IS-GOAL(node.STATE) then return node
+   successors ← LIST(EXPAND(node))
+   if successors is empty then return failure, ∞
+   for each s in successors do                    // oppdater f med verdi fra tidligere søk
+      s.f ← max(s.PATH-COST + h(s), node.f)
+   while true do
+      best ← the node in successors with lowest f-value
+      if best.f &gt; f_limit then return failure, best.f
+      alternative ← the second-lowest f-value among successors
+      result, best.f ← RBFS(problem, best, min(f_limit, alternative))
+      if result ≠ failure then return result, best.f</pre>
+    </div>
+    <p>Romania (bokas fig. 3.23): RBFS går Arad → Sibiu → R. Vilcea → Pitesti (417), men da er Fagaras (415) bedre, så den trekker seg tilbake og lagrer 417 i R. Vilcea. Fagaras gir Bucharest 450 &gt; 417, så den trekker seg tilbake igjen (lagrer 450 i Fagaras) og går ned R. Vilcea → Pitesti → Bucharest (418). Disse «ombestemmelsene» gjør at noder genereres mange ganger. RBFS er <b>optimal med admissibel h</b>, bruker <b>lineært minne</b>, men kan ikke utnytte ekstra minne selv om det finnes.</p>
+
+    <h3>SMA* – simplified memory-bounded A*</h3>
+    <p><span class="term" data-en="SMA* (simplified memory-bounded A*)">SMA*<span class="def">Kjører som A* til minnet er fullt, kaster så den dårligste bladnoden (høyest f) og lagrer verdien i forelderen. Komplett hvis grunneste mål får plass i minnet; optimal hvis optimal løsning er nåbar.</span></span>
+      bruker <b>alt tilgjengelig minne</b>: den kjører som A* til minnet er fullt. Da kastes den <b>dårligste bladnoden</b> (høyest f; ved likhet den eldste), og verdien dens lagres (backes opp) i forelderen. Et glemt subtre regenereres bare når alle andre veier ser verre ut.</p>
+    <ul>
+      <li><b>Komplett</b> hvis dybden d til grunneste mål er mindre enn minnestørrelsen (i noder).</li>
+      <li><b>Optimal</b> hvis en optimal løsning er nåbar innenfor minnet; ellers returneres beste nåbare.</li>
+      <li>På vanskelige problemer kan den hoppe fram og tilbake mellom kandidatveier –
+        <span class="term" data-en="thrashing">thrashing<span class="def">Når et minnebegrenset søk bruker mesteparten av tiden på å regenerere noder det nettopp har glemt (jf. paging i operativsystemer).</span></span>
+        – slik at minnebegrensningen gjør problemet uhåndterlig i tid.</li>
+    </ul>
+
+    <table>
+      <tr><th>Algoritme</th><th>Minne</th><th>Optimal?</th><th>Svakhet</th></tr>
+      <tr><td>A*</td><td>Alle genererte noder (eksponentielt)</td><td>Ja (admissibel h)</td><td>Går tom for minne</td></tr>
+      <tr><td>Beam search</td><td>k noder</td><td>Nei (heller ikke komplett)</td><td>Kan kaste den optimale veien</td></tr>
+      <tr><td>IDA*</td><td>Lineært (husker bare f-grensen mellom iterasjoner)</td><td>Ja (admissibel h)</td><td>Mange regenereringer; dårlig når f-verdiene er ulike</td></tr>
+      <tr><td>RBFS</td><td>Lineært</td><td>Ja (admissibel h)</td><td>«Ombestemmer seg» ofte; kan ikke bruke ekstra minne</td></tr>
+      <tr><td>SMA*</td><td>Alt tilgjengelig minne</td><td>Ja, hvis optimal løsning får plass</td><td>Thrashing på vanskelige problemer</td></tr>
+    </table>
+
+    <div class="box example"><span class="box-title">Kort om bidireksjonalt heuristisk søk (3.5.6)</span>
+      <p>To grenser, én fra start (h<sub>F</sub> estimerer avstand til mål) og én baklengs fra målet (h<sub>B</sub> estimerer avstand til start) – <i>front-to-end</i>. Bruker man f = g + h i hver retning, garanterer ikke møtet i seg selv optimalitet. Boka bruker evalueringsfunksjonen <span class="logic">f<sub>2</sub>(n) = max(2g(n), g(n) + h(n))</span>, som sikrer at ingen node med g &gt; C*/2 ekspanderes («meet in the middle»); med admissibel h er det komplett og optimalt. Med en veldig god heuristikk gir bidireksjonalt søk lite ekstra; med en middels god heuristikk sparer det ofte noder.</p>
+    </div>
+
+    <div class="quiz" data-answer="c">
+      <p class="q">Hvilken algoritme bruker <b>alt</b> tilgjengelig minne og kaster den dårligste bladnoden når minnet er fullt?</p>
+      <ul class="opts">
+        <li data-why="IDA* husker bare den gjeldende f-grensen mellom iterasjonene.">IDA*</li>
+        <li data-why="RBFS bruker bare lineært minne og kan ikke dra nytte av mer.">RBFS</li>
+        <li>SMA*</li>
+        <li data-why="Beam search har en fast grense k på grensen, uavhengig av hvor mye minne som finnes, og backer ikke opp verdier.">Beam search</li>
+      </ul>
+      <div class="feedback">SMA* fyller minnet som A*, kaster så verste blad (høyest f) og backer opp verdien i forelderen.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>11. Å lage heuristikker: relaxed problems, 8-puslespillet og dominans</h2>
+
+    <p>Foilene: «Building heuristics is a discipline itself.» Hovedeksempelet er
+      8-puslespillet: åtte nummererte brikker og ett tomt felt i et 3×3-brett; en brikke kan skyves inn i det tomme feltet hvis den står ved siden av (ikke diagonalt). Det finnes 9!/2 = 181 440 nåbare tilstander.</p>
+
+    <figure>
+      <svg viewBox="0 0 400 160" width="400" role="img" aria-label="8-puslespill start og mål">
+        <g id="pz-start"></g>
+        <text x="95" y="150" text-anchor="middle" class="small">Starttilstand</text>
+        <text x="305" y="150" text-anchor="middle" class="small">Måltilstand</text>
+      </svg>
+      <figcaption>Figur 9: Bokas 8-puslespill (fig. 3.25). Korteste løsning er 26 trekk.</figcaption>
+    </figure>
+
+    <p>To klassiske heuristikker (begge admissible):</p>
+    <ul>
+      <li><b>h<sub>1</sub> = antall feilplasserte brikker</b> (blanken teller ikke). I figuren står alle 8 feil: <b>h<sub>1</sub> = 8</b>. Admissibel fordi hver feilplassert brikke må flyttes minst én gang.</li>
+      <li><b>h<sub>2</sub> = summen av
+        <span class="term" data-en="Manhattan distance (city-block distance)">Manhattan-avstandene<span class="def">Summen av horisontal og vertikal avstand: |x₁ − x₂| + |y₁ − y₂|. For 8-puslespillet: hvor mange ruter hver brikke er fra målposisjonen, uten diagonaler.</span></span>
+        </b> for hver brikke til målposisjonen. I figuren: brikke 1: 3, 2: 1, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 2 ⇒ <b>h<sub>2</sub> = 18</b>. Admissibel fordi et trekk flytter én brikke ett steg nærmere målet.</li>
+    </ul>
+    <p>Begge er under den sanne kostnaden 26, som de skal være.</p>
+
+    <h3>Relaxed problems – hvor kommer heuristikkene fra?</h3>
+    <p>Et
+      <span class="term" data-en="relaxed problem">relaksert problem<span class="def">Et forenklet problem med færre restriksjoner på handlingene. Optimal kostnad i det relakserte problemet er en admissibel (og konsistent) heuristikk for originalproblemet.</span></span>
+      er en versjon av problemet med <b>færre restriksjoner på handlingene</b>. Regelen i 8-puslespillet er:</p>
+    <div class="formula">Flytt brikke fra X til Y hvis  X er nabo til Y  og  Y er tom</div>
+    <table>
+      <tr><th>Fjern restriksjon</th><th>Relaksert regel</th><th>Gir heuristikk</th></tr>
+      <tr><td>«Y er tom»</td><td>(a) Flytt fra X til Y hvis X er nabo til Y</td><td><b>h<sub>2</sub></b> (Manhattan): hver brikke går sin egen korteste vei</td></tr>
+      <tr><td>«X er nabo til Y»</td><td>(b) Flytt fra X til Y hvis Y er tom</td><td>Gaschnigs heuristikk (øvingsoppgave i boka)</td></tr>
+      <tr><td>Begge</td><td>(c) Flytt fra X til Y uansett</td><td><b>h<sub>1</sub></b> (feilplasserte): hver feil brikke flyttes i ett trekk</td></tr>
+    </table>
+
+    <div class="box key"><span class="box-title">Hvorfor gir relaxed problems gode heuristikker?</span>
+      <ul>
+        <li><b>Admissibel:</b> Det relakserte problemet har <i>flere</i> kanter (en supergraf). Enhver løsning på originalen er også en løsning på det relakserte, så optimal kostnad der er ≤ optimal kostnad i originalen.</li>
+        <li><b>Konsistent:</b> Heuristikken er en <i>eksakt</i> kostnad i det relakserte problemet, og eksakte kostnader oppfyller trekantulikheten.</li>
+        <li><b>Billig å regne ut:</b> Det relakserte problemet må kunne løses nesten uten søk (8-puslespillet dekomponeres i 8 uavhengige delproblemer).</li>
+      </ul>
+    </div>
+
+    <h3>Dominans</h3>
+    <div class="box key"><span class="box-title">Definisjon: dominans</span>
+      <p>En admissibel heuristikk h<sub>2</sub>
+        <span class="term" data-en="dominance (h2 dominates h1)">dominerer<span class="def">h₂ dominerer h₁ hvis h₂(n) ≥ h₁(n) for alle n (begge admissible). Da ekspanderer A* med h₂ aldri flere noder enn med h₁ (bortsett fra uheldig tiebreaking).</span></span>
+        en annen admissibel heuristikk h<sub>1</sub> hvis <span class="logic">h<sub>2</sub>(n) ≥ h<sub>1</sub>(n) for <b>alle</b> noder n</span>.</p>
+    </div>
+    <ul>
+      <li>For 8-puslespillet dominerer h<sub>2</sub> h<sub>1</sub>: en feilplassert brikke har Manhattan-avstand ≥ 1.</li>
+      <li><b>Hvorfor er det bedre?</b> Alle noder med f(n) &lt; C*, dvs. h(n) &lt; C* − g(n), blir garantert ekspandert. Er h<sub>2</sub> ≥ h<sub>1</sub>, er hver node som er surely expanded med h<sub>2</sub> også surely expanded med h<sub>1</sub> – men h<sub>1</sub> kan i tillegg måtte ekspandere andre. Høyere (men fortsatt admissibel) h = mer informasjon = færre ekspansjoner.</li>
+      <li><b>Ingen dominans</b> hvis h<sub>a</sub> er størst på én node og h<sub>b</sub> på en annen (eksamen 2018: H3 = (4, 3, 0) og H4 = (5, 2, 0)).</li>
+      <li><b>Kombiner:</b> <span class="logic">h(n) = max{h<sub>1</sub>(n), …, h<sub>k</sub>(n)}</span> er admissibel (konsistent hvis alle er det) og dominerer alle komponentene. Ulempen er bare beregningstiden.</li>
+    </ul>
+
+    <div class="box warning"><span class="box-title">Vanlig feil: «mindre h er bedre»</span>
+      <p>Eksamen 2015 P1h: «If both H1 and H2 are admissible heuristics for a problem and H2 &lt; H1, then H2 is a better heuristic.» – <b>False</b>. Blant admissible heuristikker er <b>større bedre</b> (nærmere h*). Den minste admissible heuristikken er h = 0, som gir UCS. Men husk: større er bare bedre så lenge den fortsatt er admissibel (og helst konsistent) og ikke for dyr å regne ut.</p>
+    </div>
+
+    <div class="widget" id="w-puz">
+      <p><b>8-puslespill-kalkulator.</b> Klikk på en brikke som står ved siden av det tomme feltet for å flytte den, eller skriv inn en tilstand (0 = tomt felt, radvis). Kalkulatoren viser h<sub>1</sub>, h<sub>2</sub> og Manhattan-avstanden per brikke. «Løs med A*» finner den sanne kostnaden h* og teller genererte noder og effektiv forgreningsfaktor for h = 0 (UCS), h<sub>1</sub> og h<sub>2</sub>.</p>
+      <div class="puzzle-row">
+        <div><b>Tilstand</b><div class="puzzle-grid" id="wp-grid"></div></div>
+        <div><b>Mål</b><div class="puzzle-grid" id="wp-goal"></div></div>
+        <div>
+          <p>h<sub>1</sub> (feilplasserte) = <span class="bigval" id="wp-h1"></span></p>
+          <p>h<sub>2</sub> (Manhattan) = <span class="bigval" id="wp-h2"></span></p>
+          <p id="wp-solv" style="font-size:.85rem"></p>
+        </div>
+      </div>
+      <div class="controls">
+        <label>Tilstand: <input id="wp-state" class="wide" value="7 2 4 5 0 6 8 3 1"></label>
+        <label>Mål: <input id="wp-goaltxt" class="wide" value="0 1 2 3 4 5 6 7 8"></label>
+        <button id="wp-set" class="secondary">Bruk</button>
+      </div>
+      <div class="controls">
+        <button id="wp-book" class="secondary">Bokas eksempel</button>
+        <button id="wp-shuffle" class="secondary">Bland (25 tilfeldige trekk)</button>
+        <button id="wp-solve">Løs med A* (h = 0, h<sub>1</sub>, h<sub>2</sub>)</button>
+      </div>
+      <table id="wp-parts"></table>
+      <div id="wp-out"></div>
+    </div>
+
+    <div class="check" data-answer="4" data-mode="number">
+      <p class="q">Tilstand (radvis, 0 = tomt): <code>1 2 3 / 4 0 6 / 7 5 8</code>, mål <code>1 2 3 / 4 5 6 / 7 8 0</code>. Hva er h<sub>1</sub> + h<sub>2</sub>?</p>
+      <div class="explain">Bare brikkene 5 og 8 står feil. 5 står i rad 3, kolonne 2 og skal til rad 2, kolonne 2: avstand 1. 8 står i rad 3, kolonne 3 og skal til rad 3, kolonne 2: avstand 1. Altså h<sub>1</sub> = 2 og h<sub>2</sub> = 1 + 1 = 2, summen blir 4. (Fikk du 5? Da har du sannsynligvis telt det tomme feltet som feilplassert – det skal du ikke.) Sjekk gjerne i kalkulatoren over.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>12. Effektiv forgreningsfaktor, pattern databases og landemerker</h2>
+
+    <h3>Effektiv forgreningsfaktor b*</h3>
+    <p>Hvordan måler vi hvor god en heuristikk er? Med
+      <span class="term" data-en="effective branching factor b*">effektiv forgreningsfaktor<span class="def">b*: forgreningsfaktoren et uniformt tre med dybde d må ha for å inneholde N + 1 noder, der N er antall noder A* genererte. Nær 1 er bra.</span></span>
+      b*. Hvis A* genererer totalt N noder og løsningen ligger på dybde d, er b* forgreningsfaktoren et jevnt tre med dybde d måtte hatt for å inneholde N + 1 noder:</p>
+    <div class="formula">N + 1 = 1 + b* + (b*)² + … + (b*)ᵈ</div>
+    <p>Eksempel fra boka: d = 5, N = 52 ⇒ b* ≈ 1,92. En god heuristikk har b* nær 1. Bokas målinger på 8-puslespillet (utdrag av fig. 3.26):</p>
+    <table class="compact">
+      <tr><th>d</th><th>BFS (noder)</th><th>A*(h<sub>1</sub>)</th><th>A*(h<sub>2</sub>)</th><th>b* BFS</th><th>b* h<sub>1</sub></th><th>b* h<sub>2</sub></th></tr>
+      <tr><td>6</td><td>128</td><td>24</td><td>19</td><td>2,01</td><td>1,42</td><td>1,34</td></tr>
+      <tr><td>12</td><td>2 672</td><td>279</td><td>84</td><td>1,80</td><td>1,45</td><td>1,28</td></tr>
+      <tr><td>18</td><td>41 558</td><td>4 102</td><td>751</td><td>1,72</td><td>1,49</td><td>1,34</td></tr>
+      <tr><td>24</td><td>290 082</td><td>53 039</td><td>5 733</td><td>1,62</td><td>1,50</td><td>1,36</td></tr>
+      <tr><td>28</td><td>463 234</td><td>202 565</td><td>22 055</td><td>1,53</td><td>1,49</td><td>1,36</td></tr>
+    </table>
+    <p>h<sub>2</sub> er bedre enn h<sub>1</sub> for alle dybder, og begge er mye bedre enn ingen heuristikk – akkurat det dominans forutsier. (Korf og Reid foreslår også å se det som at h reduserer den <i>effektive dybden</i> med en konstant k<sub>h</sub>: O(b<sup>d−k<sub>h</sub></sup>) i stedet for O(b<sup>d</sup>).)</p>
+
+    <div class="widget" id="w-bstar">
+      <p><b>Kalkulator for b*.</b> Løser N + 1 = 1 + b* + … + (b*)<sup>d</sup> numerisk.</p>
+      <div class="controls">
+        <label>N (genererte noder): <input id="wb-n" type="number" value="52" min="1" style="width:6rem"></label>
+        <label>d (løsningsdybde): <input id="wb-d" type="number" value="5" min="1" style="width:4rem"></label>
+        <span>b* = <span class="bigval" id="wb-out"></span></span>
+      </div>
+    </div>
+
+    <div class="check" data-answer="2" data-mode="number" data-tol="0.01">
+      <p class="q">A* finner en løsning på dybde 3 og genererer N = 14 noder. Hva er b*?</p>
+      <div class="explain">Vi trenger 1 + b + b² + b³ = 15. Prøv b = 2: 1 + 2 + 4 + 8 = 15. Altså b* = 2.</div>
+    </div>
+
+    <h3>Pattern databases</h3>
+    <p>Heuristikker kan også komme fra <b>delproblemer</b>. Eksempel: få bare brikkene 1, 2, 3, 4 og blanken på plass, uten å bry seg om resten (de andre er «stjerner»). Kostnaden for dette delproblemet er en nedre grense for hele problemet – og ofte mer treffsikker enn Manhattan.</p>
+    <p>En
+      <span class="term" data-en="pattern database">pattern database<span class="def">Forhåndsberegnet tabell med eksakt løsningskostnad for hver konfigurasjon av et delproblem (f.eks. posisjonene til brikke 1–4 og blanken). Oppslag gir en admissibel heuristikk.</span></span>
+      lagrer den eksakte kostnaden for <i>hver</i> mulig konfigurasjon av delproblemet (her 9·8·7·6·5 = 15 120 mønstre), beregnet ved å søke baklengs fra målet én gang. Under søket slår vi bare opp. Flere databaser (1-2-3-4, 5-6-7-8, …) kan kombineres med <b>max</b>.</p>
+    <ul>
+      <li><b>Kan vi legge sammen</b> 1-2-3-4- og 5-6-7-8-databasene? <b>Nei</b>, ikke uten videre – løsningene deler trekk, så summen kan overestimere.</li>
+      <li><span class="term" data-en="disjoint pattern databases">Disjunkte pattern databases<span class="def">Pattern databases der hver database bare teller trekk av sine egne brikker. Da kan verdiene summeres og fortsatt være admissible.</span></span>:
+        tell bare trekkene som flytter <i>delproblemets egne</i> brikker. Da kan verdiene <b>summeres</b> og er fortsatt admissible. Dette gir 15-puslespill løst på millisekunder (10 000× færre noder enn Manhattan).</li>
+      <li>Foilene: «Computation and memory costs blur the line with having a pre-computed database of solutions.»</li>
+    </ul>
+
+    <h3>Landemerker (route-finding)</h3>
+    <p>Karttjenester forhåndsberegner optimale kostnader til noen få
+      <span class="term" data-en="landmark points">landemerker<span class="def">Utvalgte noder L der eksakte kostnader C*(v, L) til/fra alle andre noder er forhåndsberegnet. Brukes til raske heuristikker for ruteplanlegging.</span></span>
+      L. Da finnes to heuristikker:</p>
+    <ul>
+      <li><span class="logic">h<sub>L</sub>(n) = min<sub>L</sub> [C*(n, L) + C*(L, mål)]</span> – effektiv, men <b>ikke admissibel</b> (overestimerer når optimal vei ikke går via et landemerke).</li>
+      <li><span class="logic">h<sub>DH</sub>(n) = max<sub>L</sub> |C*(n, L) − C*(mål, L)|</span> – en
+        <span class="term" data-en="differential heuristic">differensialheuristikk<span class="def">h_DH(n) = max over landemerker av |C*(n,L) − C*(mål,L)|. Admissibel som følge av trekantulikheten; best når landemerket ligger «bak» målet.</span></span>, som er <b>admissibel</b> (trekantulikheten). Best når landemerket ligger «bak» målet sett fra n.</li>
+    </ul>
+
+    <h3>Lære heuristikker</h3>
+    <p>Boka nevner også at h kan <b>læres fra erfaring</b>: løs mange 8-puslespill, og tilpass f.eks. <span class="logic">h(n) = c<sub>1</sub>x<sub>1</sub>(n) + c<sub>2</sub>x<sub>2</sub>(n)</span> der x<sub>1</sub> = antall feilplasserte og x<sub>2</sub> = antall nabopar som ikke er naboer i målet. Slike lærte heuristikker gir h(mål) = 0, men er <b>ikke nødvendigvis admissible eller konsistente</b>. (Boka beskriver også «metalevel learning» – å lære <i>hvordan</i> man søker – men det er kun omtalt kort.)</p>
+
+    <div class="reflect">
+      <p class="q">Eksamen 2016e og 2022 3.3 spør «design an admissible heuristic». Hvordan ville du lage en admissibel heuristikk for ulv–geit–kål-problemet (bonden kan bare frakte én ting om gangen over elva)?</p>
+      <details><summary>Vis et forslag</summary>
+        <p>Relaxér problemet: fjern regelen om at ulv/geit og geit/kål ikke kan være alene sammen, og la båten frakte én ting per tur. Hver ting som fortsatt står på startsiden må fraktes over minst én gang, så <b>h(n) = antall gjenstander på startsiden</b> er en nedre grense for antall overfarter fram ⇒ admissibel. (Mer presist: med k ≥ 1 ting igjen og bonden på startsiden trengs minst 2k − 1 overfarter, siden bonden må ro tilbake mellom hver; også det er admissibelt og dominerer.) Begrunn alltid med «relaksert problem» eller «hvert trekk kan maks redusere h med 1 og koster 1».</p>
+        <p>Den offisielle 2022-løsningen sier «tell antall nuller», der tilstanden er kodet som tre biter og 0 betyr at gjenstanden er på den <i>andre</i> siden. Det er tvetydig formulert: med den kodingen vokser antall nuller jo nærmere målet vi kommer, så en heuristikk som skal synke mot 0 i målet må være antallet <i>enere</i> (gjenstander som ennå ikke er fraktet). Skriv tydelig hva kodingen din betyr.</p>
+      </details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>13. Eksamensoppgaver</h2>
+
+    <p>Her er alle oppgaver om informert søk, heuristikker og A* fra eksamenene 2015–2025, i kronologisk rekkefølge. Oppgaveteksten er på engelsk som på eksamen. Løs dem på papir først! Grafene kan du også kjøre i widgeten i seksjon 4 og sjekke i heuristikk-widgeten i seksjon 6.</p>
+
+    <div class="exercise" data-title="2015 Problem 1 g–h: True/False" data-meta="Eksamen 2015 · 2 × 2 p">
+      <p>Answer the following questions with TRUE or FALSE.</p>
+      <p>g) A common heuristic function for 8-puzzle game is Manhattan distance which is the sum of the distances of the tiles to their goal positions.</p>
+      <p>h) If both H1 and H2 are admissible heuristics for a problem and H2 &lt; H1, then H2 is a better heuristic.</p>
+      <details class="hint"><summary>Hint</summary><p>Hva betyr «bedre» for admissible heuristikker? Tenk på dominans.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>g) TRUE.</b> Manhattan-avstand (h<sub>2</sub>) er standardheuristikken for 8-puslespillet.</p>
+        <p><b>h) FALSE.</b> Blant admissible heuristikker er den med <i>høyest</i> verdier bedre: H1 ≥ H2 overalt betyr at H1 dominerer H2, og A* med H1 ekspanderer aldri flere noder. Mindre verdier betyr mindre informasjon (ytterpunktet h = 0 er UCS).</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2015 Problem 2a: Relaxed 8-puzzle" data-meta="Eksamen 2015 · 3 p">
+      <p>Suppose the following action schema in a planning system for 8-puzzle.</p>
+      <pre>Action(Slide(t, s1, s2),
+  PRECOND: On(t, s1) ∧ Tile(t) ∧ Blank(s2) ∧ Adjacent(s1, s2)
+  EFFECT:  On(t, s2) ∧ Blank(s1) ∧ ¬On(t, s1) ∧ ¬Blank(s2))</pre>
+      <p>Which of the following needs to be removed from the action schema in order to get "number-of-misplaced-tiles" heuristic?</p>
+      <p>A. Blank(s1) &nbsp; B. Blank(s2) &nbsp; C. Adjacent(s1,s2) &nbsp; D. Blank(s2) ∧ Adjacent(s1,s2) &nbsp; E. None of the above</p>
+      <details class="hint"><summary>Hint</summary><p>Hvilken relaksert regel gir at hver feilplassert brikke kan flyttes rett til målet i ett trekk?</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>D.</b> Fjerner vi både «Y er tom» (Blank(s2)) og «X er nabo til Y» (Adjacent(s1,s2)), kan en brikke flyttes hvor som helst i ett trekk. Da er optimal kostnad = antall feilplasserte brikker = h<sub>1</sub>. Fjerner vi bare Blank(s2), får vi Manhattan-avstand (h<sub>2</sub>). Blank(s1) er ikke en forutsetning i det hele tatt (den står i effekten), så A er meningsløst.</p>
+        <p style="font-size:.85rem;color:var(--muted)">(Den originale oppgaveteksten har trykkfeil i EFFECT-delen – negasjonene mangler. Det påvirker ikke svaret.)</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2015 Problem 7: BFS og A* på et tre" data-meta="Eksamen 2015 · 10 p (A*-delene 7 p)">
+      <p>Consider the following search problem:</p>
+      <figure><svg class="gfig" data-graph="ex2015" role="img" aria-label="Søketre fra 2015"></svg></figure>
+      <p>The initial node is A and the goal node is H. All step costs are 1, and a heuristic value is given for each node in the figure (for example, the heuristic value for node D is given as 3). Assume that there is a goal-test function which will be called by the search algorithm every time it needs to determine whether a node is a goal node.</p>
+      <p>a) (2 points) Using breadth-first search (BFS): What is the sequence of nodes for which the goal-test function will be called? Write the letters for each node, and in the correct order.<br>
+      b) (1 point) Using breadth-first search (BFS): What will be returned as the shortest path to the goal?<br>
+      c) (6 points) Using A*: What is the sequence of nodes for which the goal-test function will be called? Whenever several nodes have the same estimated cost, always choose the node that comes first alphabetically.<br>
+      e) (1 point) Using A*: What will be returned as the shortest path to the goal?</p>
+      <details class="hint"><summary>Hint</summary><p>BFS tester mål når noden genereres (tidlig), A* når noden tas ut (sen). For A*: g = dybden, siden alle kanter koster 1.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>a)</b> BFS med tidlig måltest: A testes først, deretter testes barna i det de genereres: A; B, E, J (barn av A); C, D (av B); F, I (av E); K, L (av J); G (av F); H (av I) → <b>A B E J C D F I K L G H</b>. Det offisielle løsningsforslaget oppgir «ABEJCDFI(H)», men utelater K, L og G, som genereres før I ekspanderes – se avviksboksen i modul 2. <b>b)</b> <b>A–E–I–H</b>. (Detaljer i modul 2.)</p>
+        <p><b>c)</b> A*, alle kanter koster 1:</p>
+        <table class="trace">
+          <tr><th>Steg</th><th>Tas ut (måltest)</th><th>Barn (g + h = f)</th><th>Frontier etterpå</th></tr>
+          <tr><td>1</td><td>A (0+2=2) – ikke mål</td><td>B 1+2=3, E 1+2=3, J 1+2=3</td><td class="mono">B(3), E(3), J(3)</td></tr>
+          <tr><td>2</td><td>B (3) – alfabetisk først</td><td>C 2+2=4, D 2+3=5</td><td class="mono">E(3), J(3), C(4), D(5)</td></tr>
+          <tr><td>3</td><td>E (3)</td><td>F 2+2=4, I 2+1=3</td><td class="mono">I(3), J(3), C(4), F(4), D(5)</td></tr>
+          <tr><td>4</td><td>I (3)</td><td>H 3+0=3</td><td class="mono">H(3), J(3), C(4), F(4), D(5)</td></tr>
+          <tr><td>5</td><td>H (3) – <b>mål</b></td><td></td><td></td></tr>
+        </table>
+        <p>Måltesten kalles på <b>A, B, E, I, H</b>. <b>e)</b> Returnert vei: <b>A–E–I–H</b> (kostnad 3).</p>
+        <p>Merk: B velges før E og J fordi alle har f = 3 og B er alfabetisk først. I steg 4 og 5 er det likhet mellom I/J og H/J; I og H vinner alfabetisk.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2016 Task 3: Search – shortest indoor walking paths" data-meta="Eksamen 2016 · 20 p">
+      <p>You are going to evaluate search algorithms that can find the shortest indoor walking paths. Figure 2 illustrates seven rooms and the actual walking distances between them. Table 1 specifies the straight-line distances between room 127D and all the other rooms. The evaluation function f(n) evaluates node n. When we evaluate the algorithms, we start our path search in room 181 and we want to find the shortest path to room 127D, which is our end node.</p>
+      <figure><svg class="gfig" data-graph="ex2016" role="img" aria-label="Romgraf fra 2016"></svg>
+        <figcaption>Gjenskapt figur: rommene med gangavstander. Lilla tall = luftlinje (SLD) til 127D: 127 = 7, 127A = 10, 127B = 9, 127C = 3, 127E = 2, 181 = 14.</figcaption></figure>
+      <p>a) Greedy best-first search (3p): What is the evaluation function f(n) for greedy best-first search? Write the function and describe the term(s) on the right hand side.<br>
+      b) A* (3p): What is the evaluation function for A*? Write the function and describe the term(s) on the right hand side.<br>
+      c) Greedy best first search (3p): For each step in the search, write the evaluation function for the node that is selected for expansion.<br>
+      d) A* (3p): For each step in the search, write the evaluation function including all the terms and their values for the node that is selected for expansion. In this task, we want you to work with an implementation of A* which does not assume a consistent heuristic.<br>
+      e) Admissible heuristics (4p): Explain what an admissible heuristics is in one sentence only. Give two examples of admissible heuristics for the 8-puzzle where the objective is to slide tiles horizontally or vertically into the open space until the goal state is reached.<br>
+      f) Optimality of A* for graph search (1p): Must the heuristics be both admissible and consistent in order for the Russell and Norvig version of A* to be optimal when applied to graph search? Alternatives: Yes or No.</p>
+      <details class="hint"><summary>Hint</summary><p>Sjekk kanten 127A–127: h faller fra 10 til 7 over en kant som koster 1. Hva betyr det for konsistens – og for hvilken A*-variant du må bruke i d)?</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>a)</b> f(n) = h(n), der h(n) er et estimat av avstanden fra n til målet – her luftlinjen (SLD) fra rommet til 127D.</p>
+        <p><b>b)</b> f(n) = g(n) + h(n), der g(n) er faktisk gangavstand fra 181 til n langs veien vi har fulgt, og h(n) er luftlinjen fra n til 127D.</p>
+        <p><b>c) Greedy:</b></p>
+        <table class="trace">
+          <tr><th>Steg</th><th>Ekspanderer</th><th>f(n) = h(n)</th><th>Frontier etterpå</th></tr>
+          <tr><td>1</td><td>181</td><td>14</td><td class="mono">127B(9), 127A(10)</td></tr>
+          <tr><td>2</td><td>127B</td><td>9</td><td class="mono">127(7), 127A(10)</td></tr>
+          <tr><td>3</td><td>127</td><td>7</td><td class="mono">127E(2), 127C(3), 127A(10)</td></tr>
+          <tr><td>4</td><td>127E</td><td>2</td><td class="mono">127D(0), 127C(3), 127A(10)</td></tr>
+          <tr><td>5</td><td>127D – mål</td><td>0</td><td></td></tr>
+        </table>
+        <p>Vei: 181 → 127B → 127 → 127E → 127D, faktisk lengde 8 + 5 + 7 + 4 = <b>24</b> (ikke optimal).</p>
+        <p><b>d) A* som gjenåpner noder</b> (bokas versjon; «does not assume a consistent heuristic»):</p>
+        <table class="trace">
+          <tr><th>Steg</th><th>Ekspanderer</th><th>g</th><th>h</th><th>f</th><th>Frontier etterpå</th></tr>
+          <tr><td>1</td><td>181</td><td>0</td><td>14</td><td>14</td><td class="mono">127B(8+9=17), 127A(10+10=20)</td></tr>
+          <tr><td>2</td><td>127B</td><td>8</td><td>9</td><td>17</td><td class="mono">127(13+7=20), 127A(20)</td></tr>
+          <tr><td>3</td><td>127 (likhet på 20; «127» før «127A»)</td><td>13</td><td>7</td><td>20</td><td class="mono">127A(20), 127E(20+2=22), 127C(20+3=23)</td></tr>
+          <tr><td>4</td><td>127A</td><td>10</td><td>10</td><td>20</td><td class="mono">127(11+7=18) gjenåpnet, 127E(22), 127C(23)</td></tr>
+          <tr><td>5</td><td>127 (igjen)</td><td>11</td><td>7</td><td>18</td><td class="mono">127E(18+2=20), 127C(18+3=21)</td></tr>
+          <tr><td>6</td><td>127E</td><td>18</td><td>2</td><td>20</td><td class="mono">127C(21), 127D(22+0=22)</td></tr>
+          <tr><td>7</td><td>127C</td><td>18</td><td>3</td><td>21</td><td class="mono">127D(21+0=21) – erstatter 22</td></tr>
+          <tr><td>8</td><td>127D – mål</td><td>21</td><td>0</td><td>21</td><td></td></tr>
+        </table>
+        <p>Vei: <b>181 → 127A → 127 → 127C → 127D, lengde 10 + 1 + 7 + 3 = 21</b> (optimal).</p>
+        <p><i>Om den offisielle løsningen:</i> Den velger 127A før 127 i steg 3 (begge har f = 20) og slipper dermed gjenåpningen; den viser også alternativet der 127 tas først. Begge rekkefølger gir samme vei. Den offisielle tabellen har en regnefeil på slutten: g(127D) = g(127C) + 3 = 18 + 3 = <b>21</b>, ikke 20. Poenget med «does not assume a consistent heuristic» er at h <b>ikke er konsistent</b>: h(127A) = 10 &gt; c(127A, 127) + h(127) = 1 + 7 = 8. Derfor kan 127 først nås via en dyr vei (g = 13) og må gjenåpnes når den billigere veien (g = 11) dukker opp. Med closed-liste ville A* returnert 181→127B→127→127C→127D med lengde 23.</p>
+        <p><b>e)</b> En admissibel heuristikk overestimerer aldri kostnaden for å nå målet (h(n) ≤ h*(n)). For 8-puslespillet: (1) antall feilplasserte brikker, (2) summen av Manhattan-avstandene fra brikkene til målposisjonene.</p>
+        <p><b>f)</b> Fasit: <b>Yes</b> – for R&amp;N sin GRAPH-SEARCH (3. utgave, closed-liste uten gjenåpning) må h være konsistent (og konsistent ⇒ admissibel). Skriv gjerne at med 4. utgaves Best-First-Search, som gjenåpner noder ved billigere vei, holder det med admissibel h – det er nettopp varianten d) ber om.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2017 Problem 4 + 6d: A* graph search og konsistens" data-meta="Eksamen 2017 · 15 p + 2 p">
+      <p>a) Assume the following problem represented as a graph (see Figure 10) where the numbers on the edges represent the cost of traveling between the nodes connected by the edge. You will apply A* graph search algorithm and the nodes in the graph have the following h-values: h(S) = 7, h(A) = 6, h(B) = 2, h(C) = 1, h(G) = 0.</p>
+      <p>Write down the to-be expanded node and the content of the priority queue at each step. Ties break alphabetically. Assume an implementation where nodes are added permanently to the closed list. Write down the generated solution path – you will not get any points if you don't show how the solution is generated (i.e., the queue and the currently expanding node). Is this an optimal solution? Why or why not, explain very briefly.</p>
+      <figure><svg class="gfig" data-graph="ex2017" role="img" aria-label="Rettet graf fra 2017"></svg><figcaption>Figure 10: A* Problem (rettet graf).</figcaption></figure>
+      <p>b) Which of the following set of heuristic values provide a consistent heuristic for this problem (Figure 10)? Choose one of the options below.</p>
+      <ol>
+        <li>{h(S) = 7, h(A) = 6, h(B) = 2, h(C) = 1, h(G) = 0}</li>
+        <li>{h(S) = 7, h(A) = 6, h(B) = 2, h(C) = 2, h(G) = 0}</li>
+        <li>{h(S) = 7, h(A) = 6, h(B) = 4, h(C) = 2, h(G) = 0}</li>
+        <li>{h(S) = 7, h(A) = 4, h(B) = 4, h(C) = 4, h(G) = 0}</li>
+        <li>None of the above. IMPORTANT: Note that for consistency, every pair of adjacent nodes (node that have direct connection) should be checked. Not only between S→A or A–B but all pairs, and all nodes must be used in these pairs (including G, which is also "a node"). Those answers which make part of the Figure consistent but not the entire one will not be accepted as correct.</li>
+      </ol>
+      <p>c) Write down a consistent heuristic set and apply A* graph search with it on the same graph (Figure 10). What is the solution path with this heuristic set? You don't get any points by writing only the optimal solution if it is not accompanied with a consistent set of heuristics.</p>
+      <p>d) Uniform cost search is a special case of A-star. True or False?</p>
+      <p>6d) If h is a consistent heuristic, then h is also an admissible heuristic. True or False?</p>
+      <details class="hint"><summary>Hint</summary><p>For b): S→B koster 2 og h(S) = 7 i alle alternativene. Hva må h(B) da minst være? Og S→A koster 1 …</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>a)</b> Closed-liste, alfabetisk tiebreaking:</p>
+        <table class="trace">
+          <tr><th>Steg</th><th>Ekspanderer</th><th>Prioritetskø etterpå (f = g + h)</th><th>Closed</th></tr>
+          <tr><td>0</td><td>–</td><td class="mono">S(0+7=7)</td><td></td></tr>
+          <tr><td>1</td><td>S (7)</td><td class="mono">B(2+2=4), A(1+6=7)</td><td>S</td></tr>
+          <tr><td>2</td><td>B (4)</td><td class="mono">C(4+1=5), A(7)</td><td>S, B</td></tr>
+          <tr><td>3</td><td>C (5)</td><td class="mono">A(7), G(7+0=7)</td><td>S, B, C</td></tr>
+          <tr><td>4</td><td>A (7) – likhet med G, A alfabetisk først</td><td class="mono">G(7) (A→B og A→C ignoreres: closed; A→G gir 13 &gt; 7)</td><td>S, B, C, A</td></tr>
+          <tr><td>5</td><td>G (7) – mål</td><td></td><td></td></tr>
+        </table>
+        <p>Vei: <b>S → B → C → G, kostnad 2 + 2 + 3 = 7</b>. Den er <b>optimal</b>: de andre veiene koster S→A→G = 13, S→A→C→G = 9, S→A→B→C→G = 8. (Her gikk det bra selv om h er inkonsistent – se b).)</p>
+        <p><b>b) Svar: 5 (None of the above).</b> Sjekk h(n) ≤ c(n,n′) + h(n′) for alle rettede kanter:</p>
+        <table class="compact">
+          <tr><th>Alternativ</th><th>Brudd</th></tr>
+          <tr><td>1</td><td>S→B: 7 &gt; 2 + 2 = 4 (også A→B: 6 &gt; 2 + 2)</td></tr>
+          <tr><td>2</td><td>S→B: 7 &gt; 2 + 2 = 4</td></tr>
+          <tr><td>3</td><td>S→B: 7 &gt; 2 + 4 = 6</td></tr>
+          <tr><td>4</td><td>S→A: 7 &gt; 1 + 4 = 5</td></tr>
+        </table>
+        <p>Med h(S) = 7 krever S→A at h(A) ≥ 6 og S→B at h(B) ≥ 5. Ingen av alternativene har h(B) ≥ 5.</p>
+        <p><b>c)</b> F.eks. den offisielle {h(S)=7, h(A)=6, h(B)=5, h(C)=3, h(G)=0}. Sjekk: S→A 7 ≤ 1+6 ✓, S→B 7 ≤ 2+5 ✓, A→B 6 ≤ 2+5 ✓, A→C 6 ≤ 5+3 ✓, A→G 6 ≤ 12 ✓, B→C 5 ≤ 2+3 ✓, C→G 3 ≤ 3 ✓. A*: S(7) → A(1+6=7) og B(2+5=7), likhet → A: C(6+3=9), G(13); B(7) → C(4+3=7) erstatter 9; C(7) → G(7+0=7) erstatter 13; G(7) mål. Ekspandert: S, A, B, C, (G). Vei: <b>S → B → C → G</b>. (Også h = h* = {7, 7, 5, 3, 0} er konsistent – den perfekte heuristikken er alltid konsistent.)</p>
+        <p><b>d) True</b> – A* med h(n) = 0 for alle n gir f = g, som er UCS.</p>
+        <p><b>6d) True</b> – konsistent ⇒ admissibel (bevis ved induksjon langs optimal vei, seksjon 6).</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2018 Problem 4: Search algorithms på et tre med tre mål" data-meta="Eksamen 2018 · 10 p">
+      <p>In the following tree, the goals are shown by squares – there are three goals (D, F and G; shown with double rings below). Heuristic values and the step costs are as shown in the figure.</p>
+      <figure><svg class="gfig" data-graph="ex2018" role="img" aria-label="Tre fra 2018"></svg></figure>
+      <p>For each of the following algorithms, write the list of expanded nodes, and the path found. Ties are broken alphabetically. 1. Depth-first search 2. Breadth first search 3. Uniform Cost search 4. Greedy Best First search 5. A* search</p>
+      <details class="hint"><summary>Hint</summary><p>Det er tre mål. Greedy tar ut D først fordi h(D) = 0. A* og UCS må vurdere at G kan nås med kostnad 2.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <table class="compact">
+          <tr><th>Algoritme</th><th>Ekspandert</th><th>Vei (kostnad)</th><th>Kort begrunnelse</th></tr>
+          <tr><td>DFS</td><td>S, B, E, (F)</td><td>S–B–F (3)</td><td>B først (alfabetisk), så E (blad, ikke mål), så F = mål.</td></tr>
+          <tr><td>BFS</td><td>S</td><td>S–D (3)</td><td>Tidlig måltest: D er mål idet den genereres som barn av S.</td></tr>
+          <tr><td>UCS</td><td>S, C, B, (G)</td><td>S–C–G (2)</td><td>S: C(1), B(2), D(3). C: G(2), H(4). Likhet B(2)/G(2) → B: F(3), E(4). G(2) tas ut.</td></tr>
+          <tr><td>Greedy</td><td>S, (D)</td><td>S–D (3)</td><td>S: B(1), C(1), D(0). D har lavest h og er mål.</td></tr>
+          <tr><td>A*</td><td>S, C, (G)</td><td>S–C–G (2)</td><td>S: B 2+1=3, C 1+1=2, D 3+0=3. C: G 2+0=2, H 4+0=4. G(2) tas ut.</td></tr>
+        </table>
+        <p>Den offisielle løsningen lister målnoden blant de «ekspanderte» (f.eks. «SCG»); det er vanlig i eldre løsninger. Bruk gjerne parentes rundt målnoden som i nyere oppgaver.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2018 Problem 5: A* heuristics og dominans" data-meta="Eksamen 2018 · 10 p">
+      <p>Consider A* search for the following search graph where S is the starting and G is the goal node. There are 4 different heuristic functions (H1–H4) of which values for the S, G, A nodes are shown in the table on the right of the graph.</p>
+      <div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:center">
+        <svg class="gfig" data-graph="ex2018h" data-noh="1" role="img" aria-label="Graf S, A, G"></svg>
+        <table class="compact" style="width:auto"><tr><th>Heuristic</th><th>h(S)</th><th>h(A)</th><th>h(G)</th></tr>
+          <tr><td>H1</td><td>4</td><td>1</td><td>0</td></tr><tr><td>H2</td><td>5</td><td>4</td><td>0</td></tr>
+          <tr><td>H3</td><td>4</td><td>3</td><td>0</td></tr><tr><td>H4</td><td>5</td><td>2</td><td>0</td></tr></table>
+      </div>
+      <p>1) For each heuristic function fill in the following table with Y/N for admissibility and consistency for the search graph above. Explain your answer for each Yes or No.<br>
+      2) Dominance of Heuristics. Remember that domination has a special meaning in the context of heuristic functions. What does it mean that a heuristic function dominates another one? Write the definition of dominance of heuristics.<br>
+      3) Do heuristic functions H3 and H4 have a dominance relationship?<br>
+      4) Is there a dominance relationship between Heuristic function H4 and H1?</p>
+      <details class="hint"><summary>Hint</summary><p>Regn først h*(S) og h*(A). Sjekk så de tre kantene S→A, A→G og S→G for konsistens. Du kan laste inn H1–H4 i heuristikk-widgeten i seksjon 6.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p>Sanne kostnader: h*(A) = 3 (A→G), h*(S) = min(6, 2 + 3) = 5, h*(G) = 0. Kanter: S→A (2), A→G (3), S→G (6).</p>
+        <table class="compact">
+          <tr><th></th><th>Admissibel?</th><th>Konsistent?</th><th>Begrunnelse</th></tr>
+          <tr><td>H1 (4,1,0)</td><td>Y</td><td>N</td><td>4 ≤ 5, 1 ≤ 3 ⇒ admissibel. S→A: 4 &gt; 2 + 1 = 3 ⇒ ikke konsistent.</td></tr>
+          <tr><td>H2 (5,4,0)</td><td>N</td><td>N</td><td>h(A) = 4 &gt; h*(A) = 3 ⇒ ikke admissibel, og dermed heller ikke konsistent (A→G: 4 &gt; 3 + 0).</td></tr>
+          <tr><td>H3 (4,3,0)</td><td>Y</td><td>Y</td><td>S→A: 4 ≤ 2 + 3; A→G: 3 ≤ 3 + 0; S→G: 4 ≤ 6 + 0. Konsistent ⇒ admissibel.</td></tr>
+          <tr><td>H4 (5,2,0)</td><td>Y</td><td>N</td><td>5 ≤ 5, 2 ≤ 3 ⇒ admissibel. S→A: 5 &gt; 2 + 2 = 4 ⇒ ikke konsistent.</td></tr>
+        </table>
+        <p><b>2)</b> En (admissibel) heuristikk h<sub>a</sub> dominerer h<sub>b</sub> hvis h<sub>a</sub>(n) ≥ h<sub>b</sub>(n) for alle noder n. (Da ekspanderer A* med h<sub>a</sub> aldri flere noder enn med h<sub>b</sub>.)</p>
+        <p><b>3)</b> <b>Nei.</b> H4(S) = 5 &gt; H3(S) = 4, men H4(A) = 2 &lt; H3(A) = 3. Ingen er ≥ den andre overalt.</p>
+        <p><b>4)</b> <b>Ja, H4 dominerer H1:</b> 5 ≥ 4, 2 ≥ 1, 0 ≥ 0.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2019 Oppgave 1 (utvalg): True/False" data-meta="Eksamen 2019 · 2 × 2 p (−1 for feil)">
+      <p>1. True or False: Greedy best-first search algorithm is guaranteed to find an optimal path.</p>
+      <p>8. Depth-first tree search algorithm always expands at least as many nodes as an A* tree search algorithm with admissible heuristic does.</p>
+      <details class="hint"><summary>Hint</summary><p>For 8: Kan DFS være heldig?</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>1. False.</b> Greedy tar den første veien til målet den finner og ignorerer g.</p>
+        <p><b>8. False.</b> En heldig DFS kan gå rett ned til målet og ekspandere bare d noder. «Optimalt effektiv» betyr at A* ekspanderer færrest noder blant algoritmer som <i>garanterer</i> optimal løsning med samme heuristikk – ikke at A* slår alle algoritmer på hvert eneste problem.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2019 Oppgave 3: A* search algorithm" data-meta="Eksamen 2019 · 13 p (1-4-4-4)">
+      <ol>
+        <li>Apply A* algorithm for graphs on the graph in the following figure (Figure 1). Write down the nodes in the order they are expanded. A is the start node, and G is the goal node. Read the pseudocode in Figure 2 carefully to ensure that you are considering the right implementation of the A* algorithm.</li>
+        <li>What is the returned path? Is it optimal? Explain your answer on an example from the given graph in the figure.</li>
+        <li>Modify the pseudocode in the figure (Figure 2) for A* algorithm for graph search so that it guarantees to find the optimal solution with heuristic values given in Figure 1. Write down the pseudocode in a separate paper starting from the sentence just before your modification starts, and ending with the sentence right after your last change.</li>
+        <li>Assume that a search tree has heuristic values which enable the A* algorithm presented in the pseudocode (the unmodified version in Figure 2) to find an optimal path to the goal. Would the A* algorithm still be guaranteed to find the minimal path to the goal if there are negative transition costs? This question is general, not about the problem presented in Figure 1.</li>
+      </ol>
+      <figure><svg class="gfig" data-graph="ex2019" role="img" aria-label="Graf fra 2019"></svg><figcaption>Figure 1: Urettet graf. A er start, G er mål.</figcaption></figure>
+      <pre> 5. WHILE FRONTIER is not empty
+ 6.    N = FRONTIER.popLowestF()
+ 7.    IF state of N = GOAL RETURN N
+ 8.    add N to CLOSED
+ 9.    FOR all children M of N not in CLOSED:
+10.       M.parent = N
+11.       M.g = N.g + cost(N,M)
+12.       M.h = heuristic(M)
+13.       add M to FRONTIER
+14.    ENDFOR
+15. ENDWHILE</pre>
+      <p style="font-size:.85rem;color:var(--muted)">Figure 2: Pseudokoden fra eksamen (linje 1–4 initialiserer FRONTIER med startnoden og CLOSED som tom).</p>
+      <details class="hint"><summary>Hint</summary><p>Linje 9: barn som er i CLOSED hoppes over – også om vi har funnet en billigere vei til dem. Sjekk konsistens for kanten B–C.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>1.</b></p>
+        <table class="trace">
+          <tr><th>Steg</th><th>Pop</th><th>Barn (ikke i CLOSED)</th><th>Frontier etterpå</th><th>CLOSED</th></tr>
+          <tr><td>1</td><td>A (0+7=7)</td><td>B 1+6=7, C 4+2=6</td><td class="mono">C(6), B(7)</td><td>A</td></tr>
+          <tr><td>2</td><td>C (6)</td><td>B 6+6=12, D 7+2=9, G 8+0=8</td><td class="mono">B(7), G(8), D(9), B(12)</td><td>A, C</td></tr>
+          <tr><td>3</td><td>B (7)</td><td>D 5+2=7 (C og A er i CLOSED!)</td><td class="mono">D(7), G(8), D(9), B(12)</td><td>A, C, B</td></tr>
+          <tr><td>4</td><td>D (7)</td><td>G 11+0=11</td><td class="mono">G(8), D(9), G(11), B(12)</td><td>A, C, B, D</td></tr>
+          <tr><td>5</td><td>G (8) – mål</td><td></td><td></td><td></td></tr>
+        </table>
+        <p>Ekspansjonsrekkefølge: <b>A, C, B, D, G</b>. (Pseudokoden legger duplikater i FRONTIER; det endrer ikke rekkefølgen her.)</p>
+        <p><b>2.</b> Returnert vei: <b>A → C → G, kostnad 8</b>. <b>Ikke optimal</b>: A → B → C → G koster 1 + 2 + 4 = 7. Grunnen er at h er <b>inkonsistent</b> på kanten B–C: h(B) = 6 &gt; c(B,C) + h(C) = 2 + 2 = 4. (Kanten A–C bryter også: 7 &gt; 4 + 2.) C ble ekspandert via A med g = 4, og da B senere fant en vei til C med g = 3, var C allerede i CLOSED og ble ikke ekspandert på nytt. (h er faktisk admissibel: h*(B) = 6 – det er konsistensen som mangler.)</p>
+        <p><b>3.</b> La noder i CLOSED kunne åpnes igjen når en billigere vei blir funnet. F.eks.:</p>
+        <pre> 8.    add N to CLOSED
+ 9.    FOR all children M of N:
+ 9a.      newg = N.g + cost(N,M)
+ 9b.      IF M in CLOSED and newg &lt; M.g THEN remove M from CLOSED
+ 9c.      IF M not in CLOSED THEN
+10.          M.parent = N
+11.          M.g = newg
+12.          M.h = heuristic(M)
+13.          add M to FRONTIER
+14.    ENDFOR</pre>
+        <p>(Offisielt svar: enklest å fjerne «not in CLOSED» i linje 9, eller sammenligne ny g med gammel og legge tilbake i FRONTIER bare hvis den er bedre.) Med endringen blir rekkefølgen A, C, B, C, D, G og veien A→B→C→G med kostnad 7.</p>
+        <p><b>4. Nei.</b> Med negative kostnader kan en vei bli billigere <i>etter</i> at målet er tatt ut, så argumentet «ingen node i grensen kan føre til noe billigere» faller. Den offisielle løsningens eksempel: A (h=3), B (h=2), C (h=2), G (h=0); A→B = −1, A→C = 1, B→G = 2, B→C = 3, C→G = −100. A*: B(−1+2 = 1), C(1+2 = 3); ta ut B → G med g = 1, f = 1; ta ut G og returner kostnad 1 – men A→C→G koster 1 − 100 = −99.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2022 Task 1.3 og 3.3: Konsistens og design av heuristikk" data-meta="Eksamen 2022">
+      <p>1.3) Why consistency is a desired property of a heuristic?</p>
+      <p>3.3) (Wolf, goat and cabbage: a farmer must carry himself and a wolf, a goat and a cabbage across a river in a boat that can carry only himself and one of the purchases; wolf and goat, or goat and cabbage, cannot be left alone together.) Design an admissible heuristic for this problem. Describe the heuristic and explain why it is admissible.</p>
+      <details class="hint"><summary>Hint</summary><p>1.3: Hva sier konsistens om f langs en vei, og hva betyr det for closed-lista? 3.3: relaxér problemet – glem «spiser hverandre»-regelen.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>1.3)</b> Med konsistent h er f = g + h ikke-avtagende langs enhver vei, så A* tar ut tilstander i f-rekkefølge og første gang en tilstand ekspanderes er det via en optimal vei. Da trenger vi aldri å gjenåpne ekspanderte noder (closed-liste er trygt), som sparer tid og minne. I tillegg er konsistent h alltid admissibel, så A* blir optimal, og A* med konsistent h er optimalt effektiv. (Offisielt svar nevner trekantulikheten og at konsistens gir admissibilitet og optimalitet.)</p>
+        <p><b>3.3)</b> Eksempel: h(n) = antall gjenstander som fortsatt står på startsiden. Hver overfart kan frakte høyst én gjenstand og koster 1, så vi trenger minst så mange overfarter ⇒ h overestimerer aldri ⇒ admissibel. Den er også konsistent: én overfart endrer h med høyst 1 = kostnaden. (Bedre, og fortsatt admissibel: med k ≥ 1 gjenstander igjen og bonden på startsiden trengs minst 2k − 1 overfarter.) Den offisielle løsningen («tell antall nuller» i en bitkoding) er uklart formulert – se refleksjonsoppgaven i seksjon 12.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2023 kortsvar + oppgave 2.1: Search algorithms" data-meta="Eksamen 2023 · kortsvar + 10 p">
+      <p><i>Short question:</i> If h<sub>1</sub>(s) and h<sub>2</sub>(s) are two admissible A* heuristics, then would their average h<sub>3</sub>(s) = ½h<sub>1</sub>(s) + ½h<sub>2</sub>(s) be admissible? Explain your answer very briefly.</p>
+      <p><i>2.1:</i> Execute tree-like search through the following graph (see Fig. 1) for the given algorithms below. Tie breaking: Left-to-right order of successors. a- Breadth first search, b- Depth First search, c- Uniform cost search, d- Greedy best-first search, e- A* search. For each of the search algorithm, show the order in which the nodes are expanded; show the path from start to goal, or write "None" if no path to goal is found, and write the cost of the path found.</p>
+      <figure><svg class="gfig" data-graph="lecture" role="img" aria-label="Graf fra 2023"></svg><figcaption>Figure 1 (samme som forelesningsgrafen): rettede kanter, løkke A→A med kostnad 13.</figcaption></figure>
+      <details class="hint"><summary>Hint</summary><p>Tree-like search: løkka A→A legges inn hver gang A ekspanderes. Hva gjør det med greedy, som ser bort fra g?</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>Kortsvar:</b> Ja. ½h<sub>1</sub> + ½h<sub>2</sub> ≤ ½h* + ½h* = h*, så gjennomsnittet overestimerer aldri.</p>
+        <table class="compact">
+          <tr><th>Algoritme</th><th>Ekspansjonsrekkefølge</th><th>Vei</th><th>Kostnad</th></tr>
+          <tr><td>BFS</td><td>S, A, B, (G)</td><td>S–B–G</td><td>17</td></tr>
+          <tr><td>DFS</td><td>S, A, A, A, …</td><td>None</td><td>–</td></tr>
+          <tr><td>UCS</td><td>S, A, B, C, (G)</td><td>S–A–C–G</td><td>12</td></tr>
+          <tr><td>Greedy</td><td>S, A, A, A, …</td><td>None</td><td>–</td></tr>
+          <tr><td>A*</td><td>S, A, B, C, (G)</td><td>S–A–C–G</td><td>12</td></tr>
+        </table>
+        <p><b>Greedy:</b> S → A(3), B(3) → A (venstre/alfabetisk). A → A(3), C(3). A er igjen først, og slik fortsetter det i det uendelige – tree-like søk husker ikke at A er besøkt, og greedy ser ikke at g vokser.</p>
+        <p><b>A*:</b> S → A(4+3=7), B(7+3=10). A → A(17+3=20), C(8+3=11). B(10) → G(17+0=17). C(11) → G(12+0=12). G(12) tas ut. (Detaljert tabell i seksjon 3.)</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2023 oppgave 2.2: A* consistency" data-meta="Eksamen 2023 · 10 p">
+      <p>Assume: h(A) = 5, h(C) = 4, h(D) = 3, h(E) = 3, h(F) = 1, h(G) = 0. (A is the start node, G the goal; see Figure 2.)</p>
+      <figure><svg class="gfig" data-graph="ex2023b" data-hideh="B" role="img" aria-label="Rettet graf fra 2023 oppgave 2.2"></svg><figcaption>Figure 2: Graph for question 2.2 (rettet).</figcaption></figure>
+      <ol>
+        <li>What values of h(B) make h monotonic/consistent?</li>
+        <li>Without relying on tiebreaking, what values of h(B) will cause A* search to expand node A, C, B in this order?</li>
+        <li>What values of h(B) will cause A* to return a sub-optimal path?</li>
+      </ol>
+      <details class="hint"><summary>Hint</summary><p>1: Skriv konsistensbetingelsen for de tre kantene som involverer B (A→B, B→C, B→D). 2: Etter A er f(B) = 1 + h(B) og f(C) = 4 + 4 = 8. Etter C kommer E inn med f = 9 + 3 = 12.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>1)</b> Kanter som involverer B:</p>
+        <ul>
+          <li>A→B: h(A) ≤ c(A,B) + h(B) ⇒ 5 ≤ 1 + h(B) ⇒ <b>h(B) ≥ 4</b></li>
+          <li>B→C: h(B) ≤ 2 + h(C) = 6</li>
+          <li>B→D: h(B) ≤ 3 + h(D) = 6</li>
+        </ul>
+        <p>De andre kantene er konsistente uansett (A→C 5 ≤ 8, C→E 4 ≤ 8, D→F 3 ≤ 3, D→G 3 ≤ 4, F→G 1 ≤ 1, E→G 3 ≤ 3). Altså <b>4 ≤ h(B) ≤ 6</b>.</p>
+        <p><b>2)</b> Etter A: f(B) = 1 + h(B), f(C) = 4 + 4 = 8. C før B uten tiebreaking: 1 + h(B) &gt; 8 ⇒ h(B) &gt; 7. Ekspander C: E får f = (4 + 5) + 3 = 12. B før E: 1 + h(B) &lt; 12 ⇒ h(B) &lt; 11. Altså <b>7 &lt; h(B) &lt; 11</b>.</p>
+        <p><b>3)</b> Optimal vei: A→B→D→F→G med kostnad 1 + 3 + 2 + 1 = 7. Andre veier: A→B→D→G = 8, A→B→C→E→G = 11, A→C→E→G = 12. For å få en suboptimal vei må A* ta ut G via E (f = 12) før B er ekspandert, dvs. 1 + h(B) &gt; 12 ⇒ <b>h(B) &gt; 11</b>. (Med h(B) = 11 er det likhet B(12)/E(12), og alfabetisk tiebreaking velger B, så A* finner fortsatt det optimale.) Dette stemmer med at h da ikke er admissibel: h*(B) = 6.</p>
+        <p>Prøv selv: velg «Eksamen 2023, oppgave 2.2» i widgeten i seksjon 4 og overstyr f.eks. <code>B=9</code> eller <code>B=12</code>.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2024 Q3: Informed and uninformed search" data-meta="Eksamen 2024 · 6 p (flervalg)">
+      <p>Select the statement that is <b>False</b>:</p>
+      <ol type="a">
+        <li>Greedy Best First search can be understood as a special version of a weighted A* (with the form f(n) = w<sub>1</sub>g(n) + w<sub>2</sub>h(n), where g(n) is the cost to reach n, and h(n) is the estimated cost from n to the goal) with w<sub>1</sub> = 0 and w<sub>2</sub> = 1.</li>
+        <li>A* is guaranteed to be optimally efficient if we use a heuristic which is consistent.</li>
+        <li>DFS can fail to find a solution if it is implemented as tree search on a graph with loops.</li>
+        <li>In Uniform-Cost search, we only care about the expected distance of reaching a node (our guess) but not its actual cost (as we assume all actions have an uniform cost).</li>
+        <li>In A* search, we use a heuristic function f(n) = g(n) + h(n) where g is the cost so far of reaching n, and h is the estimated cost from n to the goal.</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>d) er falsk.</b> UCS bruker bare den <i>faktiske</i> kostnaden g(n), ingen gjetning, og antar ikke like kostnader (det er BFS som er optimal bare ved like kostnader). a, b, c og e er sanne. (Pedantisk: i e) er det f som er <i>evalueringsfunksjonen</i>, h er heuristikken – men utsagnet var ment som sant.)</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2024 Q4: Search algorithms (informerte alternativer)" data-meta="Eksamen 2024 · 6 p (flervalg)">
+      <figure><svg class="gfig" data-graph="ex2024q4" role="img" aria-label="Graf fra 2024 Q4"></svg><figcaption>Urettet graf. h(S) er ikke oppgitt i figuren.</figcaption></figure>
+      <p>Consider the graph shown in the Figure, where G is the goal node. Which of the following statements is <b>false</b>? In case of a tie, use lexicographical order.</p>
+      <ol type="a">
+        <li>Uniform-cost search (implemented as tree-search) expands SABCEDG, finding the path SACDG with cost 10</li>
+        <li>Breadth-first search (implemented as graph-search) expands SABCD, finding the path SACDG with cost 10</li>
+        <li>Depth-first search (implemented as tree-search) expands SACBS and then it loops</li>
+        <li>A* search (implemented as tree-search) expands SACDEBG, finding the path SACDG with cost 10</li>
+        <li>Greedy Best-first search (implemented as tree-search) expands SACEDC and then it loops</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p>Sensor fant en feil i oppgaven: <b>tre</b> utsagn er falske (a, d og e), og alle tre ble godkjent. Det er lærerikt å se hvorfor:</p>
+        <ul>
+          <li><b>e) Greedy (tree-search):</b> S → A(6), B(6) → A (leksikografisk). A → C(3) (og S igjen; er h(S) lav, ekspanderes S én gang til, men det endrer ikke resultatet). C → D(1), E(3), … → D. D → G(0) → mål. Greedy ekspanderer S, A, C, D, (G) og finner S–A–C–D–G med kostnad 2 + 3 + 2 + 3 = 10, som faktisk er optimal. Den looper ikke ⇒ <b>falsk</b>.</li>
+          <li><b>d) A* (tree-search):</b> «SACDEBG» er rekkefølgen for A* som <i>graph search</i>. Som tree-search i en urettet graf genereres foreldre og andre noder på nytt, og noen tilstander ekspanderes flere ganger (C og D blir ekspandert mer enn én gang, og S kan bli det avhengig av h(S)) ⇒ <b>falsk</b>. (Offisiell begrunnelse: «it expands B and C multiple times».) Stien S–A–C–D–G med kostnad 10 er riktig.</li>
+          <li><b>a) UCS (tree-search):</b> «SABCEDG» er igjen graph-search-rekkefølgen; tree-search ekspanderer C flere ganger ⇒ <b>falsk</b>.</li>
+        </ul>
+        <p>Lærdom: <b>tree-like search på en urettet graf</b> gir mange gjentatte ekspansjoner. Test selv i widgeten (graf «Eksamen 2024, Q4») ved å bytte mellom variantene.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2024 Q5: A* med tree-like search" data-meta="Eksamen 2024 · 6 p (flervalg)">
+      <figure><svg class="gfig" data-graph="ex2024" role="img" aria-label="Graf fra 2024 Q5"></svg><figcaption>h(A) = 3, h(B) = 2.5, h(C) = 0.5, h(G) = 0. Kostnader S–A 1, S–B 1, A–C 1, B–C 2, C–G 2.</figcaption></figure>
+      <p>Given the figure, you are going to use tree-like A* search algorithm. Consider that S is the starting node, and G is the goal. Which of the following statements is <b>true</b>?</p>
+      <ol type="a">
+        <li>With the heuristics on the figure, A* does not expand any node more than once</li>
+        <li>With the given heuristics on the figure, A* expands only the nodes on the cost optimal path</li>
+        <li>When h(A) = 2 instead of 3, A* does not expand any node that is not on the cost optimal path, and it does not expand any node more than once</li>
+        <li>When h(A) = 2 instead of 3, A* expands at least one node more than once</li>
+        <li>A* cannot find the cost-optimal path with the heuristics of the figure</li>
+      </ol>
+      <details class="hint"><summary>Hint</summary><p>Optimal vei: S–A–C–G = 4. Kjør A* med h(A) = 3 og med h(A) = 2 (behandle kantene som rettet nedover; i en urettet tree-like search kommer S i tillegg inn igjen, men det endrer ikke konklusjonen).</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>h(A) = 3:</b> S → A(1+3 = 4), B(1+2.5 = 3.5). B(3.5) → C(3+0.5 = 3.5). C(3.5) → G(5). A(4) → C(2+0.5 = 2.5). C(2.5) → G(4). G(4) tas ut. Rekkefølge S, B, C, A, C, (G) – C ekspanderes to ganger, B er ikke på optimal vei. Vei S–A–C–G, kostnad 4.</p>
+        <p><b>h(A) = 2:</b> S → A(3), B(3.5). A(3) → C(2.5). C(2.5) → G(4). B(3.5) → C(3+0.5 = 3.5). C(3.5) → G(5). G(4) tas ut. Rekkefølge S, A, C, B, C, (G) – C ekspanderes to ganger.</p>
+        <p>Altså: a) usann, b) usann, c) usann, <b>d) sann</b>, e) usann (h er admissibel: h*(A) = 3, h*(B) = 4, h*(C) = 2, så tree-like A* finner det optimale). Grunnen til dobbeltekspansjonen er at tree-like search ikke husker hva det har ekspandert, og at h er inkonsistent på A→C (h(A) = 3 &gt; 1 + 0.5).</p>
+        <p><i>Q6 i samme eksamen</i> (local search) hadde distraktoren «Use a heuristic that is both admissible and consistent to have a monotonically non-decreasing objective function» som feil svar på «hvordan unnslippe lokale optima» – admissibilitet og konsistens hører til A*, ikke lokalt søk.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="2025 Question 6: Informed Search" data-meta="Eksamen 2025 · 12 p">
+      <figure><svg class="gfig" data-graph="ex2025" role="img" aria-label="Graf fra eksamen 2025"></svg><figcaption>Gjenskapt figur (urettet graf). Lilla tall er h-verdiene.</figcaption></figure>
+      <p>Consider the shown graph where s is the starting state, g is the goal state, and each node has its heuristic values as shown. Answer the three following questions.</p>
+      <p>a) Is the heuristic <b>admissible</b>? Why? (2 pts.)<br>
+      b) Is the heuristic <b>consistent</b>? Why? (2 pts.)<br>
+      c) Execute the search carried out by <b>A*</b> on the graph, using alphabetical order as a tie breaker. Show your steps and highlight clearly what are the expanded nodes and what is the path found, if any (8 pts.)</p>
+      <details class="hint"><summary>Hint</summary><p>Regn h* baklengs fra g (h*(k) = 3, h*(e) = 4, …). For konsistens: |h(n) − h(n′)| ≤ c på alle 13 kantene. I c): a og k får begge f = 9 – hvem vinner?</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>a) Ja, admissibel.</b> For hver node er h(n) ≤ h*(n) (tabellen i seksjon 5): f.eks. h(s) = 5 ≤ 9, h(b) = 4 ≤ 10, h(e) = 4 ≤ 4, h(k) = 3 ≤ 3, h(f) = 5 ≤ 5. Den overestimerer aldri. (Det følger også av b): konsistent ⇒ admissibel.)</p>
+        <p><b>b) Ja, konsistent.</b> For hver kant (begge retninger, urettet graf) gjelder |h(n) − h(n′)| ≤ c(n, n′) – se tabellen i seksjon 6. De strammeste kantene er s–b (1 ≤ 1), e–g (4 ≤ 4), k–g (3 ≤ 3), j–i (1 ≤ 1), h–f (1 ≤ 1) og f–g (5 ≤ 5), alle med likhet.</p>
+        <p><b>c)</b> A* (graph search):</p>
+        <table class="trace">
+          <tr><th>Steg</th><th>Choose (g + h = f)</th><th>Barn</th><th>Frontier etterpå</th></tr>
+          <tr><td>1</td><td>s (0+5 = 5), not goal</td><td>a 4+5 = 9, b 1+4 = 5, k 6+3 = 9</td><td class="mono">b(5), a(9), k(9)</td></tr>
+          <tr><td>2</td><td>b (1+4 = 5), not goal</td><td>c 3+5 = 8 (s: allerede nådd billigere)</td><td class="mono">c(8), a(9), k(9)</td></tr>
+          <tr><td>3</td><td>c (3+5 = 8), not goal</td><td>d 5+5 = 10 (b: nådd)</td><td class="mono">a(9), k(9), d(10)</td></tr>
+          <tr><td>4</td><td>a (4+5 = 9) – likhet med k, a alfabetisk først</td><td>ingen nye (s: nådd)</td><td class="mono">k(9), d(10)</td></tr>
+          <tr><td>5</td><td>k (6+3 = 9), not goal</td><td>g 9+0 = 9, j 9+5 = 14 (s: nådd)</td><td class="mono">g(9), d(10), j(14)</td></tr>
+          <tr><td>6</td><td>g (9+0 = 9) – <b>goal</b></td><td></td><td></td></tr>
+        </table>
+        <p><b>Ekspanderte noder:</b> s, b, c, a, k (+ g tatt ut som mål) – 5 ekspansjoner (offisiell løsning teller 4, uten startnoden). <b>Vei:</b> s → k → g, <b>kostnad 6 + 3 = 9</b> (optimal; s–b–c–d–e–g koster 1 + 2 + 2 + 2 + 4 = 11).</p>
+      </details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>14. Ekstra treningsoppgaver</h2>
+    <p>Nye oppgaver i eksamensstil. «Graf E» er grafen i figur 8 (seksjon 10).</p>
+
+    <div class="exercise" data-title="Trening 1: Graf E – admissibel, konsistent og A*" data-meta="Egen oppgave · ca. 12 p">
+      <figure><svg class="gfig" data-graph="e1" role="img" aria-label="Graf E"></svg></figure>
+      <p>Urettet graf, start S, mål G. h(S) = 6, h(A) = 5, h(B) = 5, h(C) = 3, h(D) = 2, h(E) = 2, h(G) = 0.</p>
+      <p>a) Is h admissible? b) Is h consistent? c) Run A* (graph search, alphabetical tie-breaking) and show the frontier after each step. Give the order of expansion, the path and its cost. d) Which path does greedy best-first search return, and what does it cost?</p>
+      <details class="hint"><summary>Hint</summary><p>Sjekk kanten B–C nøye. I c) blir det likhet på f = 8 mellom B og D.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>a)</b> h*: G = 0, E = 2, D = 3, C = min(2+3, 4+2) = 5, A = min(2+5, 5+3) = 7, B = 1+5 = 6, S = min(2+7, 3+6) = 9. Alle h ≤ h* ⇒ <b>admissibel</b>.</p>
+        <p><b>b)</b> <b>Ikke konsistent:</b> kanten B–C: h(B) = 5 &gt; c(B,C) + h(C) = 1 + 3 = 4. (Alle andre kanter er OK.)</p>
+        <p><b>c)</b></p>
+        <table class="trace">
+          <tr><th>Steg</th><th>Ekspanderer</th><th>Barn (g + h = f)</th><th>Frontier etterpå</th></tr>
+          <tr><td>1</td><td>S (0+6 = 6)</td><td>A 2+5 = 7, B 3+5 = 8</td><td class="mono">A(7), B(8)</td></tr>
+          <tr><td>2</td><td>A (2+5 = 7)</td><td>C 4+3 = 7, D 7+2 = 9 (S: nådd)</td><td class="mono">C(7), B(8), D(9)</td></tr>
+          <tr><td>3</td><td>C (4+3 = 7)</td><td>D 6+2 = 8 (erstatter 9), E 8+2 = 10 (A, B: ikke bedre)</td><td class="mono">B(8), D(8), E(10)</td></tr>
+          <tr><td>4</td><td>B (3+5 = 8) – likhet, B før D</td><td>C: g = 4, ikke bedre enn 4; S: nådd</td><td class="mono">D(8), E(10)</td></tr>
+          <tr><td>5</td><td>D (6+2 = 8)</td><td>G 9+0 = 9</td><td class="mono">G(9), E(10)</td></tr>
+          <tr><td>6</td><td>G (9) – mål</td><td></td><td></td></tr>
+        </table>
+        <p>Order of expansion: S, A, C, B, D, (G). Path: S → A → C → D → G, cost 2 + 2 + 2 + 3 = <b>9</b> (optimal; S→B→C→D→G koster også 9). Selv om h er inkonsistent, gikk det bra – C nås med g = 4 både via A og via B.</p>
+        <p><b>d)</b> Greedy: S → A(5), B(5) → A. A → C(3), D(2) → D. D → G(0) → G. Vei S → A → D → G, kostnad 2 + 5 + 3 = <b>10</b> (ikke optimal).</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Trening 2: Heuristikk for rutenett med diagonale trekk" data-meta="Egen oppgave · ca. 6 p">
+      <p>A robot moves on a grid. It can move to any of the 8 neighbouring cells (horizontally, vertically or diagonally), and <b>every move costs 1</b>. The goal is a fixed cell (x<sub>g</sub>, y<sub>g</sub>). Let dx = |x − x<sub>g</sub>| and dy = |y − y<sub>g</sub>|.</p>
+      <p>a) Is the Manhattan distance dx + dy admissible? b) Propose an admissible heuristic that is as large as possible, and argue that it is consistent. c) What if diagonal moves cost √2 instead?</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>a) Nei.</b> Fra (0,0) til (1,1): Manhattan = 2, men ett diagonalt trekk (kostnad 1) holder. Et diagonaltrekk kan redusere Manhattan med 2 for kostnad 1.</p>
+        <p><b>b)</b> Chebyshev-avstand <span class="logic">h = max(dx, dy)</span>. Det er nøyaktig optimal kostnad uten hindringer (relaksert problem: fjern hindringene), så den er admissibel, og fordi den er en eksakt kostnad i et relaksert problem er den konsistent (ett trekk endrer max(dx, dy) med høyst 1).</p>
+        <p><b>c)</b> Da er optimal kostnad uten hindringer (oktil-avstand) <span class="logic">√2·min(dx,dy) + (max(dx,dy) − min(dx,dy))</span> – admissibel og konsistent. Euklidsk avstand er også admissibel, men svakere (dominert). Chebyshev er fortsatt admissibel, men svakere.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Trening 3: Kombinere heuristikker" data-meta="Egen oppgave · ca. 6 p">
+      <p>h<sub>1</sub> and h<sub>2</sub> are both admissible (and consistent) for a problem. For each of the following, state whether it is guaranteed to be admissible: (i) max(h<sub>1</sub>, h<sub>2</sub>), (ii) min(h<sub>1</sub>, h<sub>2</sub>), (iii) h<sub>1</sub> + h<sub>2</sub>, (iv) 0.3h<sub>1</sub> + 0.7h<sub>2</sub>, (v) 2h<sub>1</sub>. Which of them dominates both h<sub>1</sub> and h<sub>2</sub>? Which would you use with A*?</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p>(i) <b>Ja</b> – begge ≤ h*, så maks også. (ii) <b>Ja</b>. (iii) <b>Nei</b> – f.eks. h<sub>1</sub> = h<sub>2</sub> = h* gir 2h*. (Unntak: disjunkte pattern databases, der delene teller ulike trekk.) (iv) <b>Ja</b> – konveks kombinasjon ≤ h*. (v) <b>Nei</b> – kan bli 2h*; det er weighted A* med W = 2 (kostnad ≤ 2C*).</p>
+        <p>Bare <b>max(h<sub>1</sub>, h<sub>2</sub>)</b> dominerer garantert begge. Den er også konsistent når h<sub>1</sub> og h<sub>2</sub> er det, og er det naturlige valget for A* (bokas anbefaling) – så lenge det ikke er for dyrt å regne ut begge.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Trening 4: Weighted A* på Romania" data-meta="Egen oppgave · ca. 6 p">
+      <p>Run weighted A* with f(n) = g(n) + 1.5·h<sub>SLD</sub>(n) from Arad to Bucharest (graph search). Show the f-values for the first three expansions. Which path is returned, and is its cost within the guaranteed bound?</p>
+      <details class="hint"><summary>Hint</summary><p>f(Sibiu) = 140 + 1,5 · 253 = 519,5. Sammenlign med A* (W = 1) i widgeten.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <table class="trace">
+          <tr><th>Steg</th><th>Ekspanderer (f)</th><th>Frontier etterpå</th></tr>
+          <tr><td>1</td><td>Arad (0 + 549 = 549)</td><td class="mono">Sibiu(140+379.5=519.5), Timisoara(118+493.5=611.5), Zerind(75+561=636)</td></tr>
+          <tr><td>2</td><td>Sibiu (519.5)</td><td class="mono">Fagaras(239+264=503), R.Vilcea(220+289.5=509.5), Timisoara(611.5), Zerind(636), Oradea(291+570=861)</td></tr>
+          <tr><td>3</td><td>Fagaras (503)</td><td class="mono">Bucharest(450+0=450), R.Vilcea(509.5), …</td></tr>
+          <tr><td>4</td><td>Bucharest (450) – mål</td><td></td></tr>
+        </table>
+        <p>Vei: Arad → Sibiu → Fagaras → Bucharest, kostnad <b>450</b>. Garantien er C* ≤ kostnad ≤ W·C* = 1,5 · 418 = 627, og 450 er innenfor. Weighted A* ekspanderte 3 noder mot 5 for A* – raskere, men 32 miles lengre vei.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Trening 5: Sant eller usant – blandet" data-meta="Egen oppgave · 6 × 2 p">
+      <ol>
+        <li>A* with an admissible heuristic and tree-like search always returns an optimal solution (positive step costs, solution exists).</li>
+        <li>If h is admissible, A* never expands a node with f(n) &gt; C*.</li>
+        <li>IDA* uses memory linear in the depth of the solution.</li>
+        <li>A heuristic derived as the exact cost of a relaxed problem is always consistent.</li>
+        <li>If h<sub>2</sub> dominates h<sub>1</sub>, A* with h<sub>2</sub> always expands strictly fewer nodes than A* with h<sub>1</sub>.</li>
+        <li>Beam search with k = 1 is complete.</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol>
+          <li><b>True.</b> Bokas bevis gjelder: en node på optimal vei har alltid f ≤ C* og blir tatt ut før en suboptimal målnode.</li>
+          <li><b>True</b> for nodene som tas ut før målet: enhver node som tas ut, har f ≤ C*, fordi det hele tiden ligger en node fra den optimale veien i grensen med f ≤ C*. (Hver ekspandert node har altså f ≤ C*.)</li>
+          <li><b>True.</b> Den er en dybde-først-variant; mellom iterasjonene husker den bare f-grensen.</li>
+          <li><b>True.</b> Eksakte kostnader oppfyller trekantulikheten (og det relakserte problemet har h = 0 i målet).</li>
+          <li><b>False.</b> «Aldri flere» (bortsett fra uheldig tiebreaking) – ikke nødvendigvis <i>strengt</i> færre; de kan ekspandere nøyaktig de samme.</li>
+          <li><b>False.</b> Med k = 1 er beam search i praksis hill-climbing; den kan kaste den eneste veien til målet eller sette seg fast.</li>
+        </ol>
+      </details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>15. Oppsummering / jukselapp</h2>
+
+    <div class="box key"><span class="box-title">Formler</span>
+      <table class="compact">
+        <tr><th>Algoritme</th><th>f(n)</th><th>Komplett</th><th>Optimal</th></tr>
+        <tr><td>UCS</td><td>g(n)</td><td>Ja (kostnad ≥ ε &gt; 0)</td><td>Ja</td></tr>
+        <tr><td>Greedy best-first</td><td>h(n)</td><td>Graph search i endelig rom: ja; tree-like: nei</td><td>Nei</td></tr>
+        <tr><td>A*</td><td>g(n) + h(n)</td><td>Ja</td><td>Ja hvis h admissibel (konsistent ved closed-liste)</td></tr>
+        <tr><td>Weighted A*</td><td>g(n) + W·h(n), W &gt; 1</td><td>Ja</td><td>Nei, men kostnad ≤ W·C*</td></tr>
+        <tr><td>IDA* / RBFS</td><td>g + h, lineært minne</td><td>Ja</td><td>Ja (admissibel h)</td></tr>
+        <tr><td>SMA*</td><td>g + h, alt minne</td><td>Hvis d &lt; minne</td><td>Hvis optimal løsning får plass</td></tr>
+        <tr><td>Beam search</td><td>k beste</td><td>Nei</td><td>Nei</td></tr>
+      </table>
+    </div>
+
+    <div class="box key"><span class="box-title">Definisjoner du må kunne skrive ned</span>
+      <ul>
+        <li><b>Admissibel:</b> h(n) ≤ h*(n) for alle n (aldri overestimere). Sjekkes <i>node for node</i> mot sann kostnad.</li>
+        <li><b>Konsistent:</b> h(n) ≤ c(n, a, n′) + h(n′) for alle kanter (trekantulikheten). Sjekkes <i>kant for kant</i>; urettet: |h(n) − h(n′)| ≤ c i begge retninger.</li>
+        <li><b>Konsistent ⇒ admissibel</b> (ikke omvendt). Konsistent ⇔ f ikke-avtagende langs enhver vei.</li>
+        <li><b>Dominans:</b> h<sub>2</sub> dominerer h<sub>1</sub> hvis h<sub>2</sub>(n) ≥ h<sub>1</sub>(n) for alle n (begge admissible) ⇒ A* med h<sub>2</sub> ekspanderer aldri flere noder. max(h<sub>1</sub>,…,h<sub>k</sub>) dominerer alle.</li>
+        <li><b>Effektiv forgreningsfaktor:</b> N + 1 = 1 + b* + (b*)² + … + (b*)<sup>d</sup>.</li>
+        <li><b>Relaxed problem:</b> færre restriksjoner ⇒ optimal kostnad der er admissibel og konsistent. 8-puslespill: fjern «Y tom» ⇒ h<sub>2</sub> (Manhattan); fjern også «nabo» ⇒ h<sub>1</sub> (feilplasserte).</li>
+        <li><b>Surely expanded:</b> alle noder med f &lt; C*; kanskje noen med f = C*; ingen med f &gt; C*. A* med konsistent h er <b>optimalt effektiv</b>.</li>
+      </ul>
+    </div>
+
+    <div class="box algo"><span class="box-title">A* for hånd – sjekkliste</span>
+<pre>[ ] Skriv variant (graph/tree, gjenåpning/closed) og tiebreaking (alfabetisk)
+[ ] f = g + h for HVER node: g = hele veien, h = bare ved noden
+[ ] Måltest når noden TAS UT, ikke når den genereres
+[ ] Billigere vei til node i grensen → erstatt; til ekspandert node → gjenåpne
+    (bare i bokas versjon; med closed-liste: ignorer)
+[ ] Urettet graf: forelderen er også et barn (forkastes i graph search)
+[ ] Vis grensen sortert etter hvert steg
+[ ] Svar: Order of expansion: S, …, (G) · Path: S→…→G · Cost: …</pre>
+    </div>
+
+    <div class="box warning"><span class="box-title">De største fellene</span>
+      <ul>
+        <li>Stoppe når målet <i>genereres</i> (A* stopper når målet <i>tas ut</i>).</li>
+        <li>Si at admissibel ⇒ konsistent (det er omvendt).</li>
+        <li>Sjekke konsistens bare på noen kanter / bare én retning.</li>
+        <li>Tro at «mindre h er bedre» – blant admissible er større bedre.</li>
+        <li>Glemme at A* med closed-liste trenger <b>konsistent</b> h for optimalitet (2016f, 2019).</li>
+        <li>Greedy er ikke optimal, og tree-like greedy kan gå i løkke (2023).</li>
+        <li>h<sub>1</sub> + h<sub>2</sub> er ikke admissibel generelt; max, min og gjennomsnitt er det.</li>
+      </ul>
+    </div>
+  </main>
+  <aside class="margin"></aside>
+</div>
+<script src="assets/course.js"></script>
+<script>
+(function () {
+  "use strict";
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function S(tag, attrs, parent) {
+    const e = document.createElementNS(SVGNS, tag);
+    if (attrs) for (const k in attrs) { if (k === "text") e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]); }
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  const fmt = v => (v === Infinity ? "∞" : Number.isInteger(v) ? String(v) : String(+v.toFixed(2)));
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+  /* ---------------- Grafdata ---------------- */
+  const GRAPHS = {
+    ex2025: { title: "Eksamen 2025, oppgave 6", directed: false, start: "s", goal: "g", vb: "0 0 520 480", sa: [1, 0.35],
+      nodes: { i: { x: 130, y: 45, h: 6 }, j: { x: 225, y: 60, h: 5 }, h: { x: 60, y: 100, h: 6 }, f: { x: 150, y: 120, h: 5 }, k: { x: 310, y: 155, h: 3 },
+        g: { x: 270, y: 290, h: 0 }, a: { x: 450, y: 310, h: 5 }, e: { x: 125, y: 355, h: 4 }, s: { x: 400, y: 405, h: 5 }, d: { x: 140, y: 425, h: 5 }, b: { x: 315, y: 440, h: 4 }, c: { x: 220, y: 460, h: 5 } },
+      lp: { h: [-4, 30], g: [0, 32], s: [30, -20], b: [26, 22], c: [0, -24], d: [-30, 6], e: [-30, 0], a: [0, -26], k: [30, -10], f: [24, 18], i: [0, -24], j: [0, -24] },
+      edges: [["s", "a", 4], ["s", "b", 1], ["s", "k", 6], ["b", "c", 2], ["c", "d", 2], ["d", "e", 2], ["e", "g", 4], ["g", "k", 3], ["j", "k", 3], ["i", "j", 1], ["h", "i", 1], ["f", "h", 1], ["f", "g", 5]] },
+    lecture: { title: "Forelesningsgrafen / eksamen 2023 2.1 (løkke på A)", directed: true, start: "S", goal: "G", vb: "0 0 420 330", sa: [-1, -0.2], noHS: true,
+      nodes: { S: { x: 210, y: 40, h: 0 }, A: { x: 130, y: 130, h: 3 }, B: { x: 310, y: 130, h: 3 }, C: { x: 160, y: 250, h: 3 }, G: { x: 330, y: 280, h: 0 } },
+      lp: { S: [32, -6] },
+      edges: [["S", "A", 4], ["S", "B", 7], ["A", "A", 13], ["A", "C", 4], ["B", "G", 10], ["C", "G", 4]] },
+    romania: { title: "Romania (Arad → Bucharest, h = luftlinje)", directed: false, start: "A", goal: "B", vb: "0 0 610 420", r: 14, hpos: "below", lp: { L: [30, 0], M: [30, 0], D: [-32, 0], T: [-2, 26] },
+      nodes: { A: { x: 40, y: 140, h: 366 }, Z: { x: 75, y: 80, h: 374 }, O: { x: 120, y: 30, h: 380 }, T: { x: 45, y: 245, h: 329 }, L: { x: 150, y: 265, h: 244 },
+        M: { x: 150, y: 325, h: 241 }, D: { x: 150, y: 385, h: 242 }, S: { x: 195, y: 165, h: 253 }, R: { x: 235, y: 235, h: 193 }, F: { x: 320, y: 170, h: 176 },
+        P: { x: 335, y: 285, h: 100 }, C: { x: 290, y: 375, h: 160 }, B: { x: 440, y: 320, h: 0 }, G: { x: 410, y: 380, h: 77 }, U: { x: 500, y: 285, h: 80 },
+        H: { x: 575, y: 285, h: 151 }, E: { x: 585, y: 375, h: 161 }, V: { x: 545, y: 190, h: 199 }, I: { x: 505, y: 105, h: 226 }, N: { x: 420, y: 70, h: 234 } },
+      edges: [["A", "Z", 75], ["A", "S", 140], ["A", "T", 118], ["Z", "O", 71], ["O", "S", 151], ["T", "L", 111], ["L", "M", 70], ["M", "D", 75], ["D", "C", 120],
+        ["C", "R", 146], ["C", "P", 138], ["S", "F", 99], ["S", "R", 80], ["R", "P", 97], ["F", "B", 211], ["P", "B", 101], ["B", "G", 90], ["B", "U", 85],
+        ["U", "H", 98], ["H", "E", 86], ["U", "V", 142], ["V", "I", 92], ["I", "N", 87]] },
+    ex2019: { title: "Eksamen 2019, oppgave 3 (inkonsistent h)", directed: false, start: "A", goal: "G", vb: "0 0 460 270",
+      nodes: { A: { x: 60, y: 70, h: 7 }, C: { x: 230, y: 70, h: 2 }, G: { x: 400, y: 70, h: 0 }, B: { x: 120, y: 210, h: 6 }, D: { x: 330, y: 210, h: 2 } },
+      lp: { A: [0, -28], C: [0, -28], G: [0, -30], B: [0, 34], D: [0, 34] },
+      edges: [["A", "C", 4], ["A", "B", 1], ["B", "C", 2], ["C", "G", 4], ["C", "D", 3], ["B", "D", 4], ["D", "G", 6]] },
+    ex2017: { title: "Eksamen 2017, oppgave 4", directed: true, start: "S", goal: "G", vb: "0 0 360 340",
+      nodes: { S: { x: 180, y: 35, h: 7 }, A: { x: 70, y: 130, h: 6 }, B: { x: 290, y: 130, h: 2 }, C: { x: 180, y: 215, h: 1 }, G: { x: 180, y: 305, h: 0 } },
+      lp: { S: [34, -4], A: [-34, -8], B: [36, -8], C: [32, -10], G: [34, 4] },
+      edges: [["S", "A", 1], ["S", "B", 2], ["A", "B", 2], ["A", "C", 5], ["A", "G", 12], ["B", "C", 2], ["C", "G", 3]] },
+    ex2016: { title: "Eksamen 2016, oppgave 3 (rom ved NTNU)", directed: false, start: "181", goal: "127D", vb: "0 0 560 310", r: 22, sa: [1, 0],
+      nodes: { "127A": { x: 330, y: 40, h: 10 }, "127": { x: 240, y: 95, h: 7 }, "127B": { x: 380, y: 165, h: 9 }, "181": { x: 500, y: 235, h: 14 },
+        "127E": { x: 70, y: 175, h: 2 }, "127C": { x: 220, y: 215, h: 3 }, "127D": { x: 120, y: 268, h: 0 } },
+      lp: { "127A": [42, -6], "127": [-36, -14], "127B": [40, -16], "181": [0, -32], "127E": [-4, -32], "127C": [38, 14], "127D": [44, 10] },
+      edges: [["181", "127A", 10], ["181", "127B", 8], ["127A", "127", 1], ["127", "127B", 5], ["127", "127E", 7], ["127", "127C", 7], ["127E", "127D", 4], ["127C", "127D", 3]] },
+    ex2015: { title: "Eksamen 2015, oppgave 7 (tre, alle kostnader 1)", directed: true, start: "A", goal: "H", vb: "0 0 470 340", noW: true,
+      nodes: { A: { x: 235, y: 35, h: 2 }, B: { x: 110, y: 110, h: 2 }, E: { x: 235, y: 110, h: 2 }, J: { x: 360, y: 110, h: 2 }, C: { x: 60, y: 195, h: 2 }, D: { x: 150, y: 195, h: 3 },
+        F: { x: 205, y: 195, h: 2 }, I: { x: 290, y: 195, h: 1 }, K: { x: 330, y: 195, h: 2 }, L: { x: 410, y: 195, h: 3 }, G: { x: 205, y: 265, h: 1 }, H: { x: 250, y: 310, h: 0 } },
+      lp: { A: [34, 0], B: [-34, -6], E: [34, -4], J: [34, -4], C: [0, 32], D: [0, 32], F: [30, 2], I: [8, -28], K: [0, 32], L: [0, 32], G: [-32, 0], H: [34, 0] },
+      edges: [["A", "B", 1], ["A", "E", 1], ["A", "J", 1], ["B", "C", 1], ["B", "D", 1], ["E", "F", 1], ["E", "I", 1], ["J", "K", 1], ["J", "L", 1], ["F", "G", 1], ["G", "H", 1], ["I", "H", 1]] },
+    ex2018: { title: "Eksamen 2018, oppgave 4 (tre med tre mål)", directed: true, start: "S", goal: ["D", "F", "G"], vb: "0 0 460 260",
+      nodes: { S: { x: 230, y: 35, h: 2 }, B: { x: 100, y: 120, h: 1 }, C: { x: 230, y: 120, h: 1 }, D: { x: 360, y: 120, h: 0 }, E: { x: 50, y: 215, h: 0 }, F: { x: 140, y: 215, h: 0 },
+        G: { x: 200, y: 215, h: 0 }, H: { x: 270, y: 215, h: 0 }, I: { x: 330, y: 215, h: 0 }, J: { x: 410, y: 215, h: 0 } },
+      lp: { S: [34, -4], B: [-34, -8], C: [34, 0], D: [36, -4], E: [0, 34], F: [0, 34], G: [0, 34], H: [0, 34], I: [0, 34], J: [0, 34] },
+      edges: [["S", "B", 2], ["S", "C", 1], ["S", "D", 3], ["B", "E", 2], ["B", "F", 1], ["C", "G", 1], ["C", "H", 3], ["D", "I", 1], ["D", "J", 1]] },
+    ex2018h: { title: "Eksamen 2018, oppgave 5 (S, A, G)", directed: true, start: "S", goal: "G", vb: "0 0 360 220",
+      nodes: { S: { x: 60, y: 50, h: 4 }, G: { x: 300, y: 50, h: 0 }, A: { x: 180, y: 170, h: 3 } },
+      lp: { S: [0, -28], G: [0, -30], A: [0, 34] },
+      edges: [["S", "G", 6], ["S", "A", 2], ["A", "G", 3]] },
+    ex2023b: { title: "Eksamen 2023, oppgave 2.2 (velg h(B) selv)", directed: true, start: "A", goal: "G", vb: "0 0 400 400",
+      nodes: { A: { x: 200, y: 35, h: 5 }, B: { x: 70, y: 120, h: 9 }, C: { x: 300, y: 135, h: 4 }, D: { x: 80, y: 260, h: 3 }, F: { x: 205, y: 250, h: 1 }, E: { x: 330, y: 270, h: 3 }, G: { x: 150, y: 355, h: 0 } },
+      lp: { A: [34, -6], B: [-36, -8], C: [36, -6], D: [-36, 0], F: [32, -10], E: [36, 0], G: [34, 8] },
+      edges: [["A", "B", 1], ["A", "C", 4], ["B", "C", 2], ["B", "D", 3], ["C", "E", 5], ["D", "F", 2], ["D", "G", 4], ["F", "G", 1], ["E", "G", 3]] },
+    ex2024: { title: "Eksamen 2024, Q5 (tree-like, prøv A=2)", directed: true, start: "S", goal: "G", vb: "0 0 320 300", noHS: true,
+      nodes: { S: { x: 70, y: 40, h: 0 }, A: { x: 70, y: 135, h: 3 }, B: { x: 230, y: 90, h: 2.5 }, C: { x: 180, y: 190, h: 0.5 }, G: { x: 180, y: 270, h: 0 } },
+      lp: { A: [-36, 0], B: [40, 0], C: [40, 0], G: [36, 0] },
+      edges: [["S", "A", 1], ["S", "B", 1], ["A", "C", 1], ["B", "C", 2], ["C", "G", 2]] },
+    ex2024q4: { title: "Eksamen 2024, Q4 (h(S) ikke oppgitt – satt til 6)", directed: false, start: "S", goal: "G", vb: "0 0 340 390", noHS: true,
+      nodes: { S: { x: 70, y: 40, h: 6 }, A: { x: 70, y: 125, h: 6 }, B: { x: 210, y: 85, h: 6 }, C: { x: 175, y: 195, h: 3 }, E: { x: 270, y: 255, h: 3 }, D: { x: 100, y: 275, h: 1 }, G: { x: 145, y: 355, h: 0 } },
+      lp: { A: [-36, 0], B: [38, 0], C: [36, -8], E: [36, 0], D: [-34, 0], G: [36, 6] },
+      edges: [["S", "A", 2], ["S", "B", 4], ["A", "C", 3], ["B", "C", 3], ["C", "E", 1], ["C", "D", 2], ["D", "E", 2], ["D", "G", 3], ["E", "G", 5]] },
+    doom: { title: "Øving 1: Doom E1M8 (h fra figur 1)", directed: false, start: "A", goal: "F", vb: "0 0 360 480",
+      nodes: { F: { x: 150, y: 35, h: 0 }, D: { x: 180, y: 100, h: 1 }, E: { x: 180, y: 180, h: 5 }, C: { x: 130, y: 260, h: 9 }, H: { x: 240, y: 290, h: 13 },
+        B: { x: 180, y: 350, h: 17 }, I: { x: 180, y: 410, h: 22 }, A: { x: 70, y: 450, h: 25 }, G: { x: 290, y: 450, h: 26 } },
+      lp: { F: [-34, 0], D: [34, 0], E: [36, 0], C: [-36, 0], H: [38, 0], B: [-36, 0], I: [-36, 0], A: [0, -28], G: [0, -28] },
+      edges: [["F", "D", 1], ["D", "E", 2], ["E", "C", 1], ["E", "H", 1], ["C", "H", 1], ["C", "B", 4], ["H", "B", 3], ["B", "I", 2], ["I", "A", 1], ["I", "G", 1], ["A", "G", 4]] },
+    e1: { title: "Graf E (treningsoppgavene)", directed: false, start: "S", goal: "G", vb: "0 0 480 290",
+      nodes: { S: { x: 40, y: 150, h: 6 }, A: { x: 140, y: 70, h: 5 }, B: { x: 140, y: 230, h: 5 }, C: { x: 240, y: 150, h: 3 }, D: { x: 340, y: 70, h: 2 }, E: { x: 340, y: 230, h: 2 }, G: { x: 440, y: 150, h: 0 } },
+      lp: { S: [0, -28], A: [0, -28], B: [0, 34], C: [0, -28], D: [0, -28], E: [0, 34], G: [0, -30] },
+      edges: [["S", "A", 2], ["S", "B", 3], ["A", "C", 2], ["B", "C", 1], ["A", "D", 5], ["C", "D", 2], ["C", "E", 4], ["D", "G", 3], ["E", "G", 2]] },
+    proof: { title: "Forelesning: «essensen i beviset» (h(B) overestimerer)", directed: false, start: "A", goal: "G", vb: "0 0 460 170",
+      nodes: { A: { x: 50, y: 110, h: 3 }, B: { x: 170, y: 110, h: 1000 }, C: { x: 290, y: 110, h: 1 }, G: { x: 410, y: 110, h: 0 } },
+      lp: { A: [0, 34], B: [0, 34], C: [0, 34], G: [0, 36] },
+      edges: [["A", "B", 1], ["B", "C", 1], ["C", "G", 1], ["A", "C", 999, -70]] }
+  };
+  window.M03_GRAPHS = GRAPHS;
+
+  /* ---------------- Tegning ---------------- */
+  function parseMap(str) {
+    const m = {};
+    if (!str) return m;
+    str.split(";").forEach(p => { const i = p.indexOf(":"); if (i > 0) m[p.slice(0, i).trim()] = p.slice(i + 1).trim(); });
+    return m;
+  }
+  function drawGraph(svg, G, o) {
+    o = o || {};
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const vb = G.vb.split(" ").map(Number);
+    svg.setAttribute("viewBox", G.vb);
+    svg.setAttribute("width", vb[2]);
+    const r = G.r || 18;
+    const hpos = o.hpos || G.hpos;
+    const hv = id => (o.h && o.h[id] != null ? o.h[id] : G.nodes[id].h);
+    const goals = new Set([].concat(G.goal));
+    const mid = "m3ar" + Math.random().toString(36).slice(2, 8);
+    const defs = S("defs", null, svg);
+    const mk = S("marker", { id: mid, viewBox: "0 0 10 10", refX: 10, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, defs);
+    S("path", { d: "M0,0 L10,5 L0,10 z", class: "fill-muted" }, mk);
+    const gE = S("g", null, svg), gW = S("g", null, svg), gN = S("g", null, svg);
+    const E = {}, N = {}, SUB = {}, HL = {};
+    const ecls = o.ecls || {};
+    for (const ed of G.edges) {
+      const [a, b, c, bend] = ed;
+      const A = G.nodes[a], B = G.nodes[b];
+      const cls = ecls[a + "-" + b] || ecls[b + "-" + a] || "edge";
+      let el, lx, ly;
+      if (a === b) {
+        const x = A.x, y = A.y;
+        el = S("path", { d: `M${x - r * 0.6},${y - r * 0.8} C${x - 75},${y - 50} ${x - 75},${y + 50} ${x - r * 0.6},${y + r * 0.8}`, class: cls }, gE);
+        lx = x - 66; ly = y + 4;
+      } else {
+        const dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy) || 1;
+        const nx = -dy / d, ny = dx / d;
+        if (bend) {
+          const cx = (A.x + B.x) / 2 + nx * bend, cy = (A.y + B.y) / 2 + ny * bend;
+          const ux1 = cx - A.x, uy1 = cy - A.y, l1 = Math.hypot(ux1, uy1), ux2 = B.x - cx, uy2 = B.y - cy, l2 = Math.hypot(ux2, uy2);
+          el = S("path", { d: `M${A.x + ux1 / l1 * r},${A.y + uy1 / l1 * r} Q${cx},${cy} ${B.x - ux2 / l2 * r},${B.y - uy2 / l2 * r}`, class: cls }, gE);
+          lx = (A.x + B.x) / 2 + nx * (bend / 2) + nx * Math.sign(bend) * 10; ly = (A.y + B.y) / 2 + ny * (bend / 2) + ny * Math.sign(bend) * 10 + 4;
+        } else {
+          const rb = (G.r && G.r > 18) ? G.r : r;
+          el = S("line", { x1: A.x + dx / d * rb, y1: A.y + dy / d * rb, x2: B.x - dx / d * (rb + (G.directed ? 1 : 0)), y2: B.y - dy / d * (rb + (G.directed ? 1 : 0)), class: cls }, gE);
+          const t = (o.wpos && o.wpos[a + "-" + b]) || 0.5;
+          lx = A.x + dx * t + nx * 11; ly = A.y + dy * t + ny * 11 + 4;
+        }
+      }
+      if (G.directed) el.setAttribute("marker-end", `url(#${mid})`);
+      E[a + "|" + b] = el; if (!G.directed) E[b + "|" + a] = el;
+      if (!G.noW) S("text", { x: lx, y: ly, "text-anchor": "middle", class: "ew", text: fmt(c) }, gW);
+    }
+    // startpil
+    const st = G.nodes[G.start], sa = G.sa || [-1, 0], sl = Math.hypot(sa[0], sa[1]);
+    const ux = sa[0] / sl, uy = sa[1] / sl;
+    const sp = S("line", { x1: st.x + ux * (r + 26), y1: st.y + uy * (r + 26), x2: st.x + ux * (r + 2), y2: st.y + uy * (r + 2), class: "start-arrow" }, gN);
+    sp.setAttribute("marker-end", `url(#${mid})`);
+    const ncls = o.cls || {};
+    for (const id in G.nodes) {
+      const { x, y } = G.nodes[id];
+      if (goals.has(id)) S("circle", { cx: x, cy: y, r: r + 4, class: "goal-ring" }, gN);
+      N[id] = S("circle", { cx: x, cy: y, r, class: ncls[id] || "node" }, gN);
+      const lab = S("text", { x, y: y + 5, "text-anchor": "middle", class: "label", text: id }, gN);
+      if (id.length > 2) lab.setAttribute("style", "font-size:11px");
+      if (!o.noh && !(G.noHS && id === G.start) && !(o.hide && o.hide.includes(id))) {
+        let hx, hy, anchor = "middle";
+        const lp = G.lp && G.lp[id];
+        if (lp) { hx = x + lp[0]; hy = y + lp[1] + 4; }
+        else if (hpos === "below") { hx = x; hy = y + r + 12; }
+        else { hx = x + r + 3; hy = y - r + 4; anchor = "start"; }
+        HL[id] = S("text", { x: hx, y: hy, "text-anchor": anchor, class: "hlab", text: hpos === "below" ? fmt(hv(id)) : "h=" + fmt(hv(id)) }, gN);
+      }
+      const sy = hpos === "below" ? y + r + 24 : y + r + 13;
+      const lp = G.lp && G.lp[id];
+      let sx = x, syy = sy;
+      if (hpos !== "below" && lp && lp[1] > 20) { syy = y - r - 6; }
+      SUB[id] = S("text", { x: sx, y: syy, "text-anchor": "middle", class: "sub", text: (o.sub && o.sub[id]) || "" }, gN);
+    }
+    return {
+      node(id, cls) { if (N[id]) N[id].setAttribute("class", cls || "node"); },
+      edge(a, b, cls) { const e = E[a + "|" + b] || E[b + "|" + a]; if (e) e.setAttribute("class", cls || "edge"); },
+      sub(id, t) { if (SUB[id]) SUB[id].textContent = t || ""; },
+      setH(id, v) { if (HL[id]) HL[id].textContent = (hpos === "below" ? "" : "h=") + fmt(v); },
+      reset() { for (const id in N) N[id].setAttribute("class", "node"); for (const k in E) E[k].setAttribute("class", "edge"); for (const id in SUB) SUB[id].textContent = ""; }
+    };
+  }
+
+  // Statiske figurer
+  document.querySelectorAll("svg.gfig").forEach(svg => {
+    const G = GRAPHS[svg.dataset.graph];
+    if (!G) return;
+    const h = {};
+    if (svg.dataset.h) svg.dataset.h.split(",").forEach(p => { const [k, v] = p.split("="); if (k && v != null) h[k.trim()] = parseFloat(v); });
+    drawGraph(svg, G, { cls: parseMap(svg.dataset.cls), ecls: parseMap(svg.dataset.ecls), sub: parseMap(svg.dataset.sub), hpos: svg.dataset.hpos, noh: svg.dataset.noh === "1", hide: (svg.dataset.hideh || "").split(","), h });
+  });
+
+  /* ---------------- Søkemotor ---------------- */
+  function adjacency(G) {
+    const adj = {};
+    for (const id in G.nodes) adj[id] = [];
+    for (const [a, b, c] of G.edges) { adj[a].push([b, c]); if (!G.directed && a !== b) adj[b].push([a, c]); }
+    for (const id in adj) adj[id].sort((x, y) => (x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : x[1] - y[1]));
+    return adj;
+  }
+  function runSearch(G, opts) {
+    const algo = opts.algo || "astar", variant = opts.variant || "graph";
+    const w = opts.w == null ? 1 : opts.w, maxSteps = opts.maxSteps || 60;
+    const H = id => (opts.h && opts.h[id] != null ? opts.h[id] : G.nodes[id].h);
+    const pri = (g, h) => (algo === "greedy" ? h : algo === "ucs" ? g : g + w * h);
+    const adj = adjacency(G);
+    const goals = new Set([].concat(G.goal));
+    let seq = 0;
+    const mk = (state, g, parent) => { const h = H(state); return { state, g, h, f: pri(g, h), parent, seq: seq++, path: parent ? parent.path.concat(state) : [state] }; };
+    const cmp = (a, b) => a.f - b.f || (a.state < b.state ? -1 : a.state > b.state ? 1 : 0) || a.g - b.g || a.seq - b.seq;
+    let frontier = [mk(G.start, 0, null)];
+    const reached = { [G.start]: 0 }, closed = new Set(), expandedOnce = new Set();
+    const steps = [{ type: "init", frontier: frontier.slice(), order: [] }];
+    const order = [];
+    while (true) {
+      if (!frontier.length) { steps.push({ type: "fail", order: order.slice(), frontier: [] }); break; }
+      frontier.sort(cmp);
+      const n = frontier.shift();
+      if (goals.has(n.state)) { order.push("(" + n.state + ")"); steps.push({ type: "goal", node: n, frontier: frontier.slice(), order: order.slice() }); break; }
+      if (order.length >= maxSteps) { frontier.unshift(n); steps.push({ type: "limit", order: order.slice(), frontier: frontier.slice() }); break; }
+      order.push(n.state);
+      const gen = [];
+      const reopened = expandedOnce.has(n.state);
+      expandedOnce.add(n.state);
+      if (variant === "closed") closed.add(n.state);
+      for (const [s, c] of adj[n.state]) {
+        const child = mk(s, n.g + c, n);
+        let act;
+        if (variant === "tree") { frontier.push(child); act = "add"; }
+        else if (variant === "closed") {
+          if (closed.has(s)) act = "closed";
+          else {
+            const ex = frontier.find(e => e.state === s);
+            if (!ex) { frontier.push(child); act = "add"; }
+            else if (child.g < ex.g) { frontier = frontier.filter(e => e !== ex); frontier.push(child); act = "replace"; child.old = ex.g; }
+            else { act = "worse"; child.old = ex.g; }
+          }
+        } else {
+          if (!(s in reached)) { reached[s] = child.g; frontier.push(child); act = "add"; }
+          else if (child.g < reached[s]) {
+            child.old = reached[s];
+            const ex = frontier.find(e => e.state === s);
+            if (ex) { frontier = frontier.filter(e => e !== ex); act = "replace"; } else act = "reopen";
+            reached[s] = child.g; frontier.push(child);
+          } else { act = "worse"; child.old = reached[s]; }
+        }
+        gen.push({ child, act });
+      }
+      frontier.sort(cmp);
+      steps.push({ type: "expand", node: n, reopened, gen, frontier: frontier.slice(), order: order.slice() });
+    }
+    return steps;
+  }
+  window.M03_runSearch = runSearch;
+
+  // ---------------- Widget 1: A-stjerne / greedy steg for steg ----------------
+  (function () {
+    const root = document.getElementById("w-astar");
+    if (!root) return;
+    const $ = id => document.getElementById(id);
+    const selG = $("wa-graph"), selA = $("wa-algo"), selV = $("wa-var"), inW = $("wa-w"), inH = $("wa-h");
+    const svg = $("wa-svg"), msg = $("wa-msg"), tbl = $("wa-front"), log = $("wa-log"), cnt = $("wa-count");
+    const order = ["ex2025", "lecture", "romania", "ex2019", "ex2017", "ex2016", "ex2015", "ex2018", "ex2023b", "ex2024", "ex2024q4", "doom", "e1", "proof"];
+    order.forEach(k => { const o = document.createElement("option"); o.value = k; o.textContent = GRAPHS[k].title; selG.append(o); });
+    const defVar = { ex2015: "tree", ex2018: "tree", lecture: "tree", ex2024: "tree", ex2017: "closed", ex2019: "closed" };
+    let steps = [], idx = 0, G = null, gfx = null, hOver = {};
+    function fmla(e) {
+      const a = selA.value;
+      if (a === "greedy") return `h=${fmt(e.h)}`;
+      if (a === "ucs") return `g=${fmt(e.g)}`;
+      if (a === "wastar") return `${fmt(e.g)}+${fmt(+inW.value || 0)}·${fmt(e.h)}=${fmt(e.f)}`;
+      return `${fmt(e.g)}+${fmt(e.h)}=${fmt(e.f)}`;
+    }
+    function parseH(str) {
+      const h = {};
+      (str || "").split(/[,;]/).forEach(p => { const m = p.split("="); if (m.length === 2 && m[0].trim() in G.nodes && !isNaN(parseFloat(m[1]))) h[m[0].trim()] = parseFloat(m[1]); });
+      return h;
+    }
+    function rebuild(keepVar) {
+      G = GRAPHS[selG.value];
+      if (!keepVar) selV.value = defVar[selG.value] || "graph";
+      hOver = parseH(inH.value);
+      gfx = drawGraph(svg, G, { h: hOver });
+      const algo = selA.value === "wastar" ? "astar" : selA.value;
+      const w = selA.value === "wastar" ? (parseFloat(inW.value) || 0) : 1;
+      steps = runSearch(G, { algo, w, variant: selV.value, h: hOver, maxSteps: selV.value === "tree" ? 25 : 60 });
+      idx = 0; render();
+    }
+    const actTxt = { add: "ny", replace: "billigere – erstatter", reopen: "billigere – GJENÅPNES", worse: "forkastes (ikke billigere)", closed: "ignoreres (i closed)" };
+    function stepLine(k) {
+      const s = steps[k];
+      if (s.type === "init") return `Start: frontier = [${s.frontier.map(e => e.state + "(" + fmla(e) + ")").join(", ")}]`;
+      if (s.type === "goal") return `Steg ${k}: Ta ut ${s.node.state} (${fmla(s.node)}) – MÅL!`;
+      if (s.type === "fail") return `Steg ${k}: Grensen er tom – ingen løsning.`;
+      if (s.type === "limit") return `Steg ${k}: Stopper etter ${s.order.length} ekspansjoner – søket ser ut til å gå i det uendelige.`;
+      const gen = s.gen.length ? s.gen.map(q => `${q.child.state} ${fmla(q.child)} [${actTxt[q.act]}${q.child.old != null && q.act !== "add" ? ", før g=" + fmt(q.child.old) : ""}]`).join("; ") : "ingen barn";
+      return `Steg ${k}: Ta ut ${s.node.state} (${fmla(s.node)})${s.reopened ? " – ekspanderes på nytt" : ""}\n   Barn: ${gen}\n   Frontier: [${s.frontier.map(e => e.state + "(" + fmt(e.f) + ")").join(", ")}]`;
+    }
+    function render() {
+      gfx.reset();
+      for (const id in G.nodes) gfx.setH(id, hOver[id] != null ? hOver[id] : G.nodes[id].h);
+      const s = steps[idx];
+      const done = new Set();
+      for (let k = 1; k <= idx; k++) if (steps[k].type === "expand") done.add(steps[k].node.state);
+      done.forEach(id => gfx.node(id, "node-done"));
+      const fr = s.frontier || [];
+      const bestF = {};
+      fr.forEach(e => { if (!(e.state in bestF) || e.f < bestF[e.state]) bestF[e.state] = e.f; });
+      for (const id in bestF) { gfx.node(id, "node-warn"); gfx.sub(id, "f=" + fmt(bestF[id])); }
+      if (s.type === "expand") {
+        gfx.node(s.node.state, "node-hl");
+        gfx.sub(s.node.state, fmla(s.node));
+        const p = s.node.path; for (let i = 0; i + 1 < p.length; i++) gfx.edge(p[i], p[i + 1], "edge-hl");
+      }
+      if (s.type === "goal") {
+        const p = s.node.path; p.forEach(id => gfx.node(id, "node-good"));
+        for (let i = 0; i + 1 < p.length; i++) gfx.edge(p[i], p[i + 1], "edge-good");
+        gfx.sub(s.node.state, "g=" + fmt(s.node.g));
+      }
+      if (s.type === "init") { gfx.node(G.start, "node-warn"); }
+      // melding
+      const last = steps[steps.length - 1];
+      let m = stepLine(idx);
+      if (s.type === "goal") m += `\n\nOrder of expansion: ${s.order.join(", ")}\nPath: ${s.node.path.join(" → ")}\nCost: ${fmt(s.node.g)}`;
+      if (s.type === "limit" || s.type === "fail") m += `\n\nOrder of expansion: ${s.order.join(", ")}, …\nPath: None`;
+      msg.textContent = m;
+      // frontier-tabell
+      const show = s.type === "expand" || s.type === "init" ? fr : (s.type === "goal" ? fr : fr);
+      let html = `<tr><th>#</th><th>Node</th><th>Vei</th><th>g</th><th>h</th><th>f</th></tr>`;
+      show.forEach((e, i) => { html += `<tr class="${i === 0 && s.type !== "goal" ? "next-row" : ""}"><td>${i + 1}</td><td>${esc(e.state)}</td><td>${esc(e.path.join("–"))}</td><td>${fmt(e.g)}</td><td>${fmt(e.h)}</td><td>${fmt(e.f)}</td></tr>`; });
+      if (!show.length) html += `<tr><td colspan="6">(tom)</td></tr>`;
+      tbl.innerHTML = `<caption style="text-align:left;font-weight:600;font-size:.8rem">Frontier ${s.type === "goal" ? "da målet ble tatt ut" : "etter dette steget (øverste rad tas ut neste gang)"}</caption>` + html;
+      log.textContent = steps.slice(0, idx + 1).map((_, k) => stepLine(k)).join("\n");
+      log.scrollTop = log.scrollHeight;
+      cnt.textContent = `Steg ${idx} / ${steps.length - 1}`;
+      $("wa-prev").disabled = idx === 0; $("wa-next").disabled = idx === steps.length - 1; $("wa-end").disabled = idx === steps.length - 1;
+      inW.disabled = selA.value !== "wastar";
+      if (window.CourseKit) CourseKit.relayout();
+    }
+    selG.onchange = () => { inH.value = ""; rebuild(false); };
+    selA.onchange = () => rebuild(true);
+    selV.onchange = () => rebuild(true);
+    inW.onchange = () => rebuild(true);
+    $("wa-apply").onclick = () => rebuild(true);
+    inH.addEventListener("keydown", e => { if (e.key === "Enter") rebuild(true); });
+    $("wa-prev").onclick = () => { if (idx > 0) { idx--; render(); } };
+    $("wa-next").onclick = () => { if (idx < steps.length - 1) { idx++; render(); } };
+    $("wa-end").onclick = () => { idx = steps.length - 1; render(); };
+    $("wa-reset").onclick = () => { idx = 0; render(); };
+    selG.value = "ex2025";
+    rebuild(false);
+  })();
+
+  /* ---------------- Widget 2: heuristikksjekk ---------------- */
+  function hStar(G) {
+    const rev = {};
+    for (const id in G.nodes) rev[id] = [];
+    for (const [a, b, c] of G.edges) { if (a === b) continue; rev[b].push([a, c]); if (!G.directed) rev[a].push([b, c]); }
+    const dist = {}; for (const id in G.nodes) dist[id] = Infinity;
+    const goals = [].concat(G.goal); goals.forEach(g => dist[g] = 0);
+    const done = new Set();
+    while (true) {
+      let u = null;
+      for (const id in dist) if (!done.has(id) && dist[id] < Infinity && (u === null || dist[id] < dist[u])) u = id;
+      if (u === null) break;
+      done.add(u);
+      for (const [v, c] of rev[u]) if (dist[u] + c < dist[v]) dist[v] = dist[u] + c;
+    }
+    return dist;
+  }
+  (function () {
+    const root = document.getElementById("w-heur");
+    if (!root) return;
+    const $ = id => document.getElementById(id);
+    const selG = $("wh-graph"), svg = $("wh-svg"), tN = $("wh-nodes"), tE = $("wh-edges"), verdict = $("wh-verdict"), presetBox = $("wh-presets"), domTxt = $("wh-dom");
+    const keys = ["ex2025", "ex2017", "ex2018h", "ex2019", "ex2023b", "ex2016", "doom", "e1", "lecture", "romania"];
+    keys.forEach(k => { const o = document.createElement("option"); o.value = k; o.textContent = GRAPHS[k].title; selG.append(o); });
+    const PRESETS = {
+      ex2017: [["Oppgitt h / alt. 1", { S: 7, A: 6, B: 2, C: 1, G: 0 }], ["Alt. 2", { S: 7, A: 6, B: 2, C: 2, G: 0 }], ["Alt. 3", { S: 7, A: 6, B: 4, C: 2, G: 0 }], ["Alt. 4", { S: 7, A: 4, B: 4, C: 4, G: 0 }], ["Fasit c)", { S: 7, A: 6, B: 5, C: 3, G: 0 }]],
+      ex2018h: [["H1", { S: 4, A: 1, G: 0 }], ["H2", { S: 5, A: 4, G: 0 }], ["H3", { S: 4, A: 3, G: 0 }], ["H4", { S: 5, A: 2, G: 0 }]],
+      ex2023b: [["h(B)=4", { B: 4 }], ["h(B)=6", { B: 6 }], ["h(B)=9", { B: 9 }], ["h(B)=12", { B: 12 }]],
+      doom: [["h (figur 1)", null], ["h′ (figur 2)", { A: 10, B: 7, C: 4, D: 1, E: 3, F: 0, G: 10, H: 4, I: 9 }]],
+      lecture: [["Oppgitt h (h(S)=0)", null], ["h = h*", "star"]],
+      e1: [["Oppgitt h", null], ["h(B)=4", { B: 4 }]]
+    };
+    let G, h = {}, hs = {}, gfx, ref = null;
+    function load(key) {
+      G = GRAPHS[key]; h = {}; for (const id in G.nodes) h[id] = G.nodes[id].h;
+      if (key === "ex2018h") h = { S: 4, A: 1, G: 0 };
+      hs = hStar(G);
+      presetBox.innerHTML = "";
+      (PRESETS[key] || [["Oppgitt h", null]]).forEach(([lab, val]) => {
+        const b = document.createElement("button"); b.className = "secondary"; b.textContent = lab;
+        b.onclick = () => {
+          for (const id in G.nodes) h[id] = G.nodes[id].h;
+          if (key === "ex2018h") h = { S: 4, A: 1, G: 0 };
+          if (val === "star") for (const id in G.nodes) h[id] = hs[id];
+          else if (val) Object.assign(h, val);
+          buildTable(); update();
+        };
+        presetBox.append(b, document.createTextNode(" "));
+      });
+      buildTable(); update();
+    }
+    function buildTable() {
+      let html = `<tr><th>n</th><th>h(n)</th><th>h*(n)</th><th>h ≤ h*?</th></tr>`;
+      for (const id of Object.keys(G.nodes).sort()) html += `<tr data-id="${esc(id)}"><td>${esc(id)}</td><td><input class="hin" type="number" step="any" value="${h[id]}" data-id="${esc(id)}"></td><td>${fmt(hs[id])}</td><td class="adm"></td></tr>`;
+      tN.innerHTML = html;
+      tN.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => { const v = parseFloat(inp.value); h[inp.dataset.id] = isNaN(v) ? 0 : v; update(); }));
+    }
+    function arcs() {
+      const out = [];
+      for (const [a, b, c] of G.edges) { if (a === b) continue; out.push([a, b, c]); if (!G.directed) out.push([b, a, c]); }
+      return out;
+    }
+    function update() {
+      gfx = drawGraph(svg, G, { h });
+      const badN = [], badE = [];
+      for (const id in G.nodes) {
+        const ok = h[id] <= hs[id] + 1e-9;
+        if (!ok) { badN.push(id); gfx.node(id, "node-bad"); }
+
+        const row = tN.querySelector(`tr[data-id="${CSS.escape(id)}"]`);
+        if (row) { row.className = ok ? "" : "bad-row"; row.querySelector(".adm").innerHTML = ok ? '<span class="ok">✓</span>' : '<span class="no">✗</span>'; }
+      }
+      let html = `<tr><th>Kant n → n′</th><th>c</th><th>h(n) ≤ c + h(n′)?</th></tr>`;
+      for (const [a, b, c] of arcs()) {
+        const ok = h[a] <= c + h[b] + 1e-9;
+        if (!ok) { badE.push(`${a}→${b}: ${fmt(h[a])} > ${fmt(c)} + ${fmt(h[b])}`); gfx.edge(a, b, "edge-bad"); }
+        html += `<tr class="${ok ? "" : "bad-row"}"><td>${esc(a)} → ${esc(b)}</td><td>${fmt(c)}</td><td>${fmt(h[a])} ≤ ${fmt(c)} + ${fmt(h[b])} = ${fmt(c + h[b])} ${ok ? '<span class="ok">✓</span>' : '<span class="no">✗</span>'}</td></tr>`;
+      }
+      tE.innerHTML = html;
+      const goals = [].concat(G.goal);
+      const gz = goals.every(g => h[g] === 0);
+      verdict.textContent =
+        `Admissibel: ${badN.length ? "NEI – h > h* i " + badN.join(", ") : "JA (h(n) ≤ h*(n) for alle n)"}\n` +
+        `Konsistent: ${badE.length ? "NEI – brudd: " + badE.join("; ") : "JA (h(n) ≤ c + h(n′) for alle kanter)"}` +
+        (gz ? "" : "\nMerk: h(mål) ≠ 0.") +
+        (!badN.length && badE.length ? "\n→ Admissibel men ikke konsistent: bokas A* (med gjenåpning) er optimal, men A* med closed-liste er det ikke nødvendigvis." : "") +
+        (badN.length && !badE.length ? "\n→ Konsistent men ikke admissibel er bare mulig når h(mål) ≠ 0." : "");
+      domCheck();
+    }
+    function domCheck() {
+      if (!ref || ref.key !== selG.value) { domTxt.textContent = ref ? "(h_ref er lagret for en annen graf)" : ""; return; }
+      let ge = true, le = true, eq = true;
+      for (const id in G.nodes) { if (h[id] < ref.h[id]) ge = false; if (h[id] > ref.h[id]) le = false; if (h[id] !== ref.h[id]) eq = false; }
+      domTxt.textContent = eq ? "h og h_ref er like." : ge ? "Nåværende h dominerer h_ref (h ≥ h_ref overalt)." : le ? "h_ref dominerer nåværende h (h_ref ≥ h overalt)." : "Ingen dominans: h er størst på noen noder, h_ref på andre.";
+    }
+    $("wh-save").onclick = () => { ref = { key: selG.value, h: Object.assign({}, h) }; domCheck(); };
+    selG.onchange = () => load(selG.value);
+    selG.value = "ex2025"; load("ex2025");
+  })();
+
+  /* ---------------- 8-puslespill ---------------- */
+  const NB = [[1, 3], [0, 2, 4], [1, 5], [0, 4, 6], [1, 3, 5, 7], [2, 4, 8], [3, 7], [4, 6, 8], [5, 7]];
+  function pH1(s, goal) { let n = 0; for (let i = 0; i < 9; i++) if (s[i] !== 0 && s[i] !== goal[i]) n++; return n; }
+  function pParts(s, goal) { const pos = []; for (let i = 0; i < 9; i++) pos[goal[i]] = i; const p = {}; for (let i = 0; i < 9; i++) if (s[i] !== 0) { const j = pos[s[i]]; p[s[i]] = Math.abs(((i / 3) | 0) - ((j / 3) | 0)) + Math.abs((i % 3) - (j % 3)); } return p; }
+  function pH2(s, goal) { const p = pParts(s, goal); let t = 0; for (const k in p) t += p[k]; return t; }
+  function inv(s) { const a = s.filter(x => x !== 0); let n = 0; for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++) if (a[i] > a[j]) n++; return n; }
+  function Heap() {
+    const a = [];
+    const less = (x, y) => x[0] < y[0] || (x[0] === y[0] && x[1] < y[1]);
+    return {
+      push(x) { a.push(x); let i = a.length - 1; while (i > 0) { const p = (i - 1) >> 1; if (!less(x, a[p])) break; a[i] = a[p]; i = p; } a[i] = x; },
+      pop() { const top = a[0], last = a.pop(); if (a.length) { let i = 0; const n = a.length; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i, best = last; if (l < n && less(a[l], best)) { m = l; best = a[l]; } if (r < n && less(a[r], best)) { m = r; best = a[r]; } if (m === i) break; a[i] = a[m]; i = m; } a[i] = last; } return top; },
+      get size() { return a.length; }
+    };
+  }
+  function astarPuzzle(start, goal, hf, limit) {
+    const gk = goal.join("");
+    const best = new Map(); best.set(start.join(""), 0);
+    const heap = Heap(); heap.push([hf(start, goal), 0, start, 0]);
+    let generated = 1, expanded = 0;
+    while (heap.size) {
+      const [, , s, g] = heap.pop();
+      const k = s.join("");
+      if (best.get(k) < g) continue;
+      if (k === gk) return { cost: g, generated, expanded };
+      if (++expanded > limit) return { cost: null, generated, expanded };
+      const z = s.indexOf(0);
+      for (const nb of NB[z]) {
+        const t = s.slice(); t[z] = t[nb]; t[nb] = 0;
+        const tk = t.join(""), g2 = g + 1; generated++;
+        if (!best.has(tk) || g2 < best.get(tk)) { best.set(tk, g2); heap.push([g2 + hf(t, goal), -g2, t, g2]); }
+      }
+    }
+    return { cost: null, generated, expanded };
+  }
+  function effB(N, d) {
+    if (!(d >= 1) || !(N >= 1)) return NaN;
+    const tot = b => { let s = 0, p = 1; for (let i = 0; i <= d; i++) { s += p; p *= b; } return s; };
+    if (tot(1) >= N + 1) return 1;
+    let lo = 1, hi = Math.max(2, N);
+    for (let it = 0; it < 200; it++) { const m = (lo + hi) / 2; if (tot(m) < N + 1) lo = m; else hi = m; }
+    return (lo + hi) / 2;
+  }
+  // Figur 9
+  (function () {
+    const g = document.getElementById("pz-start");
+    if (!g) return;
+    const draw = (x0, arr, goal) => {
+      for (let i = 0; i < 9; i++) {
+        const x = x0 + (i % 3) * 42, y = 8 + ((i / 3) | 0) * 42;
+        S("rect", { x, y, width: 40, height: 40, rx: 5, class: arr[i] === 0 ? "tile-blank" : (goal && arr[i] === goal[i] ? "tile-ok" : "tile") }, g);
+        if (arr[i]) S("text", { x: x + 20, y: y + 27, "text-anchor": "middle", class: "label", text: String(arr[i]) }, g);
+      }
+    };
+    draw(32, [7, 2, 4, 5, 0, 6, 8, 3, 1], [0, 1, 2, 3, 4, 5, 6, 7, 8]);
+    draw(242, [0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  })();
+  (function () {
+    const root = document.getElementById("w-puz");
+    if (!root) return;
+    const $ = id => document.getElementById(id);
+    let state = [7, 2, 4, 5, 0, 6, 8, 3, 1], goal = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    const parse = str => { const a = (str.match(/\d/g) || []).map(Number); return a.length === 9 && new Set(a).size === 9 && a.every(x => x >= 0 && x <= 8) ? a : null; };
+    function renderGrid(el, arr, clickable) {
+      el.innerHTML = "";
+      arr.forEach((v, i) => {
+        const d = document.createElement("div");
+        d.textContent = v ? v : "";
+        d.className = v === 0 ? "blank" : (clickable && goal[i] === v ? "okpos" : "");
+        if (clickable && v !== 0) d.onclick = () => { const z = state.indexOf(0); if (NB[z].includes(i)) { state[z] = v; state[i] = 0; refresh(); } };
+        el.append(d);
+      });
+    }
+    function refresh() {
+      renderGrid($("wp-grid"), state, true); renderGrid($("wp-goal"), goal, false);
+      $("wp-state").value = state.join(" ");
+      $("wp-h1").textContent = pH1(state, goal);
+      $("wp-h2").textContent = pH2(state, goal);
+      const solv = inv(state) % 2 === inv(goal) % 2;
+      $("wp-solv").innerHTML = solv ? '<span class="ok">Løsbar</span> (samme paritet på antall inversjoner som målet)' : '<span class="no">Ikke løsbar</span> fra denne tilstanden (feil paritet)';
+      const p = pParts(state, goal);
+      let r1 = "<tr><th>Brikke</th>", r2 = "<tr><th>Manhattan</th>", r3 = "<tr><th>Feilplassert?</th>";
+      for (let t = 1; t <= 8; t++) { r1 += `<th>${t}</th>`; r2 += `<td>${p[t]}</td>`; r3 += `<td>${state.indexOf(t) === goal.indexOf(t) ? "nei" : "ja (1)"}</td>`; }
+      $("wp-parts").innerHTML = r1 + `<th>Sum</th></tr>` + r2 + `<td><b>${pH2(state, goal)}</b></td></tr>` + r3 + `<td><b>${pH1(state, goal)}</b></td></tr>`;
+      $("wp-out").innerHTML = "";
+      if (window.CourseKit) CourseKit.relayout();
+    }
+    $("wp-set").onclick = () => {
+      const s = parse($("wp-state").value), g = parse($("wp-goaltxt").value);
+      if (!s || !g) { $("wp-out").innerHTML = '<p class="no">Skriv ni ulike siffer 0–8 (0 = tomt felt).</p>'; return; }
+      state = s; goal = g; refresh();
+    };
+    $("wp-book").onclick = () => { state = [7, 2, 4, 5, 0, 6, 8, 3, 1]; goal = [0, 1, 2, 3, 4, 5, 6, 7, 8]; $("wp-goaltxt").value = goal.join(" "); refresh(); };
+    $("wp-shuffle").onclick = () => {
+      state = goal.slice(); let prev = -1;
+      for (let k = 0; k < 25; k++) { const z = state.indexOf(0); const opts = NB[z].filter(x => x !== prev); const nb = opts[Math.floor(Math.random() * opts.length)]; state[z] = state[nb]; state[nb] = 0; prev = z; }
+      refresh();
+    };
+    $("wp-solve").onclick = () => {
+      if (inv(state) % 2 !== inv(goal) % 2) { $("wp-out").innerHTML = '<p class="no">Tilstanden er ikke løsbar.</p>'; return; }
+      $("wp-out").innerHTML = "<p>Regner …</p>";
+      setTimeout(() => {
+        const rows = [["h = 0 (UCS)", () => 0], ["h₁ (feilplasserte)", pH1], ["h₂ (Manhattan)", pH2]].map(([lab, hf]) => {
+          const t0 = performance.now(); const r = astarPuzzle(state, goal, hf, 400000); const ms = Math.round(performance.now() - t0);
+          return { lab, r, ms };
+        });
+        const d = rows.map(x => x.r.cost).find(c => c != null);
+        let html = `<table><tr><th>Heuristikk</th><th>h(start)</th><th>Kostnad funnet</th><th>Genererte noder N</th><th>Ekspanderte</th><th>b*</th><th>Tid</th></tr>`;
+        rows.forEach((x, i) => {
+          const hs = i === 0 ? 0 : i === 1 ? pH1(state, goal) : pH2(state, goal);
+          html += `<tr><td>${x.lab}</td><td>${hs}</td><td>${x.r.cost == null ? "(avbrutt)" : x.r.cost}</td><td>${x.r.generated.toLocaleString("no")}</td><td>${x.r.expanded.toLocaleString("no")}</td><td>${x.r.cost ? effB(x.r.generated, x.r.cost).toFixed(2) : "–"}</td><td>${x.ms} ms</td></tr>`;
+        });
+        html += `</table><p style="font-size:.85rem">Sann kostnad h*(start) = <b>${d == null ? "?" : d}</b>. Legg merke til at h₁ ≤ h₂ ≤ h*, og at A* med h₂ genererer færrest noder (dominans). A* her er graph search med konsistente heuristikker; b* er regnet fra N og løsningsdybden d = h*.</p>`;
+        $("wp-out").innerHTML = html;
+        if (window.CourseKit) CourseKit.relayout();
+      }, 30);
+    };
+    refresh();
+  })();
+  (function () {
+    const n = document.getElementById("wb-n"), d = document.getElementById("wb-d"), out = document.getElementById("wb-out");
+    if (!n) return;
+    const f = () => { const b = effB(parseFloat(n.value), parseInt(d.value, 10)); out.textContent = isNaN(b) ? "–" : b.toFixed(3); };
+    n.oninput = f; d.oninput = f; f();
+  })();
+})();
+</script>
+</body>
+</html>

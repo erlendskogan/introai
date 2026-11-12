@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modul 1 — Intro og intelligente agenter · TDT4136</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .peas-row { display: flex; align-items: center; gap: .35rem; padding: .3rem .5rem; border: 1px solid var(--line); border-radius: 8px; margin: .3rem 0; }
+  .peas-row .peas-txt { flex: 1; }
+  .peas-row .peas-btn { padding: .2rem .6rem; min-width: 2.2rem; }
+  .peas-row.ok { background: var(--good-soft); border-color: var(--good); }
+  .peas-row.no { background: var(--bad-soft); border-color: var(--bad); }
+  #envc-tbl td { vertical-align: middle; }
+  #envc-tbl .envc-opts button { margin: .15rem .2rem .15rem 0; padding: .25rem .55rem; font-size: .78rem; }
+  #envc-tbl .envc-why { font-size: .8rem; color: var(--muted); width: 38%; }
+  #envc-tbl tr.ok td:first-child { border-left: 4px solid var(--good); }
+  #envc-tbl tr.no td:first-child { border-left: 4px solid var(--bad); }
+  #envc-tbl tr.ok .envc-why { color: var(--good); }
+  #envc-tbl tr.no .envc-why { color: var(--bad); }
+  #atype-btns button { margin: .2rem .25rem .2rem 0; }
+  .res-line { font-weight: 600; margin-top: .4rem; }
+  .vac-opts label { font-size: .85rem; }
+  table.compact td, table.compact th { padding: .3rem .45rem; }
+  td.y { color: var(--good); font-weight: 600; }
+  td.n { color: var(--bad); font-weight: 600; }
+</style>
+</head>
+<body data-module="m01">
+<div class="layout">
+  <nav class="toc"></nav>
+  <main>
+    <div class="kicker">Modul 1 · Kap. 1–2</div>
+    <h1>Intro og intelligente agenter</h1>
+    <p class="lead">Hva er kunstig intelligens, hva er en «rasjonell agent», og hvordan beskriver vi problemet en agent skal løse? Denne modulen gir deg språket resten av kurset bygger på – og poeng som går igjen på nesten hver eneste eksamen.</p>
+
+    <div class="box key">
+      <span class="box-title">Læringsmål</span>
+      <p>Etter denne modulen kan du …</p>
+      <ul>
+        <li>forklare de fire tilnærmingene til KI (tenke/handle × menneskelig/rasjonelt) og hva Turing-testen måler;</li>
+        <li>gjengi hovedtrekkene i KI-historien (Dartmouth 1956, KI-vintre, ekspertsystemer, dyp læring);</li>
+        <li>definere agent, omgivelse, sensor, aktuator, persepsjon, persepsjonssekvens, agentfunksjon og agentprogram;</li>
+        <li>definere rasjonalitet presist og skille den fra allvitenhet; forklare læring og autonomi;</li>
+        <li>skrive en PEAS-beskrivelse for en hvilken som helst agent;</li>
+        <li>klassifisere en omgivelse langs de sju dimensjonene <em>og begrunne</em> valgene;</li>
+        <li>tegne og forklare de fem agenttypene og hvilken beslutningsmekanisme hver bruker;</li>
+        <li>skille atomiske, faktoriserte og strukturerte representasjoner og se hvordan de organiserer resten av pensum.</li>
+      </ul>
+    </div>
+
+    <div class="box exam">
+      <span class="box-title">Hvorfor dette er viktig til eksamen</span>
+      <p>Agenter og omgivelser er spurt om på <b>hver eneste eksamen</b> 2015–2025, men nesten alltid som «billige» poeng du bare får hvis begrepene sitter presist:</p>
+      <ul>
+        <li><b>2025 Q1 (5 p):</b> Hvilken beslutningsmekanisme bruker enkel refleks-, modellbasert refleks- og målbasert agent? (Rule matching / Search and Plan.)</li>
+        <li><b>2024 Q1 + Q2 (4 + 4 p):</b> Flervalg «hvilken påstand er IKKE sann» om transisjonsmodell, refleksagenter, randomisering, agentfunksjon og ikke-determinisme.</li>
+        <li><b>2023:</b> fem kortsvarsoppgaver: episodisk vs. sekvensiell (HR-system), hva en agent trenger i delvis observerbare omgivelser, stokastisk vs. ikke-deterministisk, randomisering, Newell &amp; Simon/GPS.</li>
+        <li><b>2022 Task 1–2:</b> atomisk vs. faktorisert, fordelen med modell, og en <em>hel oppgave</em> med PEAS, omgivelsesegenskaper og agentdiagram for en butikkrobot.</li>
+        <li><b>2016 Task 1 (10 p):</b> klassifiser fire agenter (Deep Blue, Roomba, lakkeringsrobot, robotjournalist) langs seks dimensjoner.</li>
+        <li><b>2015–2019:</b> mange sant/usant-spørsmål (Turing-testen, Dartmouth, Searle vs. Newell &amp; Simon, randomisering, «backgammon er deterministisk» …) – ofte med <b>minuspoeng for feil svar</b>.</li>
+      </ul>
+      <p>Siden 2020 er omgivelsesoppgaver «diskusjonsoppgaver»: sensor vil se <b>begrunnelse og antakelser</b>, ikke bare en bokstav.</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>1. Hva er kunstig intelligens?</h2>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>Spør ti forskere hva KI er, og du får ti svar. Noen vil lage maskiner som er <em>som oss</em>. Andre vil lage maskiner som gjør det <em>riktige</em> – uansett om mennesker ville gjort det samme. Og noen bryr seg om hva som skjer <em>inni hodet</em> (tanker), mens andre bare bryr seg om hva maskinen <em>gjør</em> (atferd). Kombinerer du disse to spørsmålene, får du fire tilnærminger.</p>
+    </div>
+
+    <p>Det finnes ingen skarp definisjon. John McCarthy, som fant på navnet, sa at
+      <span class="term" data-en="artificial intelligence (AI)">kunstig intelligens<span class="def">«The science and engineering of making intelligent machines, especially intelligent computer programs» (McCarthy). Intelligens = den beregningsmessige delen av evnen til å nå mål i verden.</span></span>
+      er «vitenskapen og ingeniørkunsten å lage intelligente maskiner». Marvin Minsky: «å få maskiner til å gjøre ting som ville krevd intelligens hvis mennesker gjorde dem». Russell &amp; Norvig (læreboka) organiserer definisjonene langs to akser:</p>
+    <ul>
+      <li><b>Tanke vs. atferd</b> (thinking vs. acting): ser vi på de indre resonneringsprosessene eller på handlingene?</li>
+      <li><b>Menneskelig vs. rasjonell</b> (human vs. rational): måler vi suksess mot menneskelig ytelse eller mot et idealt mål på å «gjøre det riktige»?</li>
+    </ul>
+
+    <figure>
+      <svg viewBox="0 0 600 270" width="600" role="img" aria-label="Fire tilnærminger til KI">
+        <text x="250" y="22" text-anchor="middle" class="label">Menneskelig (human-like)</text>
+        <text x="470" y="22" text-anchor="middle" class="label">Rasjonelt (rational)</text>
+        <text x="70" y="95" text-anchor="middle" class="label">Tenke</text>
+        <text x="70" y="112" text-anchor="middle" class="small">(thinking)</text>
+        <text x="70" y="205" text-anchor="middle" class="label">Handle</text>
+        <text x="70" y="222" text-anchor="middle" class="small">(acting)</text>
+        <rect class="box" x="140" y="35" width="220" height="110" rx="8"/>
+        <text x="250" y="70" text-anchor="middle">Tenke menneskelig</text>
+        <text x="250" y="90" text-anchor="middle" class="small">kognitiv modellering</text>
+        <text x="250" y="106" text-anchor="middle" class="small">(cognitive modeling)</text>
+        <text x="250" y="126" text-anchor="middle" class="small">GPS, kognitiv vitenskap</text>
+        <rect class="box" x="370" y="35" width="220" height="110" rx="8"/>
+        <text x="480" y="70" text-anchor="middle">Tenke rasjonelt</text>
+        <text x="480" y="90" text-anchor="middle" class="small">«tankens lover»</text>
+        <text x="480" y="106" text-anchor="middle" class="small">(laws of thought)</text>
+        <text x="480" y="126" text-anchor="middle" class="small">Aristoteles, syllogismer, logikk</text>
+        <rect class="box" x="140" y="150" width="220" height="110" rx="8"/>
+        <text x="250" y="185" text-anchor="middle">Handle menneskelig</text>
+        <text x="250" y="205" text-anchor="middle" class="small">Turing-testen</text>
+        <text x="250" y="221" text-anchor="middle" class="small">(Turing test approach)</text>
+        <text x="250" y="241" text-anchor="middle" class="small">ELIZA, chatboter</text>
+        <rect class="box-accent" x="370" y="150" width="220" height="110" rx="8"/>
+        <text x="480" y="185" text-anchor="middle" class="label">Handle rasjonelt</text>
+        <text x="480" y="205" text-anchor="middle" class="small">rasjonell agent</text>
+        <text x="480" y="221" text-anchor="middle" class="small">(rational agent approach)</text>
+        <text x="480" y="241" text-anchor="middle" class="accent" style="font-size:12px">← dette kurset</text>
+      </svg>
+      <figcaption>Figur 1: Russell &amp; Norvigs fire tilnærminger til KI. Kurset (og boka) følger «handle rasjonelt».</figcaption>
+    </figure>
+
+    <h3>1.1 Handle menneskelig: Turing-testen</h3>
+    <p>Alan Turing (1950, «Computing Machinery and Intelligence») ville unngå det filosofiske spørsmålet «kan maskiner tenke?». Han foreslo i stedet en operasjonell test:
+      <span class="term" data-en="Turing test">Turing-testen<span class="def">En menneskelig utspørrer stiller skriftlige spørsmål. Maskinen består hvis utspørreren ikke kan avgjøre om svarene kommer fra et menneske eller en datamaskin. Tester atferd, ikke tanker.</span></span>.</p>
+
+    <figure>
+      <svg viewBox="0 0 560 170" width="560" role="img" aria-label="Turing-testen">
+        <rect class="box" x="20" y="55" width="130" height="60" rx="8"/>
+        <text x="85" y="82" text-anchor="middle">Utspørrer</text>
+        <text x="85" y="99" text-anchor="middle" class="small">(menneske)</text>
+        <line class="edge" x1="260" y1="10" x2="260" y2="160" stroke-dasharray="6 5"/>
+        <text x="260" y="88" text-anchor="middle" class="label" style="font-size:22px">?</text>
+        <rect class="box" x="380" y="15" width="160" height="55" rx="8"/>
+        <text x="460" y="47" text-anchor="middle">Menneske</text>
+        <rect class="box-accent" x="380" y="100" width="160" height="55" rx="8"/>
+        <text x="460" y="132" text-anchor="middle">KI-system</text>
+        <line class="edge" x1="150" y1="80" x2="245" y2="80"/>
+        <line class="edge" x1="275" y1="80" x2="378" y2="45"/>
+        <line class="edge" x1="275" y1="88" x2="378" y2="125"/>
+        <text x="200" y="72" text-anchor="middle" class="small">tekst</text>
+      </svg>
+      <figcaption>Figur 2: Turing-testen. Utspørreren kommuniserer bare via tekst og skal gjette hvem som er maskinen.</figcaption>
+    </figure>
+
+    <p>For å bestå trenger maskinen fire evner – som til sammen utgjør mye av KI:</p>
+    <table class="compact">
+      <tr><th>Evne</th><th>Engelsk</th><th>Hvorfor</th></tr>
+      <tr><td>Naturlig språkbehandling</td><td>natural language processing</td><td>kommunisere på et menneskelig språk</td></tr>
+      <tr><td>Kunnskapsrepresentasjon</td><td>knowledge representation</td><td>lagre det den vet eller hører</td></tr>
+      <tr><td>Automatisk resonnering</td><td>automated reasoning</td><td>svare på spørsmål og trekke nye slutninger</td></tr>
+      <tr><td>Maskinlæring</td><td>machine learning</td><td>tilpasse seg nye situasjoner, finne mønstre</td></tr>
+    </table>
+    <p>Den <span class="term" data-en="total Turing test">totale Turing-testen<span class="def">Utvidelse der maskinen også må samhandle fysisk med objekter og mennesker. Krever i tillegg datasyn (computer vision), talegjenkjenning og robotikk.</span></span> krever i tillegg <b>datasyn og talegjenkjenning</b> (oppfatte verden) og <b>robotikk</b> (manipulere objekter og bevege seg).</p>
+    <p><b>ELIZA</b> (Joseph Weizenbaum, MIT, 1966) er et klassisk eksempel: en «psykoterapeut» som speilet pasientens utsagn tilbake («Your boyfriend made you come here?»). Den forsto ingenting – men mange brukere tok den på alvor. Lærdommen: å <em>lure</em> et menneske er ikke det samme som å være intelligent.</p>
+
+    <div class="box warning"><span class="box-title">Vanlig feil</span>
+      <p>«En agent må <em>tenke</em> som et menneske for å bestå Turing-testen» er <b>usant</b> (eksamen 2015). Turing-testen er i kolonnen <em>handle</em> menneskelig – bare atferden (svarene) teller. Tilsvarende er «en sunn logisk resonneringsprosess er ikke nødvendig for å bestå Turing-testen» <b>sant</b> (eksamen 2019): mennesker resonnerer ikke alltid logisk korrekt, så en maskin som skal virke menneskelig må ikke det heller.</p>
+    </div>
+
+    <p>Boka påpeker at KI-forskere har brukt lite energi på å bestå Turing-testen: «flyteknikk lyktes da man sluttet å etterligne fugler og begynte å studere aerodynamikk». Vi vil forstå de underliggende prinsippene for intelligens, ikke kopiere mennesker.</p>
+
+    <h3>1.2 Tenke menneskelig: kognitiv modellering</h3>
+    <p>Vil vi si at et program «tenker som et menneske», må vi vite hvordan mennesker tenker. Det kan vi lære gjennom <b>introspeksjon</b> (fange egne tanker), <b>psykologiske eksperimenter</b> og <b>hjerneavbildning</b>. Newell og Simons <b>GPS (General Problem Solver)</b>, 1961, var ikke bare ment å løse problemer riktig – de sammenlignet stegene programmet tok med stegene menneskelige forsøkspersoner tok. Feltet som kombinerer KI-modeller og psykologiske eksperimenter heter
+      <span class="term" data-en="cognitive science">kognitiv vitenskap<span class="def">Tverrfaglig felt som bruker datamodeller fra KI og eksperimenter fra psykologi for å lage testbare teorier om menneskesinnet.</span></span>.</p>
+
+    <h3>1.3 Tenke rasjonelt: «tankens lover»</h3>
+    <p>Aristoteles prøvde å kodifisere «riktig tenkning». Hans
+      <span class="term" data-en="syllogism">syllogismer<span class="def">Argumentmønstre som alltid gir sanne konklusjoner fra sanne premisser, f.eks. «Sokrates er et menneske; alle mennesker er dødelige; altså er Sokrates dødelig».</span></span>
+      gir alltid riktige konklusjoner fra riktige premisser. Dette ble starten på <b>logikk</b>, og den
+      <span class="term" data-en="logicist tradition">logisistiske tradisjonen<span class="def">Retningen i KI som vil bygge intelligente systemer ved å representere kunnskap i logikk og trekke slutninger med logisk inferens.</span></span>
+      i KI bygger videre på dette (modul 7–9).</p>
+    <div class="box example"><span class="box-title">Eksempel fra forelesningen: gyldig eller ikke?</span>
+      <p>«Alle hunder har fire bein. Alle bord har fire bein. <b>Altså</b> er alle hunder bord.» – Premissene er sanne, men konklusjonen følger <em>ikke</em>: dette er ikke en gyldig syllogisme. «Tankens lover» skal skille gyldige slutninger fra slike feilslutninger – det er nettopp dette logikkmodulene formaliserer med begrepet <em>entailment</em>.</p>
+    </div>
+    <p>Logikk krever <em>sikker</em> kunnskap; sannsynlighetsteori fyller hullet når kunnskapen er usikker. Slidene peker på to problemer med «tenke rasjonelt» som eneste tilnærming:</p>
+    <ol>
+      <li><b>Generell deduktiv inferens er beregningsmessig uhåndterlig</b> (computationally intractable).</li>
+      <li><b>Riktig tenkning alene genererer ikke intelligent <em>atferd</em></b>. Vi trenger en teori om rasjonell <em>handling</em>.</li>
+    </ol>
+
+    <h3>1.4 Handle rasjonelt: den rasjonelle agenten</h3>
+    <p>En <span class="term" data-en="rational agent">rasjonell agent<span class="def">En agent som handler for å oppnå best mulig utfall – eller, under usikkerhet, best mulig <em>forventet</em> utfall – gitt det den vet.</span></span>
+      «gjør det riktige»: den handler for å oppnå best mulig (forventet) utfall gitt informasjonen og beregningsevnen den har. Det krever ikke nødvendigvis tenkning – en blunkerefleks kan være rasjonell – men tenkning bør tjene rasjonell handling.</p>
+    <p>To fordeler (eksamensrelevant, står på slidene):</p>
+    <ol>
+      <li><b>Mer generell</b> enn «tankens lover»: korrekt logisk slutning er bare én av flere måter å oppnå rasjonalitet på.</li>
+      <li><b>Matematisk veldefinert</b>: rasjonalitet kan presiseres og brukes til å utlede agentdesign som beviselig oppfyller den – noe som er nesten umulig hvis målet er å etterligne mennesker.</li>
+    </ol>
+    <p>Boka kaller dette paradigmet <span class="term" data-en="standard model">standardmodellen<span class="def">KI som studiet av agenter som maksimerer et gitt mål (objective). Samme idé som i kontrollteori (minimer kostnad), operasjonsanalyse (maksimer belønning) og økonomi (maksimer nytte).</span></span>: vi gir agenten et mål, og den maksimerer det. Perfekt rasjonalitet er ofte for beregningskrevende, så i praksis snakker vi om <b>begrenset rasjonalitet</b> (limited rationality). Og hvis målet vi gir maskinen ikke stemmer med det vi egentlig vil, har vi
+      <span class="term" data-en="value alignment problem">verdijusteringsproblemet<span class="def">Problemet med å sikre at målet vi gir maskinen stemmer overens med våre faktiske preferanser (jf. kong Midas).</span></span> – mer om det når vi kommer til ytelsesmål.</p>
+
+    <h3>1.5 Kan maskiner i det hele tatt være intelligente?</h3>
+    <table class="compact">
+      <tr><th>Posisjon</th><th>Hvem</th><th>Påstand</th></tr>
+      <tr><td><b>Fysisk symbolsystem-hypotesen</b> (physical symbol system hypothesis)</td><td>Allen Newell &amp; Herbert Simon</td><td>Intelligens er substratnøytral: et fysisk symbolsystem har <em>nødvendige og tilstrekkelige</em> midler for generell intelligent handling.</td></tr>
+      <tr><td><b>Bare biologisk substrat</b></td><td>John Searle (filosof)</td><td>Intelligens er substratavhengig: materialet vi er laget av er avgjørende; tenkning er bare mulig i «levende maskiner» av proteiner.</td></tr>
+    </table>
+
+    <div class="quiz" data-answer="c">
+      <p class="q">«Filosofen John Searle hevder at ethvert fysisk symbolsystem har nødvendige og tilstrekkelige midler for generell intelligent handling.» (Eksamen 2017)</p>
+      <ul class="opts">
+        <li data-why="Nei – dette er Newell &amp; Simons hypotese, ikke Searles.">Sant</li>
+        <li data-why="Riktig at det er usant, men begrunnelsen er feil: Searle mener tvert imot at intelligens er knyttet til biologi.">Usant, fordi Searle mener bare Turing-testen kan avgjøre intelligens</li>
+        <li>Usant – det er Newell &amp; Simon som hevder dette; Searle mener det motsatte</li>
+      </ul>
+      <div class="feedback">Fysisk symbolsystem-hypotesen er Newell &amp; Simons. Searle argumenterer for at intelligens er substratavhengig (biologisk).</div>
+    </div>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">Hvilken av de fire tilnærmingene hører Turing-testen til?</p>
+      <ul class="opts">
+        <li data-why="Turing-testen ser ikke på tankeprosessene – bare svarene.">Tenke menneskelig</li>
+        <li>Handle menneskelig</li>
+        <li data-why="Den sammenligner med mennesker, ikke med et idealt rasjonalitetsmål.">Handle rasjonelt</li>
+        <li data-why="Logikk/«laws of thought» er noe annet.">Tenke rasjonelt</li>
+      </ul>
+      <div class="feedback">Turing-testen måler om <em>atferden</em> (svarene) ikke kan skilles fra et menneskes → handle menneskelig.</div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Hvorfor tror du læreboka (og kurset) velger «handle rasjonelt» framfor «handle menneskelig»? Gi to grunner.</p>
+      <details><summary>Vis et forslag</summary><p>(1) Rasjonalitet er matematisk veldefinert, så vi kan utlede og bevise egenskaper ved agentdesign (f.eks. at A* finner optimal løsning). «Menneskelig» er vagt og må måles empirisk. (2) Den er mer generell: logisk slutning er bare én av mange måter å handle rasjonelt på; refleks, søk, sannsynlighetsresonnering og læring kan også gi rasjonell atferd. I tillegg vil vi ofte at maskinen skal være <em>bedre</em> enn mennesker (f.eks. i sjakk eller medisinsk diagnose), ikke lik oss.</p></details>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>2. KI-historien i korte trekk</h2>
+    <p>Du trenger ikke pugge årstall, men noen milepæler går igjen på eksamen (f.eks. «Hvem var <em>ikke</em> med på Dartmouth-konferansen?»). Slidene vektlegger denne tidslinjen:</p>
+
+    <figure>
+      <svg viewBox="0 0 700 250" width="700" role="img" aria-label="Tidslinje for KI">
+        <!-- x = 30 + (år-1940)*7.6 -->
+        <rect class="node-good" x="334" y="110" width="61" height="20" rx="3"/>
+        <text x="364" y="124" text-anchor="middle" class="small" style="font-size:9px">ekspertsyst.</text>
+        <rect class="node-bad" x="228" y="134" width="61" height="14" rx="3"/>
+        <text x="258" y="145" text-anchor="middle" class="small" style="font-size:9px">skuffelse</text>
+        <rect class="node-bad" x="395" y="134" width="38" height="14" rx="3"/>
+        <text x="414" y="145" text-anchor="middle" class="small" style="font-size:9px">«AI winter»</text>
+        <rect class="node-good" x="577" y="110" width="99" height="20" rx="3"/>
+        <text x="626" y="124" text-anchor="middle" class="small">dyp læring</text>
+        <line class="edge" x1="20" y1="100" x2="690" y2="100"/>
+        <g class="small">
+          <text x="30" y="96" class="small">1940</text>
+          <text x="258" y="96" class="small">1970</text>
+          <text x="486" y="96" class="small">2000</text>
+        </g>
+        <!-- hendelser over linjen -->
+        <line class="edge" x1="53" y1="100" x2="53" y2="60"/><text x="22" y="42" class="small">1943 McCulloch &amp; Pitts:</text><text x="22" y="55" class="small">nevron-modell</text>
+        <line class="edge-hl" x1="152" y1="100" x2="152" y2="30"/><text x="152" y="12" text-anchor="middle" class="accent" style="font-size:12px;font-weight:700">1956 Dartmouth</text><text x="152" y="24" text-anchor="middle" class="small">«Artificial Intelligence»</text>
+        <line class="edge" x1="220" y1="100" x2="220" y2="72"/><text x="220" y="55" text-anchor="middle" class="small">1965 Robinson:</text><text x="220" y="67" text-anchor="middle" class="small">resolusjon</text>
+        <line class="edge" x1="372" y1="100" x2="372" y2="72"/><text x="372" y="55" text-anchor="middle" class="small">1985–95</text><text x="372" y="67" text-anchor="middle" class="small">backprop</text>
+        <line class="edge" x1="448" y1="100" x2="448" y2="60"/><text x="448" y="42" text-anchor="middle" class="small">1995– «agenter</text><text x="448" y="55" text-anchor="middle" class="small">overalt»</text>
+        <line class="edge" x1="578" y1="100" x2="578" y2="72"/><text x="578" y="55" text-anchor="middle" class="small">2012</text><text x="578" y="67" text-anchor="middle" class="small">ImageNet/dyp læring</text>
+        <!-- hendelser under linjen -->
+        <line class="edge" x1="106" y1="100" x2="106" y2="175"/><text x="106" y="190" text-anchor="middle" class="small">1950 Turing:</text><text x="106" y="203" text-anchor="middle" class="small">«Computing Machinery</text><text x="106" y="216" text-anchor="middle" class="small">and Intelligence»</text>
+        <line class="edge" x1="198" y1="100" x2="198" y2="160"/><text x="198" y="172" text-anchor="middle" class="small">1962 Perceptron</text><text x="198" y="184" text-anchor="middle" class="small">(Rosenblatt)</text>
+        <line class="edge" x1="274" y1="100" x2="274" y2="215"/><text x="274" y="228" text-anchor="middle" class="small">1972 PROLOG</text>
+        <line class="edge" x1="334" y1="100" x2="334" y2="160"/><text x="334" y="172" text-anchor="middle" class="small">1980–88</text><text x="334" y="184" text-anchor="middle" class="small">ekspertsystem-boom</text>
+        <line class="edge" x1="395" y1="100" x2="395" y2="200"/><text x="395" y="213" text-anchor="middle" class="small">1988– sannsynlighet</text><text x="395" y="226" text-anchor="middle" class="small">tilbake (Pearl)</text>
+        <line class="edge" x1="463" y1="100" x2="463" y2="160"/><text x="475" y="172" text-anchor="middle" class="small">1997 Deep Blue</text><text x="475" y="184" text-anchor="middle" class="small">slår Kasparov</text>
+        <line class="edge" x1="608" y1="100" x2="608" y2="200"/><text x="608" y="213" text-anchor="middle" class="small">2016 AlphaGo</text>
+        <line class="edge" x1="653" y1="100" x2="653" y2="160"/><text x="690" y="172" text-anchor="end" class="small">2022–</text><text x="690" y="184" text-anchor="end" class="small">store språkmodeller</text>
+      </svg>
+      <figcaption>Figur 3: KI-historien. Grønt = optimisme/boom, rødt = skuffelse/«AI winter».</figcaption>
+    </figure>
+
+    <table class="compact">
+      <tr><th>Periode</th><th>Hva skjedde</th></tr>
+      <tr><td>1943</td><td>McCulloch &amp; Pitts: boolsk kretsmodell av hjernen (kunstige nevroner).</td></tr>
+      <tr><td>1950</td><td>Turing: «Computing Machinery and Intelligence» – Turing-testen, maskinlæring, forsterkningslæring.</td></tr>
+      <tr><td>1952–69</td><td>Tidlige programmer: Samuels damspill-program (som lærte!), Newell &amp; Simons <b>Logic Theorist</b> og <b>GPS</b>, Gelernters Geometry Engine.</td></tr>
+      <tr><td><b>1956</b></td><td><b>Dartmouth-sommerprosjektet</b> – KI blir et forskningsfelt, navnet «Artificial Intelligence» tas i bruk. Deltakere bl.a. John McCarthy, Marvin Minsky, Claude Shannon, Nathaniel Rochester, Allen Newell, Herbert Simon (og Trenchard More, Oliver Selfridge, Ray Solomonoff). <em>Alan Turing var ikke med</em> (han døde i 1954).</td></tr>
+      <tr><td>1962</td><td>Rosenblatts perceptron trener enkle nevrale nett.</td></tr>
+      <tr><td>1965</td><td>Robinsons komplette algoritme for logisk resonnering (resolusjon – modul 7 og 9).</td></tr>
+      <tr><td>1966–74</td><td>Skuffelse: KI oppdager <b>beregningskompleksitet</b> (kombinatorisk eksplosjon). Forskning på nevrale nett forsvinner nesten.</td></tr>
+      <tr><td>1969–79</td><td>Kunnskapsbaserte systemer (domenekunnskap i stedet for generelle «svake» metoder).</td></tr>
+      <tr><td>1972</td><td>Logikkprogrammeringsspråket PROLOG.</td></tr>
+      <tr><td>1980–88</td><td>Ekspertsystem-industrien blomstrer.</td></tr>
+      <tr><td>1988–93</td><td>Ekspertsystem-industrien kollapser: <b>«AI Winter»</b>.</td></tr>
+      <tr><td>1985–95</td><td>Backpropagation gjør nevrale nett populære igjen.</td></tr>
+      <tr><td>1988–</td><td>Sannsynlighet kommer tilbake; større teknisk dybde. «Nouvelle AI»: kunstig liv, genetiske algoritmer.</td></tr>
+      <tr><td>1995–</td><td>«Agents, agents, everywhere» – helhetlige agenter blir hovedperspektivet.</td></tr>
+      <tr><td>2003–</td><td>Menneskenivå-KI tilbake på agendaen.</td></tr>
+      <tr><td>2005–10</td><td>KI skuffer igjen.</td></tr>
+      <tr><td>2012–</td><td>Dyp læring og en «veldig varm KI-sommer» siden.</td></tr>
+    </table>
+
+    <p>Sitat fra Dartmouth-søknaden: «… every aspect of learning or any other feature of intelligence can in principle be so precisely described that a machine can be made to simulate it.»</p>
+
+    <h3>2.1 KIs grunnlag</h3>
+    <p>Informatikk er hoveddisiplinen, men KI bygger på flere fag (slide «Foundations of AI»): <b>filosofi</b> (logikk, sinn, rasjonalitet), <b>matematikk</b> (logikk, beregnbarhet, sannsynlighet), <b>økonomi</b> (nytte, beslutningsteori, spillteori), <b>nevrovitenskap</b>, <b>psykologi</b> (kognitiv vitenskap), <b>kontrollteori og kybernetikk</b> (systemer som optimaliserer en kostnadsfunksjon) og <b>lingvistikk</b>.</p>
+
+    <div class="box exam"><span class="box-title">Eksamenstips</span>
+      <p>Eksamen 2023 spurte: «Aristoteles argumenterte for at handlinger rettferdiggjøres av en logisk kobling mellom mål og kunnskap om handlingens utfall. Over 2000 år senere ble ideene implementert av to KI-pionerer. Hvem, og hva het programmet?» Svar: <b>Herbert Simon og Allen Newell – General Problem Solver (GPS)</b>. Husk også: Newell &amp; Simon = Logic Theorist, GPS og fysisk symbolsystem-hypotesen.</p>
+    </div>
+
+    <div class="quiz" data-answer="e">
+      <p class="q">Hvilken av disse forskerne deltok IKKE på Dartmouth-konferansen der navnet «artificial intelligence» ble laget? (Eksamen 2015)</p>
+      <ul class="opts">
+        <li data-why="McCarthy organiserte konferansen og fant på navnet.">John McCarthy</li>
+        <li data-why="Minsky var med-organisator.">Marvin Minsky</li>
+        <li data-why="Simon deltok (og presenterte Logic Theorist sammen med Newell).">Herbert Simon</li>
+        <li data-why="Newell deltok sammen med Simon.">Allen Newell</li>
+        <li>Alan Turing</li>
+      </ul>
+      <div class="feedback">Turing døde i 1954, to år før Dartmouth (1956). Hans artikkel fra 1950 er likevel grunnleggende for feltet.</div>
+    </div>
+
+    <div class="check" data-answer="1956" data-mode="number">
+      <p class="q">Hvilket år regnes som KI-feltets fødsel (Dartmouth)?</p>
+      <div class="explain">1956 – Dartmouth Summer Research Project on Artificial Intelligence.</div>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>3. Agenter og omgivelser</h2>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>Tenk på deg selv: øynene og ørene tar inn informasjon, hjernen bestemmer, og hender, bein og stemme gjør noe som endrer verden. En robot er det samme med kamera og motorer; et program med tastetrykk inn og tekst ut. «Agent» er bare et felles ord for alt som <em>sanser og handler</em>.</p>
+    </div>
+
+    <p>En <span class="term" data-en="agent">agent<span class="def">Alt som kan sees på som å oppfatte omgivelsen sin gjennom sensorer og handle på den gjennom aktuatorer.</span></span>
+      er alt som kan sees på som å oppfatte sin
+      <span class="term" data-en="environment">omgivelse<span class="def">Den delen av universet hvis tilstand vi bryr oss om når vi designer agenten: det som påvirker hva agenten oppfatter, og som påvirkes av agentens handlinger.</span></span>
+      gjennom <span class="term" data-en="sensors">sensorer<span class="def">Det agenten tar inn informasjon med: øyne, kamera, mikrofon, tastaturinput, nettverkspakker …</span></span>
+      og handle på den gjennom <span class="term" data-en="actuators">aktuatorer<span class="def">Det agenten påvirker omgivelsen med: hender, motorer, hjul, skjerm, høyttaler, å skrive filer/sende pakker …</span></span>.</p>
+
+    <figure>
+      <svg viewBox="0 0 560 220" width="560" role="img" aria-label="Agent og omgivelse">
+        <defs><marker id="m01-a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker></defs>
+        <rect class="box" x="20" y="20" width="250" height="180" rx="10"/>
+        <text x="40" y="44" class="label">Agent</text>
+        <rect class="box-accent" x="90" y="80" width="110" height="60" rx="8"/>
+        <text x="145" y="108" text-anchor="middle" class="label" style="font-size:22px">?</text>
+        <text x="145" y="128" text-anchor="middle" class="small">agentprogram</text>
+        <text x="235" y="65" text-anchor="middle" class="small">Sensorer</text>
+        <text x="235" y="168" text-anchor="middle" class="small">Aktuatorer</text>
+        <rect class="box" x="370" y="20" width="170" height="180" rx="10"/>
+        <text x="455" y="105" text-anchor="middle" class="label">Omgivelse</text>
+        <text x="455" y="122" text-anchor="middle" class="small">(environment)</text>
+        <path class="edge" d="M 368 70 L 270 70 L 205 95" marker-end="url(#m01-a1)"/>
+        <text x="320" y="62" text-anchor="middle" class="small">persepsjoner</text>
+        <path class="edge" d="M 200 125 L 270 160 L 368 160" marker-end="url(#m01-a1)"/>
+        <text x="320" y="178" text-anchor="middle" class="small">handlinger</text>
+      </svg>
+      <figcaption>Figur 4: Agenten mottar persepsjoner via sensorer og påvirker omgivelsen via aktuatorer. «?» er agentprogrammet vi skal designe.</figcaption>
+    </figure>
+
+    <table class="compact">
+      <tr><th>Agent</th><th>Sensorer</th><th>Aktuatorer</th></tr>
+      <tr><td>Menneske</td><td>øyne, ører, hud …</td><td>hender, bein, stemmebånd …</td></tr>
+      <tr><td>Robot</td><td>kamera, infrarød avstandsmåler, lidar …</td><td>motorer, gripearm, hjul …</td></tr>
+      <tr><td>Programvareagent (softbot)</td><td>filer, nettverkspakker, tastatur/mus-input</td><td>skrive filer, sende pakker, vise output</td></tr>
+    </table>
+    <p>Typisk er det <b>omgivelsen som definerer problemet</b>, og <b>agenten som er løsningen</b>.</p>
+
+    <h3>3.1 Persepsjon og persepsjonssekvens</h3>
+    <p>En <span class="term" data-en="percept">persepsjon<span class="def">Det agentens sensorer oppfatter i ett gitt øyeblikk.</span></span>
+      er det sensorene registrerer i ett øyeblikk. En
+      <span class="term" data-en="percept sequence">persepsjonssekvens<span class="def">Hele historikken av alt agenten noensinne har oppfattet.</span></span>
+      er hele historikken av alt agenten har oppfattet. Agentens valg av handling kan avhenge av <b>innebygd kunnskap</b> og <b>hele persepsjonssekvensen så langt</b> – men aldri av noe den ikke har oppfattet ennå.</p>
+
+    <h3>3.2 Agentfunksjon vs. agentprogram</h3>
+    <p>Hvis vi angir agentens handling for <em>hver mulig persepsjonssekvens</em>, har vi sagt alt om oppførselen. Denne avbildningen kalles
+      <span class="term" data-en="agent function">agentfunksjonen<span class="def">Den abstrakte, matematiske avbildningen fra persepsjonssekvenser til handlinger: f : P* → A. En ekstern beskrivelse av atferd.</span></span>:</p>
+    <div class="formula">f : P* → A      (persepsjonssekvens ↦ handling)</div>
+    <p>Agentfunksjonen er en <em>abstrakt, ekstern</em> beskrivelse. Den konkrete implementasjonen som kjører på maskinvaren er
+      <span class="term" data-en="agent program">agentprogrammet<span class="def">Den konkrete implementasjonen av agentfunksjonen som kjører på agentarkitekturen. Tar inn <em>nåværende</em> persepsjon og returnerer en handling.</span></span>, og maskinvaren med sensorer og aktuatorer er
+      <span class="term" data-en="agent architecture">arkitekturen<span class="def">Den fysiske plattformen (PC, robotbil …) med sensorer og aktuatorer som agentprogrammet kjører på.</span></span>:</p>
+    <div class="formula">agent = arkitektur + program</div>
+    <p>Arkitekturen må passe til programmet: et program som anbefaler «Gå» trenger en arkitektur med bein!</p>
+
+    <div class="box warning"><span class="box-title">Vanlig feil – agentfunksjon</span>
+      <p>Agentfunksjonen avbilder <b>persepsjonssekvenser</b> (hele historikken) til handlinger, ikke enkeltpersepsjoner. Agent<em>programmet</em> tar derimot bare inn <b>nåværende persepsjon</b> – fordi det er alt omgivelsen gir det. Skal handlingen avhenge av historikken, må programmet selv huske den. Eksamen 2024 Q2 hadde alternativet «Agent functions map the percepts to actions», og sensor kommenterte nettopp at boka definerer det som persepsjon<em>sekvens</em> → handling.</p>
+    </div>
+
+    <h3>3.3 Gjennomgående eksempel: støvsugerverdenen</h3>
+    <p>Bokas leketøyseksempel: to ruter, A og B. Hver rute kan være ren eller skitten. Agenten oppfatter <em>hvilken rute den er i</em> og <em>om ruta er skitten</em>, f.eks. <code>[A, Dirty]</code>. Handlinger: <code>Right</code>, <code>Left</code>, <code>Suck</code> (og evt. <code>NoOp</code>). Agenten starter i A.</p>
+    <p>En enkel agentfunksjon: «er ruta skitten, sug; ellers gå til den andre ruta». Delvis tabulert:</p>
+    <table class="compact" style="max-width:420px">
+      <tr><th>Persepsjonssekvens</th><th>Handling</th></tr>
+      <tr><td>[A, Clean]</td><td>Right</td></tr>
+      <tr><td>[A, Dirty]</td><td>Suck</td></tr>
+      <tr><td>[B, Clean]</td><td>Left</td></tr>
+      <tr><td>[B, Dirty]</td><td>Suck</td></tr>
+      <tr><td>[A, Clean], [A, Clean]</td><td>Right</td></tr>
+      <tr><td>[A, Clean], [A, Dirty]</td><td>Suck</td></tr>
+      <tr><td>…</td><td>…</td></tr>
+    </table>
+    <p>Tabellen er uendelig (persepsjonssekvensene kan bli vilkårlig lange), men programmet som implementerer den er tre linjer – det ser vi i seksjon 7.</p>
+
+    <div class="widget" id="vac">
+      <p><b>Støvsugerverdenen.</b> Velg agent, startsituasjon og ytelsesmål, og kjør steg for steg. Ytelsesmålet gir +1 poeng per ren rute per tidssteg (bokas mål), evt. −1 per bevegelse.</p>
+      <div class="controls vac-opts">
+        <label>Agent: <select id="vac-agent">
+          <option value="reflex">Enkel refleksagent (Fig. 2.8)</option>
+          <option value="noloc">Refleks uten posisjonssensor (Clean → alltid Right)</option>
+          <option value="random">Refleks uten posisjonssensor, randomisert</option>
+          <option value="model">Modellbasert refleksagent (husker rutene)</option>
+        </select></label>
+        <label>Start: <select id="vac-start">
+          <option value="A,1,1">Agent i A, begge skitne</option>
+          <option value="A,0,1">Agent i A, bare B skitten</option>
+          <option value="B,1,1">Agent i B, begge skitne</option>
+          <option value="B,1,0">Agent i B, bare A skitten</option>
+          <option value="A,0,0">Agent i A, alt rent</option>
+        </select></label>
+      </div>
+      <div class="controls vac-opts">
+        <label><input type="checkbox" id="vac-pen"> −1 poeng per bevegelse</label>
+        <label><input type="checkbox" id="vac-unrel"> Upålitelig sug (10 % feiler)</label>
+      </div>
+      <svg viewBox="0 0 450 170" width="450" role="img" aria-label="Støvsugerverden"></svg>
+      <div class="controls">
+        <button id="vac-step">Ett steg</button>
+        <button id="vac-run" class="secondary">10 steg</button>
+        <button id="vac-reset" class="secondary">Nullstill</button>
+      </div>
+      <p id="vac-stat" style="font-size:.85rem"></p>
+      <div class="log" id="vac-log"></div>
+      <p style="font-size:.85rem;color:var(--muted)">Prøv: (1) refleks uten posisjonssensor som starter i B – den sitter fast for alltid. (2) Slå på bevegelsesstraff og sammenlign enkel refleks med modellbasert etter 20 steg.</p>
+    </div>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">Hva er forskjellen på agentfunksjon og agentprogram?</p>
+      <ul class="opts">
+        <li data-why="Det er motsatt: funksjonen er abstrakt, programmet er konkret.">Agentfunksjonen er koden som kjører; agentprogrammet er den matematiske beskrivelsen.</li>
+        <li>Agentfunksjonen er en abstrakt avbildning fra persepsjonssekvenser til handlinger; agentprogrammet er en konkret implementasjon som tar nåværende persepsjon som input.</li>
+        <li data-why="Begge beskriver atferd; men programmet kan godt huske historikk selv.">De er det samme, bare med ulike navn.</li>
+      </ul>
+      <div class="feedback">Funksjon = <em>hva</em> agenten gjør (ekstern, matematisk). Program = <em>hvordan</em> den gjør det (intern, kjører på arkitekturen).</div>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>4. Rasjonalitet og ytelsesmål</h2>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>Hva er en «god» agent? KI tar et <em>konsekvensialistisk</em> standpunkt: vi bedømmer agenten etter <em>konsekvensene</em> av det den gjør, ikke etter intensjonene. Agenten gjør en sekvens av handlinger → omgivelsen går gjennom en sekvens av tilstander → er den sekvensen ønskelig, gjorde agenten det bra.</p>
+    </div>
+
+    <p>Et <span class="term" data-en="performance measure">ytelsesmål<span class="def">Et objektivt mål som evaluerer en gitt sekvens av omgivelsestilstander. Ligger hos designeren/brukeren, ikke nødvendigvis i agenten.</span></span>
+      evaluerer en sekvens av <em>omgivelsestilstander</em> (ikke agentens egne tilstander). Det ligger i hodet til designeren eller brukeren – ikke nødvendigvis inni agenten.</p>
+
+    <div class="box warning"><span class="box-title">«What you ask for is what you get»</span>
+      <p>Mål støvsugeren på «mengde smuss sugd opp på et 8-timersskift», og en rasjonell agent vil suge opp smuss, tømme det ut på gulvet, suge det opp igjen … Bedre: gi poeng for <b>rent gulv</b>, f.eks. ett poeng per ren rute per tidssteg (kanskje med straff for strøm og støy). <b>Tommelfingerregel:</b> design ytelsesmålet etter hva du faktisk vil oppnå i omgivelsen, <em>ikke</em> etter hvordan du tror agenten bør oppføre seg.</p>
+    </div>
+
+    <h3>4.1 Hva rasjonalitet avhenger av</h3>
+    <p>Hva som er rasjonelt i et gitt øyeblikk avhenger av <b>fire ting</b> (pugg disse):</p>
+    <ol>
+      <li><b>Ytelsesmålet</b> som definerer suksess.</li>
+      <li>Agentens <b>forhåndskunnskap</b> (prior knowledge) om omgivelsen.</li>
+      <li><b>Handlingene</b> agenten kan utføre (aktuatorene).</li>
+      <li>Agentens <b>persepsjonssekvens</b> så langt (sensorene).</li>
+    </ol>
+
+    <div class="box key"><span class="box-title">Definisjon: rasjonell agent</span>
+      <p><em>«For each possible percept sequence, a rational agent should select an action that is expected to maximize its performance measure, given the evidence provided by the percept sequence and whatever built-in knowledge the agent has.»</em></p>
+      <p>For hver mulig persepsjonssekvens skal en rasjonell agent velge den handlingen som er <b>forventet</b> å maksimere ytelsesmålet, gitt persepsjonssekvensen og den innebygde kunnskapen.</p>
+    </div>
+
+    <h3>4.2 Gjennomregnet eksempel: er støvsugeren rasjonell?</h3>
+    <p>Det kommer an på! Anta (som boka):</p>
+    <ul>
+      <li>Ytelsesmål: 1 poeng per ren rute per tidssteg, over 1000 tidssteg.</li>
+      <li>Geografien (to ruter) er kjent på forhånd; smussfordeling og startposisjon er ukjent. Rene ruter forblir rene; Suck renser ruta; Right/Left flytter én rute (eller blir stående ved kanten).</li>
+      <li>Tilgjengelige handlinger: Right, Left, Suck.</li>
+      <li>Sensorene oppfatter posisjon og smuss korrekt.</li>
+    </ul>
+    <p>Da er den enkle agenten <b>rasjonell</b>: ingen annen agent har høyere forventet ytelse. Regn ut for start i A, begge skitne:</p>
+    <div class="stepper" data-label="Tidssteg">
+      <div class="step"><p><b>t=1:</b> persepsjon [A, Dirty] → <code>Suck</code>. Etter handlingen: A ren, B skitten → <b>+1</b>. Sum = 1.</p></div>
+      <div class="step"><p><b>t=2:</b> [A, Clean] → <code>Right</code>. A ren, B skitten → <b>+1</b>. Sum = 2.</p></div>
+      <div class="step"><p><b>t=3:</b> [B, Dirty] → <code>Suck</code>. Begge rene → <b>+2</b>. Sum = 4.</p></div>
+      <div class="step"><p><b>t=4 … 1000:</b> agenten pendler Left/Right, men begge rutene er rene → +2 hvert steg. Sum = 4 + 997·2 = <b>1998</b>. Maksimum mulig fra denne starten er 1 + 1 + 2·998 = 1998 (du kan ikke rense begge rutene på ett steg), så agenten er optimal her.</p></div>
+      <div class="step"><p><b>Men:</b> legg til <b>−1 poeng per bevegelse</b>. Nå taper pendlingen 1 poeng per steg etter t=3, og en bedre agent ville gjort <code>NoOp</code> når den <em>vet</em> at alt er rent. Med det nye ytelsesmålet er den enkle agenten <b>ikke lenger rasjonell</b>. (For å vite at begge er rene, må agenten huske – den trenger intern tilstand, se modellbasert agent.)</p></div>
+    </div>
+    <p>Og hvis rene ruter kan bli skitne igjen, bør agenten innimellom sjekke; hvis geografien er ukjent, må den utforske. <b>Rasjonalitet er alltid relativ til de fire punktene over.</b></p>
+
+    <div class="check" data-answer="1998" data-mode="number">
+      <p class="q">Agenten starter i B, begge ruter skitne, 1000 tidssteg, +1 per ren rute per steg, ingen bevegelsesstraff. Hvor mange poeng får den enkle refleksagenten totalt?</p>
+      <div class="explain">Symmetrisk med start i A: t=1 Suck (+1), t=2 Left (+1), t=3 Suck (+2), deretter 997 steg à +2 = 1994. Totalt 1 + 1 + 2 + 1994 = 1998.</div>
+    </div>
+
+    <h3>4.3 Rasjonalitet ≠ allvitenhet</h3>
+    <p>En <span class="term" data-en="omniscience">allvitende<span class="def">En allvitende agent vet det faktiske utfallet av handlingene sine på forhånd. Umulig i virkeligheten.</span></span>
+      agent vet det <em>faktiske</em> utfallet av handlingene sine på forhånd – umulig i praksis. Bokas eksempel: du krysser Champs-Élysées etter å ha sett deg godt for, og en lastedør faller av et fly i 33 000 fot og treffer deg. Var det irrasjonelt å krysse? Nei!</p>
+    <div class="box key"><span class="box-title">Huskeregel</span>
+      <p><b>Rasjonalitet maksimerer <em>forventet</em> ytelse. Perfeksjon maksimerer <em>faktisk</em> ytelse.</b> Definisjonen krever bare fornuftig handling gitt persepsjonssekvensen så langt – ikke krystallkule.</p>
+    </div>
+    <p>Men det betyr <em>ikke</em> at det er greit å krysse uten å se seg for. En rasjonell agent bør utføre handlinger som endrer framtidige persepsjoner –
+      <span class="term" data-en="information gathering">informasjonsinnhenting<span class="def">Å gjøre handlinger for å forbedre framtidige persepsjoner (f.eks. se seg for før man krysser veien, utforske et ukjent rom). En del av rasjonalitet.</span></span>
+      (se til begge sider, utforske et ukjent rom).</p>
+
+    <h3>4.4 Læring og autonomi</h3>
+    <p>En rasjonell agent skal også <b>lære</b> så mye som mulig av det den oppfatter; forhåndskunnskapen kan endres og utvides med erfaring. I den grad agenten baserer seg på designerens forhåndskunnskap i stedet for egne persepsjoner og læring, mangler den
+      <span class="term" data-en="autonomy">autonomi<span class="def">Å basere seg på egne persepsjoner og egen læring heller enn bare på designerens innebygde kunnskap. En rasjonell agent bør være autonom.</span></span>.</p>
+    <div class="box example"><span class="box-title">Eksempel: dyr uten autonomi</span>
+      <p><b>Tordivelen</b> (dung beetle) graver et reir, legger egg og henter en møkkball for å plugge inngangen. Fjerner du ballen underveis, fortsetter den likevel og «plugger» reiret med en ikke-eksisterende ball – den merker aldri at den mangler. <b>Sphex-vepsen</b> drar en larve til hullet, sjekker hullet, og hvis en forsker flytter larven litt, starter den fra «dra larven» igjen – dusinvis av ganger. Begge følger en innebygd plan og lærer ikke at den feiler.</p>
+    </div>
+    <p>I praksis gir vi agenten litt startkunnskap (som evolusjonen gir dyr reflekser) pluss evne til å lære. Etter nok erfaring kan atferden bli praktisk talt uavhengig av forhåndskunnskapen – én lærende agent kan lykkes i mange ulike omgivelser.</p>
+
+    <div class="quiz" data-answer="c">
+      <p class="q">En robot krysser en vei etter å ha sett seg nøye for. En meteoritt treffer den midt i veien. Hva sier definisjonen av rasjonalitet?</p>
+      <ul class="opts">
+        <li data-why="Rasjonalitet krever ikke at utfallet faktisk ble bra.">Roboten var irrasjonell fordi utfallet ble dårlig.</li>
+        <li data-why="Dette ville krevd allvitenhet, som er umulig.">Roboten burde ha forutsett meteoritten.</li>
+        <li>Roboten var rasjonell: den maksimerte <em>forventet</em> ytelse gitt persepsjonssekvensen.</li>
+        <li data-why="Rasjonalitet handler ikke om flaks, men om forventet verdi gitt informasjon.">Rasjonalitet kan ikke vurderes i ettertid i det hele tatt.</li>
+      </ul>
+      <div class="feedback">Rasjonalitet ≠ allvitenhet. Rasjonell = beste forventede handling gitt det agenten vet.</div>
+    </div>
+
+    <div class="quiz" data-answer="a">
+      <p class="q">«There exists a task environment in which every agent is rational.» (Eksamen 2017)</p>
+      <ul class="opts">
+        <li>Sant</li>
+        <li data-why="Tenk på en omgivelse der alle handlinger gir nøyaktig samme belønning.">Usant</li>
+      </ul>
+      <div class="feedback">Sant. Hvis alle handlinger (inkludert å gjøre ingenting) gir samme ytelse, er enhver handling forventningsmaksimerende → enhver agent er rasjonell.</div>
+    </div>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">«Principle of rationality (due to Allen Newell) maintains that the agent chooses actions in order to achieve its goal using the knowledge it has <u>and the knowledge it might gather</u>.» (Eksamen 2018, sant/usant)</p>
+      <ul class="opts">
+        <li data-why="Fasiten sier usant: prinsippet handler om kunnskapen agenten HAR.">Sant</li>
+        <li>Usant</li>
+      </ul>
+      <div class="feedback">Fasit: <b>usant</b>. Newells rasjonalitetsprinsipp: «If an agent has knowledge that one of its actions will lead to one of its goals, then the agent will select that action» – det handler om kunnskapen agenten <em>har</em>, ikke kunnskap den <em>kan komme til å</em> samle. (Rasjonalitet er relativ til persepsjonssekvensen <em>så langt</em>.)</div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Foreslå et ytelsesmål for en selvkjørende taxi. Hvilke delmål er i konflikt med hverandre, og hva betyr det for hvordan agenten må velge handlinger?</p>
+      <details><summary>Vis et forslag</summary><p>Komme fram til riktig sted, kort reisetid, lavt drivstofforbruk/slitasje, følge trafikkreglene, sikkerhet, komfort, profitt, minst mulig forstyrrelse av andre trafikanter. Fart vs. sikkerhet og profitt vs. komfort er i konflikt. Da holder ikke et binært mål («fram/ikke fram»); agenten trenger en måte å avveie på – en <em>nyttefunksjon</em> (utility function), se nyttebasert agent i seksjon 7. Boka nevner også at 100 % sikkerhet betyr å bli stående i garasjen – målet må spesifiseres som en avveining.</p></details>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>5. PEAS: spesifisere oppgaveomgivelsen</h2>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>Før du designer en agent, må du vite <em>hvilket problem</em> den skal løse. PEAS er en sjekkliste med fire spørsmål: Hva er godt? Hvor er agenten? Hva kan den gjøre? Hva kan den oppfatte?</p>
+    </div>
+
+    <p>Ytelsesmål, omgivelse, aktuatorer og sensorer utgjør til sammen
+      <span class="term" data-en="task environment">oppgaveomgivelsen<span class="def">«Problemet» som en rasjonell agent er «løsningen» på. Spesifiseres med PEAS.</span></span>,
+      og vi beskriver den med akronymet
+      <span class="term" data-en="PEAS (Performance, Environment, Actuators, Sensors)">PEAS<span class="def">Performance measure, Environment, Actuators, Sensors – de fire delene av en oppgaveomgivelse. Første steg i agentdesign er alltid å spesifisere PEAS så fullstendig som mulig.</span></span>.
+      <b>Første steg i å designe en agent er alltid å spesifisere oppgaveomgivelsen så fullstendig som mulig.</b></p>
+
+    <table>
+      <tr><th style="width:18%">Bokstav</th><th>Spørsmål</th><th>Typiske svar</th></tr>
+      <tr><td><b>P</b>erformance measure</td><td>Hva gjør agenten vellykket? (målbart, om omgivelsens tilstand)</td><td>sikkerhet, tid, kostnad, andel riktige, profitt</td></tr>
+      <tr><td><b>E</b>nvironment</td><td>Hva er agenten omgitt av / samhandler med?</td><td>veier, trafikk, kunder, pasienter, brettet, motstanderen</td></tr>
+      <tr><td><b>A</b>ctuators</td><td>Hvordan kan agenten <em>påvirke</em> omgivelsen?</td><td>ratt, gass, brems, arm, skjerm, høyttaler, sende e-post</td></tr>
+      <tr><td><b>S</b>ensors</td><td>Hvordan kan agenten <em>oppfatte</em> omgivelsen?</td><td>kamera, lidar, GPS, mikrofon, tastatur, berøringsskjerm</td></tr>
+    </table>
+
+    <h3>5.1 Eksempel: automatisk taxisjåfør</h3>
+    <table class="compact">
+      <tr><th>P</th><td>Trygg, rask, lovlig, komfortabel tur; maksimer profitt; minimer påvirkning på andre trafikanter</td></tr>
+      <tr><th>E</th><td>Veier, annen trafikk, politi, fotgjengere, kunder, vær</td></tr>
+      <tr><th>A</th><td>Ratt, gasspedal, brems, blinklys, horn, skjerm, tale</td></tr>
+      <tr><th>S</th><td>Kameraer, radar/lidar, speedometer, GPS, motorsensorer, akselerometer, mikrofoner, berøringsskjerm</td></tr>
+    </table>
+
+    <h3>5.2 Flere eksempler (bok fig. 2.5 / slides)</h3>
+    <table class="compact">
+      <tr><th>Agent</th><th>Ytelsesmål</th><th>Omgivelse</th><th>Aktuatorer</th><th>Sensorer</th></tr>
+      <tr><td>Medisinsk diagnosesystem</td><td>Frisk pasient, reduserte kostnader</td><td>Pasient, sykehus, personale</td><td>Vise spørsmål, tester, diagnoser, behandlinger</td><td>Berøringsskjerm/stemmeinput av symptomer og funn</td></tr>
+      <tr><td>Satellittbilde-analyse</td><td>Korrekt kategorisering av objekter og terreng</td><td>Satellitt i bane, nedlink, vær</td><td>Vise kategorisering av scenen</td><td>Høyoppløselig digitalkamera</td></tr>
+      <tr><td>Plukkerobot</td><td>% deler i riktig kasse</td><td>Samlebånd med deler; kasser</td><td>Leddarm og hånd</td><td>Kamera, taktile sensorer, leddvinkelsensorer</td></tr>
+      <tr><td>Raffineri-kontroller</td><td>Renhet, utbytte, sikkerhet</td><td>Raffineri, råvarer, operatører</td><td>Ventiler, pumper, varmeelementer, omrørere, skjermer</td><td>Temperatur, trykk, strømning, kjemiske sensorer</td></tr>
+      <tr><td>Interaktiv engelsklærer</td><td>Elevens testresultat</td><td>Elever, testinstans</td><td>Vise oppgaver, tilbakemelding, tale</td><td>Tastaturinput, stemme</td></tr>
+      <tr><td>Støvsugeren (A/B)</td><td>Ren rute per tidssteg (− strøm/bevegelse)</td><td>To ruter A og B, smuss</td><td>Hjul (Left/Right), sugemekanisme</td><td>Posisjonssensor, smussensor</td></tr>
+      <tr><td>Sjakkprogram</td><td>Vinn (+1), remis (½), tap (0); evt. innen tidsfrist</td><td>Brett, brikker, motstander, klokke</td><td>Vise/utføre trekk</td><td>Brettstilling (input av motstanderens trekk)</td></tr>
+    </table>
+
+    <div class="box warning"><span class="box-title">Vanlige feil i PEAS</span>
+      <ul>
+        <li><b>Blande A og S.</b> Kamera er <em>sensor</em>; skjerm og høyttaler er <em>aktuatorer</em> (de påvirker omgivelsen). Den offisielle løsningen på eksamen 2022 slo sammen «Actuators and Sensors» i én liste – gjør det ikke; skill dem.</li>
+        <li><b>Ytelsesmål som beskriver atferd</b> («kjør forsiktig») i stedet for målbart resultat («antall ulykker, reisetid»). Husk støvsugeren som tømmer ut smusset.</li>
+        <li><b>Glemme konfliktene</b>: et godt svar nevner at delmål (fart vs. sikkerhet) må avveies.</li>
+        <li><b>Blande «omgivelse» (E i PEAS) med «omgivelsens egenskaper»</b> (observerbar, deterministisk …). I eksamen 2022 sto det «environment properties» – da vil sensor ha begge deler: hva omgivelsen består av, <em>og</em> klassifiseringen (seksjon 6). Den offisielle løsningen listet bare innholdet; et fullt svar tar med begge.</li>
+      </ul>
+    </div>
+
+    <div class="widget" id="peas">
+      <p><b>PEAS-bygger.</b> Klassifiser hvert element som <b>P</b> (ytelsesmål), <b>E</b> (omgivelse), <b>A</b> (aktuator) eller <b>S</b> (sensor).</p>
+      <div class="controls">
+        <label>Scenario: <select id="peas-sc">
+          <option value="store">Butikkrobot (eksamen 2022)</option>
+          <option value="roomba">Robotstøvsuger (Roomba)</option>
+          <option value="medical">Medisinsk diagnosesystem</option>
+          <option value="spam">Spamfilter</option>
+        </select></label>
+        <button id="peas-new" class="secondary">Bland på nytt</button>
+      </div>
+      <p id="peas-desc" style="font-size:.88rem;color:var(--muted)"></p>
+      <div id="peas-items"></div>
+      <div class="controls">
+        <button id="peas-check">Sjekk</button>
+        <button id="peas-show" class="secondary">Vis fasit</button>
+        <span id="peas-res" class="res-line"></span>
+      </div>
+    </div>
+
+    <div class="quiz" data-answer="c">
+      <p class="q">En chatbot for kundeservice: hvilken av disse er en <em>aktuator</em>?</p>
+      <ul class="opts">
+        <li data-why="Det er input agenten mottar → sensor.">Tekstmeldinger kunden skriver</li>
+        <li data-why="Dette er et ytelsesmål.">Kundetilfredshet</li>
+        <li>Å vise et svar i chatvinduet</li>
+        <li data-why="Kunden er en del av omgivelsen.">Kunden</li>
+      </ul>
+      <div class="feedback">Aktuator = hvordan agenten påvirker omgivelsen. For en softbot er «vise output / sende melding» aktuatoren.</div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Skriv en PEAS-beskrivelse for en autonom gressklipper-robot.</p>
+      <details><summary>Vis et forslag</summary>
+        <p><b>P:</b> andel klippet plen, jevn klippehøyde, tid brukt, strømforbruk, ingen skade på blomsterbed/dyr/mennesker, ingen kollisjoner. <b>E:</b> plenen, grensekabel, busker/bed, hindringer, mennesker og dyr, vær (regn), ladestasjon. <b>A:</b> hjul/drivmotorer, kniv/klippemotor, lyd/varsel, app-melding. <b>S:</b> grensekabelsensor, støtsensor, løftesensor, regnsensor, GPS/odometri, batterinivåmåler, evt. kamera.</p>
+      </details>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>6. Egenskaper ved omgivelser</h2>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>Sjakk og bilkjøring er begge «problemer», men de er ekstremt forskjellige: i sjakk ser du alt, ingenting skjer mens du tenker, og et trekk har ett bestemt resultat. I trafikken ser du ikke rundt hjørner, alt beveger seg mens du tenker, og det kan skje uventede ting. Disse forskjellene bestemmer <em>hvilken type agent og algoritme</em> du trenger. Resten av kurset er i stor grad organisert etter dem.</p>
+    </div>
+
+    <h3>6.1 Fullt vs. delvis observerbar</h3>
+    <p><span class="term" data-en="fully observable">Fullt observerbar<span class="def">Sensorene gir tilgang til hele (den relevante delen av) omgivelsens tilstand ved hvert tidspunkt. Agenten trenger da ikke intern tilstand for å holde oversikt.</span></span>:
+      sensorene gir tilgang til omgivelsens fullstendige tilstand (i hvert fall alt som er relevant for valget) til enhver tid. Praktisk: agenten trenger ikke huske noe. Eks.: sjakk, bildeanalyse.</p>
+    <p><span class="term" data-en="partially observable">Delvis observerbar<span class="def">Deler av tilstanden er skjult – pga. støyende/unøyaktige sensorer eller fordi informasjonen rett og slett ikke er i persepsjonen.</span></span>:
+      deler av tilstanden er skjult (støy, unøyaktige sensorer, eller informasjonen finnes ikke i persepsjonen). Eks.: poker, taxikjøring, medisinsk diagnose, støvsuger med bare lokal smussensor. Har agenten ingen sensorer, er omgivelsen <b>ikke observerbar</b> (unobservable) – målet kan likevel noen ganger nås (sensorløs planlegging, modul 4).</p>
+
+    <h3>6.2 Én agent vs. flere agenter</h3>
+    <p>Kryssord alene: én agent (single-agent). Sjakk: to agenter (multiagent). Det subtile spørsmålet: skal agent A behandle objekt B (en annen bil) som en <em>agent</em> eller som et objekt som følger fysikkens lover (som bølger eller vind)? <b>Testen:</b> er Bs atferd best beskrevet som å maksimere et ytelsesmål som avhenger av As atferd? Da er B en agent.</p>
+    <ul>
+      <li><b>Konkurrerende</b> (competitive): sjakk – B maksimerer sitt mål, som minimerer As.</li>
+      <li><b>Samarbeidende</b> (cooperative): taxi – å unngå kollisjon maksimerer alles mål. Taxi er også <em>delvis konkurrerende</em>: bare én bil får parkeringsplassen.</li>
+    </ul>
+    <p>I fleragent-omgivelser kan kommunikasjon oppstå som rasjonell atferd, og i <b>konkurrerende</b> omgivelser kan <b>randomisert atferd være rasjonell</b> fordi den unngår å være forutsigbar (tenk stein-saks-papir eller straffesparkskytter). Dette er spurt om i 2017, 2018 og 2023!</p>
+
+    <h3>6.3 Deterministisk vs. ikke-deterministisk (og stokastisk)</h3>
+    <p><span class="term" data-en="deterministic">Deterministisk<span class="def">Neste tilstand er fullstendig bestemt av nåværende tilstand og handlingen(e) agenten(e) utfører.</span></span>:
+      neste tilstand er helt bestemt av nåværende tilstand og agentens handling. Ellers er den
+      <span class="term" data-en="nondeterministic">ikke-deterministisk<span class="def">Utfallet av en handling er ikke entydig bestemt; mulige utfall er listet, men ikke nødvendigvis tallfestet med sannsynligheter.</span></span>.
+      Boka skiller videre:</p>
+    <div class="box key"><span class="box-title">Stokastisk vs. ikke-deterministisk (eksamen 2023)</span>
+      <p><span class="term" data-en="stochastic">Stokastisk<span class="def">En modell av omgivelsen er stokastisk hvis den eksplisitt bruker sannsynligheter for utfallene («25 % sjanse for regn»).</span></span>: usikkerheten er <b>kvantifisert med sannsynligheter</b> («25 % sjanse for regn i morgen»). <b>Ikke-deterministisk</b>: mulighetene er <b>listet uten sannsynligheter</b> («det kan bli regn i morgen»).</p>
+    </div>
+    <p>Merk: en <b>delvis observerbar</b> omgivelse kan <em>se</em> ikke-deterministisk ut selv om den egentlig er deterministisk. Eks.: sjakk er deterministisk; taxikjøring og poker er ikke-deterministiske/stokastiske. Støvsuger med upålitelig sug eller tilfeldig nytt smuss → ikke-deterministisk.</p>
+    <div class="box warning"><span class="box-title">Vanlig feil</span>
+      <p>En motstander som er uforutsigbar gjør <em>ikke</em> sjakk ikke-deterministisk: determinisme handler om utfallet av <em>handlingene</em> gitt tilstanden. Motstanderens valg modelleres som en annen <em>agent</em> (multiagent), ikke som tilfeldighet. Terninger (backgammon) og kortstokking (poker) er derimot ekte tilfeldighet.</p>
+    </div>
+
+    <h3>6.4 Episodisk vs. sekvensiell</h3>
+    <p><span class="term" data-en="episodic">Episodisk<span class="def">Erfaringen er delt i atomiske episoder (persepsjon → én handling), og neste episode avhenger ikke av handlingene i tidligere episoder.</span></span>:
+      erfaringen er delt i atomiske episoder – agenten oppfatter og handler én gang – og neste episode avhenger ikke av tidligere handlinger. Eks.: en agent som finner defekte deler på et samlebånd; mange klassifiseringsoppgaver.
+      <span class="term" data-en="sequential">Sekvensiell<span class="def">Nåværende beslutning kan påvirke alle framtidige beslutninger. Agenten må tenke framover.</span></span>:
+      nåværende beslutning kan påvirke alle framtidige. Eks.: sjakk, taxi. Episodiske omgivelser er mye enklere – agenten trenger ikke tenke framover.</p>
+    <p>Eksamensfelle: sekvensiell betyr ikke det samme som i «sekvensiell vs. parallell kode». <span class="aside" data-title="Obs">«Sequential» her = beslutninger påvirker framtiden. Det har ingenting med parallellprogrammering å gjøre.</span></p>
+
+    <h3>6.5 Statisk vs. dynamisk (vs. semidynamisk)</h3>
+    <p><span class="term" data-en="static">Statisk<span class="def">Omgivelsen endrer seg ikke mens agenten tenker.</span></span>:
+      omgivelsen endrer seg ikke mens agenten tenker (kryssord).
+      <span class="term" data-en="dynamic">Dynamisk<span class="def">Omgivelsen kan endre seg mens agenten tenker; å ikke bestemme seg teller som å velge «gjør ingenting».</span></span>:
+      kan endre seg mens agenten tenker – å ikke ha bestemt seg teller som å ha valgt å gjøre ingenting (taxi).
+      <span class="term" data-en="semidynamic">Semidynamisk<span class="def">Omgivelsen selv endrer seg ikke med tiden, men agentens ytelsesscore gjør det (f.eks. sjakk med klokke).</span></span>:
+      verden står stille, men <em>ytelsesscoren</em> endrer seg med tiden (sjakk med klokke).</p>
+
+    <h3>6.6 Diskret vs. kontinuerlig</h3>
+    <p>Gjelder <b>tilstanden</b>, <b>håndteringen av tid</b>, og agentens <b>persepsjoner og handlinger</b>. Sjakk: endelig antall tilstander, diskrete persepsjoner og handlinger (diskret). Taxi: posisjon og fart varierer kontinuerlig over kontinuerlig tid, rattutslag er kontinuerlige (kontinuerlig). Kamerabilder er strengt tatt diskrete (piksler), men behandles typisk som kontinuerlige.</p>
+
+    <h3>6.7 Kjent vs. ukjent</h3>
+    <p>Dette handler strengt tatt <b>ikke om omgivelsen</b>, men om agentens (eller designerens) kunnskap om omgivelsens «fysikklover». I en
+      <span class="term" data-en="known environment">kjent omgivelse<span class="def">Utfallene (eller sannsynlighetene for utfall) av alle handlinger er gitt. I en ukjent omgivelse må agenten lære hvordan den fungerer.</span></span>
+      er utfallene (eller utfallssannsynlighetene) for alle handlinger gitt; i en ukjent må agenten lære hvordan den virker.</p>
+    <div class="box warning"><span class="box-title">Kjent/ukjent ≠ fullt/delvis observerbar</span>
+      <p><b>Kjent men delvis observerbar:</b> kabal – du kan reglene, men ser ikke kortene med baksiden opp. <b>Ukjent men fullt observerbar:</b> nytt dataspill – hele skjermen er synlig, men du vet ikke hva knappene gjør.</p>
+    </div>
+
+    <h3>6.8 Oversikt: bokas eksempler</h3>
+    <p>Den vanskeligste kombinasjonen er delvis observerbar, fleragent, ikke-deterministisk, sekvensiell, dynamisk, kontinuerlig og ukjent. Taxikjøring er vanskelig på alle disse – bortsett fra at den stort sett er kjent.</p>
+    <table class="compact">
+      <tr><th>Oppgaveomgivelse</th><th>Observerbar</th><th>Agenter</th><th>Deterministisk</th><th>Episodisk</th><th>Statisk</th><th>Diskret</th></tr>
+      <tr><td>Kryssord</td><td>Fullt</td><td>Én</td><td>Deterministisk</td><td>Sekvensiell</td><td>Statisk</td><td>Diskret</td></tr>
+      <tr><td>Sjakk med klokke</td><td>Fullt</td><td>Flere</td><td>Deterministisk</td><td>Sekvensiell</td><td>Semi</td><td>Diskret</td></tr>
+      <tr><td>Poker</td><td>Delvis</td><td>Flere</td><td>Stokastisk</td><td>Sekvensiell</td><td>Statisk</td><td>Diskret</td></tr>
+      <tr><td>Backgammon</td><td>Fullt</td><td>Flere</td><td>Stokastisk</td><td>Sekvensiell</td><td>Statisk</td><td>Diskret</td></tr>
+      <tr><td>Taxikjøring</td><td>Delvis</td><td>Flere</td><td>Stokastisk</td><td>Sekvensiell</td><td>Dynamisk</td><td>Kontinuerlig</td></tr>
+      <tr><td>Medisinsk diagnose</td><td>Delvis</td><td>Én</td><td>Stokastisk</td><td>Sekvensiell</td><td>Dynamisk</td><td>Kontinuerlig</td></tr>
+      <tr><td>Bildeanalyse</td><td>Fullt</td><td>Én</td><td>Deterministisk</td><td>Episodisk</td><td>Semi</td><td>Kontinuerlig</td></tr>
+      <tr><td>Plukkerobot</td><td>Delvis</td><td>Én</td><td>Stokastisk</td><td>Episodisk</td><td>Dynamisk</td><td>Kontinuerlig</td></tr>
+      <tr><td>Raffineri-kontroller</td><td>Delvis</td><td>Én</td><td>Stokastisk</td><td>Sekvensiell</td><td>Dynamisk</td><td>Kontinuerlig</td></tr>
+      <tr><td>Engelsklærer</td><td>Delvis</td><td>Flere</td><td>Stokastisk</td><td>Sekvensiell</td><td>Dynamisk</td><td>Diskret</td></tr>
+    </table>
+    <p style="font-size:.85rem;color:var(--muted)">Tabell etter bokas fig. 2.6. Boka har ikke kjent/ukjent-kolonne fordi det ikke strengt er en egenskap ved omgivelsen. Boka påpeker selv at egenskapene ikke alltid er entydige: medisinsk diagnose er episodisk hvis oppgaven er «velg diagnose gitt symptomliste», men sekvensiell med tester og oppfølging.</p>
+
+    <div class="box exam"><span class="box-title">Slik svarer du på klassifiseringsoppgaver</span>
+      <p>Fra 2020 er dette diskusjonsoppgaver («explain your answers and what assumptions you make»). Mal for hver dimensjon: <b>verdi + én setning begrunnelse knyttet til scenarioet + evt. antakelse.</b> F.eks.: «Delvis observerbar: roboten ser bare noen få meter og ikke bak hyllene.» Der to svar kan forsvares, si hvilket du velger og hvorfor – det gir full uttelling.</p>
+    </div>
+
+    <div class="widget" id="envc">
+      <p><b>Klassifiser omgivelsen.</b> Velg en omgivelse, marker en verdi for hver dimensjon og trykk «Sjekk». Du får begrunnelse for hver dimensjon. Eksempler fra boka og fra eksamen 2015, 2016 og 2019.</p>
+      <div class="controls">
+        <label>Omgivelse: <select id="envc-sel"></select></label>
+        <button id="envc-rand" class="secondary">Tilfeldig</button>
+      </div>
+      <p id="envc-desc" style="font-size:.9rem"></p>
+      <table id="envc-tbl" class="compact"></table>
+      <div class="controls">
+        <button id="envc-check">Sjekk</button>
+        <button id="envc-show" class="secondary">Vis fasit</button>
+        <span id="envc-res" class="res-line"></span>
+      </div>
+    </div>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">«Backgammon is a fully observable, sequential, deterministic, static, discrete and multiagent environment.» (Eksamen 2017)</p>
+      <ul class="opts">
+        <li data-why="Én av egenskapene er feil – se på terningene.">Sant</li>
+        <li>Usant</li>
+      </ul>
+      <div class="feedback">Usant: backgammon er <b>ikke deterministisk</b> – terningkastet gjør utfallet stokastisk. Resten stemmer.</div>
+    </div>
+
+    <div class="quiz" data-answer="c">
+      <p class="q">Sjakk med klokke er …</p>
+      <ul class="opts">
+        <li data-why="Brettet endrer seg ikke mens du tenker.">dynamisk, fordi motstanderen kan flytte når som helst</li>
+        <li data-why="Klokka gjør at tiden betyr noe for ytelsen.">statisk, fordi brettet står stille</li>
+        <li>semidynamisk, fordi brettet står stille, men tiden påvirker ytelsen</li>
+      </ul>
+      <div class="feedback">Semidynamisk: omgivelsen endres ikke mens du tenker, men klokka tikker og påvirker scoren.</div>
+    </div>
+
+    <div class="quiz" data-answer="a">
+      <p class="q">Hva er forskjellen på stokastisk og ikke-deterministisk ifølge læreboka? (Eksamen 2023)</p>
+      <ul class="opts">
+        <li>Stokastisk: utfallene har eksplisitte sannsynligheter. Ikke-deterministisk: mulige utfall er listet, men ikke tallfestet.</li>
+        <li data-why="Det er motsatt.">Ikke-deterministisk: utfallene har sannsynligheter. Stokastisk: mulige utfall er listet uten sannsynligheter.</li>
+        <li data-why="Boka skiller dem eksplisitt, selv om noen bruker dem som synonymer.">Det er ingen forskjell.</li>
+        <li data-why="Det er observerbarhet, ikke determinisme.">Stokastisk betyr at agenten ikke ser hele tilstanden.</li>
+      </ul>
+      <div class="feedback">«25 % sjanse for regn» = stokastisk. «Det kan bli regn» = ikke-deterministisk.</div>
+    </div>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">En agent i et nytt dataspill ser hele skjermen, men vet ikke hva knappene gjør. Omgivelsen er …</p>
+      <ul class="opts">
+        <li data-why="Hele tilstanden er synlig.">delvis observerbar og kjent</li>
+        <li>fullt observerbar og ukjent</li>
+        <li data-why="Den vet ikke reglene.">fullt observerbar og kjent</li>
+      </ul>
+      <div class="feedback">Bokas eget eksempel på at kjent/ukjent og observerbarhet er uavhengige akser.</div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Eksamen 2023: Et HR-system foreslår hvem som skal ansettes, og tar «korrigerende beslutninger» for å redusere urettferdighet fra skjevheter i tidligere beslutninger. Er omgivelsen episodisk eller sekvensiell? Begrunn.</p>
+      <details><summary>Vis et forslag</summary><p><b>Sekvensiell.</b> Fordi systemet bevisst tar hensyn til tidligere beslutninger (og deres skjevhet) og prøver å rette opp i dem, påvirker hver ansettelse hva som er riktig beslutning senere. Uten korrigering kunne man argumentert for episodisk (hver søknadsbunke vurderes uavhengig), men nettopp korrigeringen gjør beslutningene avhengige av hverandre.</p></details>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>7. Agentprogrammer og agenttyper</h2>
+    <p>Til nå har vi beskrevet agenter ved <em>atferden</em> (agentfunksjonen). Nå: hvordan ser de ut <em>inni</em>? Alle agentprogrammene i boka har samme skjelett: ta inn <b>nåværende persepsjon</b> fra sensorene, returner en <b>handling</b> til aktuatorene.</p>
+
+    <h3>7.1 Tabelldrevet agent – hvorfor det ikke går</h3>
+    <div class="box algo"><span class="box-title">Algoritme (bok fig. 2.7)</span>
+<pre>function TABLE-DRIVEN-AGENT(percept) returns an action
+  persistent: percepts, a sequence, initially empty
+              table, a table of actions, indexed by percept sequences, initially fully specified
+  append percept to the end of percepts
+  action ← LOOKUP(percepts, table)
+  return action</pre></div>
+    <p>Linje for linje: programmet husker <em>hele</em> persepsjonssekvensen (<code>percepts</code>), legger til den nye persepsjonen, og slår opp handlingen i en tabell indeksert på hele sekvensen. Den implementerer <em>enhver</em> agentfunksjon korrekt – men er dømt til å feile i praksis. Med |P| mulige persepsjoner og levetid T har tabellen</p>
+    <div class="formula">Σ<sub>t=1..T</sub> |P|<sup>t</sup>  rader</div>
+    <p>Automatisk taxi: over 10<sup>600 000 000 000</sup> rader for én times kjøring. Sjakk: minst 10<sup>150</sup>. Til sammenligning: ca. 10<sup>80</sup> atomer i det observerbare universet. (a) Ingen fysisk agent har plass, (b) ingen designer har tid til å lage den, (c) ingen agent kunne lært alle radene.</p>
+
+    <div class="widget" id="tbl">
+      <p><b>Hvor stor blir tabellen?</b> Endre antall mulige persepsjoner |P| og levetid T.</p>
+      <div class="controls">
+        <label>|P| = <input id="tbl-p" type="number" min="1" value="4" style="width:6rem"></label>
+        <label>T = <input id="tbl-t" type="number" min="1" value="3" style="width:6rem"></label>
+      </div>
+      <p id="tbl-out"></p>
+      <p style="font-size:.85rem;color:var(--muted)">Støvsugeren har |P| = 4 ([A,Clean], [A,Dirty], [B,Clean], [B,Dirty]). Prøv T = 1000 (bokas levetid).</p>
+    </div>
+
+    <div class="check" data-answer="84" data-mode="number">
+      <p class="q">Hvor mange rader trenger tabellen for støvsugeren (|P| = 4) med levetid T = 3?</p>
+      <div class="explain">4 + 4² + 4³ = 4 + 16 + 64 = 84. En enkel refleksagent trenger bare 4 «rader» (én per persepsjon), fordi den ignorerer historikken.</div>
+    </div>
+
+    <p>Den store utfordringen i KI: skrive <em>små programmer</em> som gir rasjonell atferd – slik Newtons metode erstattet tabeller over kvadratrøtter. Boka gir fire grunnleggende typer agentprogram, pluss læring:</p>
+
+    <h3>7.2 Enkel refleksagent</h3>
+    <p>En <span class="term" data-en="simple reflex agent">enkel refleksagent<span class="def">Velger handling bare ut fra nåværende persepsjon, med betingelse–handling-regler. Ignorerer persepsjonshistorikken. Fungerer bare godt hvis omgivelsen er fullt observerbar.</span></span>
+      velger handling <b>bare ut fra nåværende persepsjon</b> og ignorerer historikken. Den bygger på
+      <span class="term" data-en="condition–action rule">betingelse–handling-regler<span class="def">Regler på formen «if betingelse then handling», f.eks. «if car-in-front-is-braking then initiate-braking». Kalles også situation–action rules, productions eller if–then rules.</span></span>
+      som «<code>if car-in-front-is-braking then initiate-braking</code>».</p>
+    <figure><svg viewBox="0 0 660 400" width="660" role="img" aria-label="Enkel refleksagent"><defs><marker id="m01-ar-sr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker></defs><rect class="box" x="10" y="10" width="475" height="380" rx="10"/><text x="24" y="32" class="label">Agent</text><rect class="box" x="525" y="10" width="125" height="380" rx="10"/><text x="587" y="196" text-anchor="middle" class="label">Omgivelse</text><text x="587" y="214" text-anchor="middle" class="small">Environment</text><text x="360" y="38" text-anchor="middle" class="label" style="font-size:13px">Sensorer</text><line class="edge" x1="523" y1="33" x2="400" y2="33" marker-end="url(#m01-ar-sr)"/><line class="edge" x1="360" y1="43" x2="360" y2="60" marker-end="url(#m01-ar-sr)"/><text x="360" y="378" text-anchor="middle" class="label" style="font-size:13px">Aktuatorer</text><line class="edge" x1="360" y1="348" x2="360" y2="362" marker-end="url(#m01-ar-sr)"/><line class="edge" x1="406" y1="373" x2="523" y2="373" marker-end="url(#m01-ar-sr)"/><rect class="box-accent" x="250" y="62" width="220" height="46" rx="6"/><text x="360" y="82" text-anchor="middle" style="font-size:12.5px">Hvordan er verden nå?</text><text x="360" y="98" text-anchor="middle" class="small">What the world is like now</text><rect class="box-accent" x="250" y="302" width="220" height="46" rx="6"/><text x="360" y="322" text-anchor="middle" style="font-size:12.5px">Hvilken handling bør jeg gjøre nå?</text><text x="360" y="338" text-anchor="middle" class="small">What action I should do now</text><line class="edge" x1="360" y1="108" x2="360" y2="300" marker-end="url(#m01-ar-sr)"/><ellipse class="box" cx="125" cy="325" rx="108" ry="24"/><text x="125" y="322" text-anchor="middle" style="font-size:12.5px">Betingelse–handling-regler</text><text x="125" y="338" text-anchor="middle" class="small">Condition–action rules</text><line class="edge" x1="233" y1="325" x2="248" y2="325" marker-end="url(#m01-ar-sr)"/></svg>
+      <figcaption>Figur 5: Enkel refleksagent (bok fig. 2.9). Rektangler = nåværende interne tilstand i beslutningsprosessen; ovaler = bakgrunnskunnskap.</figcaption></figure>
+    <div class="box algo"><span class="box-title">Algoritme (bok fig. 2.10 og 2.8)</span>
+<pre>function SIMPLE-REFLEX-AGENT(percept) returns an action
+  persistent: rules, a set of condition–action rules
+  state ← INTERPRET-INPUT(percept)     // abstrakt beskrivelse av nå-tilstanden
+  rule  ← RULE-MATCH(state, rules)     // første regel som matcher
+  action ← rule.ACTION
+  return action
+
+function REFLEX-VACUUM-AGENT([location, status]) returns an action
+  if status = Dirty then return Suck
+  else if location = A then return Right
+  else if location = B then return Left</pre></div>
+    <p><code>INTERPRET-INPUT</code> lager en abstrakt tilstandsbeskrivelse fra persepsjonen; <code>RULE-MATCH</code> finner første regel hvis betingelse matcher. «Regler» og «matching» er konseptuelt – i praksis kan det være en boolsk krets. Støvsuger-programmet reduserer tabellen fra 4<sup>T</sup> til 4 tilfeller.</p>
+    <p><b>Begrensning:</b> fungerer bare hvis riktig beslutning kan tas fra nåværende persepsjon – altså bare hvis omgivelsen er <b>fullt observerbar</b>. Målet er ikke representert eksplisitt: det er <b>implisitt innebygd i reglene</b> («designed in»).</p>
+
+    <div class="box example"><span class="box-title">Eksempel: uendelig løkke og randomisering</span>
+      <p>Fjern posisjonssensoren fra støvsugeren: persepsjonene er bare [Dirty] og [Clean]. På [Clean] – gå Left eller Right? Velger den alltid Right, sitter den fast for alltid hvis den starter i B (den «går» inn i veggen). Uendelige løkker er ofte uunngåelige for enkle refleksagenter i delvis observerbare omgivelser.</p>
+      <p><b>Utvei: randomisering.</b> Ved [Clean], kast mynt mellom Left og Right. Agenten når den andre ruta på gjennomsnittlig 2 steg (forventet antall forsøk til første suksess med p = ½ er 1/p = 2). En randomisert refleksagent kan altså slå en deterministisk refleksagent. Men: i <b>én-agent-omgivelser</b> er randomisering sjelden rasjonelt optimalt – en mer sofistikert deterministisk agent (med hukommelse) gjør det bedre. Test selv i støvsugersimulatoren i seksjon 3!</p>
+    </div>
+
+    <div class="box warning"><span class="box-title">Eksamen 2024 Q1 – fella med «only»</span>
+      <p>«A vacuum cleaner agent with a dirt sensor but no location sensor may behave intelligently <b>only if</b> it can randomize its action choices» ble vurdert som <b>usann</b> pga. ordet «only»: randomisering er ikke den eneste måten – en agent med intern tilstand (modell) kan også klare det, f.eks. ved å huske hvor mange ganger den har flyttet seg.</p>
+    </div>
+
+    <h3>7.3 Modellbasert refleksagent</h3>
+    <p>Den mest effektive måten å håndtere delvis observerbarhet på: <b>hold styr på den delen av verden agenten ikke ser nå</b>. Agenten lagrer en
+      <span class="term" data-en="internal state">intern tilstand<span class="def">Agentens lagrede «beste gjetning» om verdens tilstand, oppdatert fra persepsjonshistorikken. Reflekterer aspekter som ikke er synlige i nåværende persepsjon.</span></span>
+      som avhenger av persepsjonshistorikken. For å oppdatere den trengs to typer kunnskap:</p>
+    <ul>
+      <li><span class="term" data-en="transition model">Transisjonsmodell<span class="def">Kunnskap om hvordan verden endrer seg: effekten av agentens egne handlinger og hvordan verden utvikler seg uavhengig av agenten. Gitt tilstand og handling → resulterende tilstand.</span></span>
+        – «hvordan verden fungerer»: (a) effekten av agentens <em>egne handlinger</em> (vri rattet → bilen svinger) og (b) hvordan verden utvikler seg <em>uavhengig</em> av agenten (regn → kameraet blir vått).</li>
+      <li><span class="term" data-en="sensor model">Sensormodell<span class="def">Kunnskap om hvordan verdens tilstand gjenspeiles i agentens persepsjoner (f.eks. røde felt i kamerabildet når bilen foran bremser).</span></span>
+        – hvordan verdens tilstand gjenspeiles i persepsjonene (bilen foran bremser → røde felt i kamerabildet).</li>
+    </ul>
+    <figure><svg viewBox="0 0 660 400" width="660" role="img" aria-label="Modellbasert refleksagent"><defs><marker id="m01-ar-mb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker></defs><rect class="box" x="10" y="10" width="475" height="380" rx="10"/><text x="24" y="32" class="label">Agent</text><rect class="box" x="525" y="10" width="125" height="380" rx="10"/><text x="587" y="196" text-anchor="middle" class="label">Omgivelse</text><text x="587" y="214" text-anchor="middle" class="small">Environment</text><text x="360" y="38" text-anchor="middle" class="label" style="font-size:13px">Sensorer</text><line class="edge" x1="523" y1="33" x2="400" y2="33" marker-end="url(#m01-ar-mb)"/><line class="edge" x1="360" y1="43" x2="360" y2="60" marker-end="url(#m01-ar-mb)"/><text x="360" y="378" text-anchor="middle" class="label" style="font-size:13px">Aktuatorer</text><line class="edge" x1="360" y1="348" x2="360" y2="362" marker-end="url(#m01-ar-mb)"/><line class="edge" x1="406" y1="373" x2="523" y2="373" marker-end="url(#m01-ar-mb)"/><rect class="box-accent" x="250" y="62" width="220" height="46" rx="6"/><text x="360" y="82" text-anchor="middle" style="font-size:12.5px">Hvordan er verden nå?</text><text x="360" y="98" text-anchor="middle" class="small">What the world is like now</text><rect class="box-accent" x="250" y="302" width="220" height="46" rx="6"/><text x="360" y="322" text-anchor="middle" style="font-size:12.5px">Hvilken handling bør jeg gjøre nå?</text><text x="360" y="338" text-anchor="middle" class="small">What action I should do now</text><line class="edge" x1="360" y1="108" x2="360" y2="300" marker-end="url(#m01-ar-mb)"/><ellipse class="box" cx="125" cy="55" rx="108" ry="24"/><text x="125" y="52" text-anchor="middle" style="font-size:12.5px">Tilstand</text><text x="125" y="68" text-anchor="middle" class="small">State</text><ellipse class="box" cx="125" cy="115" rx="108" ry="24"/><text x="125" y="112" text-anchor="middle" style="font-size:12.5px">Hvordan verden utvikler seg</text><text x="125" y="128" text-anchor="middle" class="small">How the world evolves</text><ellipse class="box" cx="125" cy="175" rx="108" ry="24"/><text x="125" y="172" text-anchor="middle" style="font-size:12.5px">Hva handlingene mine gjør</text><text x="125" y="188" text-anchor="middle" class="small">What my actions do</text><line class="edge" x1="229" y1="60" x2="248" y2="76" marker-end="url(#m01-ar-mb)"/><line class="edge" x1="231" y1="110" x2="248" y2="86" marker-end="url(#m01-ar-mb)"/><line class="edge" x1="221" y1="165" x2="248" y2="98" marker-end="url(#m01-ar-mb)"/><path class="edge" stroke-dasharray="4 4" d="M 270 62 C 240 20, 165 18, 155 30" marker-end="url(#m01-ar-mb)"/><ellipse class="box" cx="125" cy="325" rx="108" ry="24"/><text x="125" y="322" text-anchor="middle" style="font-size:12.5px">Betingelse–handling-regler</text><text x="125" y="338" text-anchor="middle" class="small">Condition–action rules</text><line class="edge" x1="233" y1="325" x2="248" y2="325" marker-end="url(#m01-ar-mb)"/></svg>
+      <figcaption>Figur 6: Modellbasert refleksagent (bok fig. 2.11). Den stiplede pilen viser at den oppdaterte beskrivelsen lagres som ny intern tilstand.</figcaption></figure>
+    <div class="box algo"><span class="box-title">Algoritme (bok fig. 2.12)</span>
+<pre>function MODEL-BASED-REFLEX-AGENT(percept) returns an action
+  persistent: state, the agent's current conception of the world state
+              transition model, how the next state depends on the current state and action
+              sensor model, how the current world state is reflected in the agent's percepts
+              rules, a set of condition–action rules
+              action, the most recent action, initially none
+  state ← UPDATE-STATE(state, action, percept, transition model, sensor model)
+  rule  ← RULE-MATCH(state, rules)
+  action ← rule.ACTION
+  return action</pre></div>
+    <p>Eneste nye linje er <code>UPDATE-STATE</code>: kombiner gammel tilstand, siste handling og ny persepsjon (via transisjons- og sensormodell) til en ny tilstandsbeskrivelse. Deretter velges handling <b>nøyaktig som i refleksagenten: regelmatching</b>. Den interne tilstanden er en «beste gjetning» – full sikkerhet er sjelden mulig (taxien kan ikke se hva som skjer foran lastebilen).</p>
+
+    <div class="box warning"><span class="box-title">Vanlig feil: «transition model» = mengden handlinger?</span>
+      <p>Nei! Transisjonsmodellen beskriver <b>konsekvensen</b> av handlinger: gitt tilstand og handling → resulterende tilstand (i søk: RESULT(s, a)). Mengden handlinger agenten kan gjøre heter ACTIONS(s). Dette var det «riktige» (usanne) alternativet i eksamen 2024 Q1.</p>
+    </div>
+
+    <h3>7.4 Målbasert agent</h3>
+    <p>Å vite hvordan verden er nå, er ikke alltid nok. I et veikryss kan taxien svinge til venstre, høyre eller kjøre rett fram – riktig valg avhenger av <em>hvor den skal</em>. En
+      <span class="term" data-en="goal-based agent">målbasert agent<span class="def">Bruker modellen pluss eksplisitt målinformasjon (ønskede situasjoner) og velger handlinger som vil oppnå målet. Krever å vurdere framtiden: søk og planlegging.</span></span>
+      kombinerer modellen med eksplisitt
+      <span class="term" data-en="goal">målinformasjon<span class="def">Beskrivelse av ønskede situasjoner, f.eks. «å være på en bestemt destinasjon». Gir et binært skille: mål nådd / ikke nådd.</span></span>
+      og velger handlinger som (etter hvert) oppnår målet.</p>
+    <figure><svg viewBox="0 0 660 400" width="660" role="img" aria-label="Målbasert agent"><defs><marker id="m01-ar-gb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker></defs><rect class="box" x="10" y="10" width="475" height="380" rx="10"/><text x="24" y="32" class="label">Agent</text><rect class="box" x="525" y="10" width="125" height="380" rx="10"/><text x="587" y="196" text-anchor="middle" class="label">Omgivelse</text><text x="587" y="214" text-anchor="middle" class="small">Environment</text><text x="360" y="38" text-anchor="middle" class="label" style="font-size:13px">Sensorer</text><line class="edge" x1="523" y1="33" x2="400" y2="33" marker-end="url(#m01-ar-gb)"/><line class="edge" x1="360" y1="43" x2="360" y2="60" marker-end="url(#m01-ar-gb)"/><text x="360" y="378" text-anchor="middle" class="label" style="font-size:13px">Aktuatorer</text><line class="edge" x1="360" y1="348" x2="360" y2="362" marker-end="url(#m01-ar-gb)"/><line class="edge" x1="406" y1="373" x2="523" y2="373" marker-end="url(#m01-ar-gb)"/><rect class="box-accent" x="250" y="62" width="220" height="46" rx="6"/><text x="360" y="82" text-anchor="middle" style="font-size:12.5px">Hvordan er verden nå?</text><text x="360" y="98" text-anchor="middle" class="small">What the world is like now</text><rect class="box-accent" x="250" y="142" width="220" height="46" rx="6"/><text x="360" y="162" text-anchor="middle" style="font-size:12.5px">Hvordan blir verden om jeg gjør A?</text><text x="360" y="178" text-anchor="middle" class="small">What it will be like if I do action A</text><rect class="box-accent" x="250" y="302" width="220" height="46" rx="6"/><text x="360" y="322" text-anchor="middle" style="font-size:12.5px">Hvilken handling bør jeg gjøre nå?</text><text x="360" y="338" text-anchor="middle" class="small">What action I should do now</text><line class="edge" x1="360" y1="108" x2="360" y2="140" marker-end="url(#m01-ar-gb)"/><line class="edge" x1="360" y1="188" x2="360" y2="300" marker-end="url(#m01-ar-gb)"/><ellipse class="box" cx="125" cy="55" rx="108" ry="24"/><text x="125" y="52" text-anchor="middle" style="font-size:12.5px">Tilstand</text><text x="125" y="68" text-anchor="middle" class="small">State</text><ellipse class="box" cx="125" cy="115" rx="108" ry="24"/><text x="125" y="112" text-anchor="middle" style="font-size:12.5px">Hvordan verden utvikler seg</text><text x="125" y="128" text-anchor="middle" class="small">How the world evolves</text><ellipse class="box" cx="125" cy="175" rx="108" ry="24"/><text x="125" y="172" text-anchor="middle" style="font-size:12.5px">Hva handlingene mine gjør</text><text x="125" y="188" text-anchor="middle" class="small">What my actions do</text><line class="edge" x1="229" y1="60" x2="248" y2="76" marker-end="url(#m01-ar-gb)"/><line class="edge" x1="231" y1="110" x2="248" y2="88" marker-end="url(#m01-ar-gb)"/><line class="edge" x1="231" y1="120" x2="248" y2="156" marker-end="url(#m01-ar-gb)"/><line class="edge" x1="233" y1="175" x2="248" y2="170" marker-end="url(#m01-ar-gb)"/><path class="edge" stroke-dasharray="4 4" d="M 270 62 C 240 20, 165 18, 155 30" marker-end="url(#m01-ar-gb)"/><ellipse class="box" cx="125" cy="325" rx="108" ry="24"/><text x="125" y="322" text-anchor="middle" style="font-size:12.5px">Mål</text><text x="125" y="338" text-anchor="middle" class="small">Goals</text><line class="edge" x1="233" y1="325" x2="248" y2="325" marker-end="url(#m01-ar-gb)"/></svg>
+      <figcaption>Figur 7: Modellbasert, målbasert agent (bok fig. 2.13). Nytt: «Hvordan blir verden om jeg gjør A?» og «Mål».</figcaption></figure>
+    <ul>
+      <li>Krever å <b>vurdere framtiden</b>: «Hva skjer hvis jeg gjør slik?» og «Vil det gjøre meg fornøyd?» – fundamentalt annerledes enn betingelse–handling-regler.</li>
+      <li>Noen ganger trivielt (målet nås med én handling), ofte krever det lange handlingssekvenser: det er dette <b>søk</b> (kap. 3, 4, 6 – modul 2–4 og 6) og <b>planlegging</b> (kap. 11) handler om.</li>
+      <li><b>Mer fleksibel</b>: refleksagenten bremser når den ser bremselys – den aner ikke hvorfor. Den målbaserte bremser fordi det er den eneste handlingen den forutsier oppnår målet om å ikke kollidere. Vil du til et annet sted, endrer du bare målet – refleksagentens regler må skrives om.</li>
+    </ul>
+
+    <h3>7.5 Nyttebasert agent</h3>
+    <p>Mål gir bare et grovt binært skille: «fornøyd» / «ikke fornøyd». Mange ruter fører taxien fram, men noen er raskere, tryggere, billigere. En
+      <span class="term" data-en="utility function">nyttefunksjon<span class="def">Avbilder en tilstand (eller tilstandssekvens) til et reelt tall som angir hvor ønskelig den er. En internalisering av ytelsesmålet.</span></span>
+      avbilder en tilstand (eller sekvens) til et reelt tall – den er en <b>internalisering av ytelsesmålet</b>. Stemmer den med det eksterne ytelsesmålet, er en agent som maksimerer nytte rasjonell.</p>
+    <figure><svg viewBox="0 0 660 400" width="660" role="img" aria-label="Nyttebasert agent"><defs><marker id="m01-ar-ub" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker></defs><rect class="box" x="10" y="10" width="475" height="380" rx="10"/><text x="24" y="32" class="label">Agent</text><rect class="box" x="525" y="10" width="125" height="380" rx="10"/><text x="587" y="196" text-anchor="middle" class="label">Omgivelse</text><text x="587" y="214" text-anchor="middle" class="small">Environment</text><text x="360" y="38" text-anchor="middle" class="label" style="font-size:13px">Sensorer</text><line class="edge" x1="523" y1="33" x2="400" y2="33" marker-end="url(#m01-ar-ub)"/><line class="edge" x1="360" y1="43" x2="360" y2="60" marker-end="url(#m01-ar-ub)"/><text x="360" y="378" text-anchor="middle" class="label" style="font-size:13px">Aktuatorer</text><line class="edge" x1="360" y1="348" x2="360" y2="362" marker-end="url(#m01-ar-ub)"/><line class="edge" x1="406" y1="373" x2="523" y2="373" marker-end="url(#m01-ar-ub)"/><rect class="box-accent" x="250" y="62" width="220" height="46" rx="6"/><text x="360" y="82" text-anchor="middle" style="font-size:12.5px">Hvordan er verden nå?</text><text x="360" y="98" text-anchor="middle" class="small">What the world is like now</text><rect class="box-accent" x="250" y="142" width="220" height="46" rx="6"/><text x="360" y="162" text-anchor="middle" style="font-size:12.5px">Hvordan blir verden om jeg gjør A?</text><text x="360" y="178" text-anchor="middle" class="small">What it will be like if I do action A</text><rect class="box-accent" x="250" y="222" width="220" height="46" rx="6"/><text x="360" y="242" text-anchor="middle" style="font-size:12.5px">Hvor fornøyd blir jeg da?</text><text x="360" y="258" text-anchor="middle" class="small">How happy I will be in such a state</text><rect class="box-accent" x="250" y="302" width="220" height="46" rx="6"/><text x="360" y="322" text-anchor="middle" style="font-size:12.5px">Hvilken handling bør jeg gjøre nå?</text><text x="360" y="338" text-anchor="middle" class="small">What action I should do now</text><line class="edge" x1="360" y1="108" x2="360" y2="140" marker-end="url(#m01-ar-ub)"/><line class="edge" x1="360" y1="188" x2="360" y2="220" marker-end="url(#m01-ar-ub)"/><line class="edge" x1="360" y1="268" x2="360" y2="300" marker-end="url(#m01-ar-ub)"/><ellipse class="box" cx="125" cy="55" rx="108" ry="24"/><text x="125" y="52" text-anchor="middle" style="font-size:12.5px">Tilstand</text><text x="125" y="68" text-anchor="middle" class="small">State</text><ellipse class="box" cx="125" cy="115" rx="108" ry="24"/><text x="125" y="112" text-anchor="middle" style="font-size:12.5px">Hvordan verden utvikler seg</text><text x="125" y="128" text-anchor="middle" class="small">How the world evolves</text><ellipse class="box" cx="125" cy="175" rx="108" ry="24"/><text x="125" y="172" text-anchor="middle" style="font-size:12.5px">Hva handlingene mine gjør</text><text x="125" y="188" text-anchor="middle" class="small">What my actions do</text><line class="edge" x1="229" y1="60" x2="248" y2="76" marker-end="url(#m01-ar-ub)"/><line class="edge" x1="231" y1="110" x2="248" y2="88" marker-end="url(#m01-ar-ub)"/><line class="edge" x1="231" y1="120" x2="248" y2="156" marker-end="url(#m01-ar-ub)"/><line class="edge" x1="233" y1="175" x2="248" y2="170" marker-end="url(#m01-ar-ub)"/><path class="edge" stroke-dasharray="4 4" d="M 270 62 C 240 20, 165 18, 155 30" marker-end="url(#m01-ar-ub)"/><ellipse class="box" cx="125" cy="245" rx="108" ry="24"/><text x="125" y="242" text-anchor="middle" style="font-size:12.5px">Nyttefunksjon</text><text x="125" y="258" text-anchor="middle" class="small">Utility</text><line class="edge" x1="233" y1="245" x2="248" y2="245" marker-end="url(#m01-ar-ub)"/></svg>
+      <figcaption>Figur 8: Modellbasert, nyttebasert agent (bok fig. 2.14). Nytt: «Hvor fornøyd blir jeg da?».</figcaption></figure>
+    <p>En rasjonell nyttebasert agent velger handlingen som maksimerer
+      <span class="term" data-en="expected utility">forventet nytte<span class="def">Nytten agenten forventer i snitt: summen over mulige utfall av P(utfall) · U(utfall).</span></span>:</p>
+    <div class="formula">EU(a) = Σ<sub>s'</sub> P(s' | s, a) · U(s')      velg a* = argmax<sub>a</sub> EU(a)</div>
+    <p>Nytte løser to situasjoner mål ikke klarer:</p>
+    <ol>
+      <li><b>Konflikterende mål</b> (fart vs. sikkerhet): nyttefunksjonen spesifiserer avveiningen.</li>
+      <li><b>Usikker måloppnåelse</b> (flere mål, ingen sikre): nytte veier sannsynlighet for suksess mot hvor viktig målet er.</li>
+    </ol>
+    <div class="box example"><span class="box-title">Gjennomregnet eksempel: forventet nytte</span>
+      <p>Taxien velger mellom motorvei og bygate. Motorvei: 70 % sjanse for fri flyt (nytte 10), 30 % kø (nytte 2). Bygate: alltid middels (nytte 7).</p>
+      <p>EU(motorvei) = 0,7·10 + 0,3·2 = 7 + 0,6 = <b>7,6</b>. EU(bygate) = 1,0·7 = <b>7</b>. Rasjonell agent velger motorvei – selv om den <em>kan</em> havne i kø (rasjonalitet ≠ allvitenhet!). En målbasert agent med mål «kom fram» ville sett begge som like gode.</p>
+    </div>
+    <div class="check" data-answer="6.5" data-mode="number" data-tol="0.01">
+      <p class="q">Endre eksempelet: kø-sannsynligheten øker til 50 %. Hva blir EU(motorvei)? (Bruk punktum eller komma.)</p>
+      <div class="explain">EU = 0,5·10 + 0,5·2 = 5 + 1 = 6,5 &lt; 7, så nå er bygata det rasjonelle valget.</div>
+    </div>
+    <p>Merk: ikke alle nyttebaserte agenter er modellbaserte – en <em>modellfri</em> agent kan lære hvilken handling som er best uten å lære hvordan handlingen endrer omgivelsen (forsterkningslæring, ikke pensum her).</p>
+
+    <h3>7.6 Lærende agent</h3>
+    <p>Alle typene over (refleks, modellbasert, mål-, nyttebasert) kan bygges som en
+      <span class="term" data-en="learning agent">lærende agent<span class="def">En agent som forbedrer komponentene sine med erfaring. Består av ytelseselement, læringselement, kritiker og problemgenerator.</span></span>.
+      Turing foreslo allerede i 1950 å bygge lærende maskiner og så <em>lære dem opp</em> i stedet for å programmere alt for hånd. Læring lar agenten starte i ukjente omgivelser og bli mer kompetent enn startkunnskapen tillater. Fire komponenter:</p>
+    <figure><svg viewBox="0 0 660 400" width="660" role="img" aria-label="Lærende agent"><defs><marker id="m01-ar-le" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker></defs><rect class="box" x="10" y="70" width="475" height="320" rx="10"/><text x="24" y="92" class="label">Agent</text><rect class="box" x="525" y="70" width="125" height="320" rx="10"/><text x="587" y="226" text-anchor="middle" class="label">Omgivelse</text><text x="587" y="244" text-anchor="middle" class="small">Environment</text><rect class="node-warn" x="150" y="12" width="200" height="40" rx="6"/><text x="250" y="30" text-anchor="middle" style="font-size:12.5px">Ytelsesstandard</text><text x="250" y="45" text-anchor="middle" class="small">Performance standard (fast, ekstern)</text><line class="edge" x1="250" y1="52" x2="250" y2="108" marker-end="url(#m01-ar-le)"/><rect class="box-accent" x="160" y="110" width="180" height="42" rx="6"/><text x="250" y="128" text-anchor="middle" style="font-size:12.5px">Kritiker</text><text x="250" y="144" text-anchor="middle" class="small">Critic</text><text x="430" y="128" text-anchor="middle" class="label" style="font-size:13px">Sensorer</text><line class="edge" x1="523" y1="124" x2="466" y2="124" marker-end="url(#m01-ar-le)"/><line class="edge" x1="398" y1="130" x2="342" y2="130" marker-end="url(#m01-ar-le)"/><line class="edge" x1="430" y1="134" x2="430" y2="218" marker-end="url(#m01-ar-le)"/><rect class="box-accent" x="40" y="220" width="170" height="46" rx="6"/><text x="125" y="240" text-anchor="middle" style="font-size:12.5px">Læringselement</text><text x="125" y="256" text-anchor="middle" class="small">Learning element</text><line class="edge" x1="220" y1="152" x2="150" y2="218" marker-end="url(#m01-ar-le)"/><text x="92" y="186" class="small">tilbakemelding</text><rect class="box-accent" x="330" y="220" width="140" height="46" rx="6"/><text x="400" y="240" text-anchor="middle" style="font-size:12.5px">Ytelseselement</text><text x="400" y="256" text-anchor="middle" class="small">Performance element</text><line class="edge" x1="210" y1="236" x2="328" y2="236" marker-end="url(#m01-ar-le)"/><text x="268" y="230" text-anchor="middle" class="small">endringer</text><line class="edge" x1="328" y1="252" x2="212" y2="252" marker-end="url(#m01-ar-le)"/><text x="268" y="268" text-anchor="middle" class="small">kunnskap</text><rect class="box-accent" x="40" y="310" width="170" height="46" rx="6"/><text x="125" y="330" text-anchor="middle" style="font-size:12.5px">Problemgenerator</text><text x="125" y="346" text-anchor="middle" class="small">Problem generator</text><line class="edge" x1="125" y1="266" x2="125" y2="308" marker-end="url(#m01-ar-le)"/><text x="132" y="292" class="small">læringsmål</text><line class="edge" x1="210" y1="333" x2="395" y2="333" marker-end="url(#m01-ar-le)"/><text x="300" y="326" text-anchor="middle" class="small">utforskende handlinger</text><line class="edge" x1="400" y1="266" x2="400" y2="352" marker-end="url(#m01-ar-le)"/><text x="430" y="372" text-anchor="middle" class="label" style="font-size:13px">Aktuatorer</text><line class="edge" x1="470" y1="368" x2="523" y2="368" marker-end="url(#m01-ar-le)"/></svg>
+      <figcaption>Figur 9: Generell lærende agent (bok fig. 2.15). Ytelsesstandarden ligger konseptuelt utenfor agenten – agenten får ikke endre den.</figcaption></figure>
+    <table class="compact">
+      <tr><th>Komponent</th><th>Rolle</th></tr>
+      <tr><td><b>Ytelseselement</b> (performance element)</td><td>Det vi før kalte «hele agenten»: tar inn persepsjoner og velger eksterne handlinger.</td></tr>
+      <tr><td><b>Kritiker</b> (critic)</td><td>Forteller læringselementet hvor godt agenten gjør det, målt mot en <em>fast, ekstern</em> ytelsesstandard. Nødvendig fordi persepsjonen selv ikke sier om noe er bra (sjakkmatt er bare en stilling – standarden sier at det er bra).</td></tr>
+      <tr><td><b>Læringselement</b> (learning element)</td><td>Forbedrer ytelseselementet basert på tilbakemeldingen fra kritikeren.</td></tr>
+      <tr><td><b>Problemgenerator</b> (problem generator)</td><td>Foreslår <em>utforskende</em> handlinger som gir ny, informativ erfaring – selv om de er suboptimale på kort sikt (som Galileo som slapp steiner fra tårnet i Pisa).</td></tr>
+    </table>
+    <p>Eksempel: taxien får ingen tips fra passasjerer som er blitt kastet rundt. Ytelsesstandarden sier at tapte tips er negativt (kritiker), og læringselementet lærer at brå manøvrer ikke lønner seg. Problemgeneratoren kan foreslå å teste bremsene på ulike underlag.</p>
+
+    <h3>7.7 Sammenligning og beslutningsmekanismer</h3>
+    <table class="compact">
+      <tr><th>Agenttype</th><th>Bruker</th><th>Beslutningsmekanisme</th><th>Hukommelse / modell?</th><th>Eksplisitt mål?</th><th>Delvis observerbar?</th></tr>
+      <tr><td>Tabelldrevet</td><td>Hele persepsjonssekvensen</td><td>Tabelloppslag</td><td>Hele historikken</td><td class="n">Nei</td><td>I teorien, men umulig stor</td></tr>
+      <tr><td>Enkel refleks</td><td>Nåværende persepsjon</td><td><b>Regelmatching</b> (rule matching)</td><td class="n">Nei</td><td class="n">Nei – implisitt i reglene</td><td class="n">Dårlig (løkker)</td></tr>
+      <tr><td>Modellbasert refleks</td><td>Persepsjon + intern tilstand (transisjons- og sensormodell)</td><td><b>Regelmatching</b></td><td class="y">Ja</td><td class="n">Nei</td><td class="y">Ja</td></tr>
+      <tr><td>Målbasert</td><td>Modell + mål</td><td><b>Søk og planlegging</b> (search and plan)</td><td class="y">Ja</td><td class="y">Ja (binært)</td><td class="y">Ja</td></tr>
+      <tr><td>Nyttebasert</td><td>Modell + nyttefunksjon</td><td>Maksimer forventet nytte (søk/planlegging + beslutningsteori)</td><td class="y">Ja</td><td class="y">Ja (gradert)</td><td class="y">Ja</td></tr>
+      <tr><td>Lærende</td><td>Hvilken som helst av de over + kritiker</td><td>Som ytelseselementet; læringselementet endrer komponentene</td><td>—</td><td>—</td><td>—</td></tr>
+    </table>
+    <div class="box exam"><span class="box-title">Eksamen 2025 Q1 (5 p) – rett svar</span>
+      <p><b>1. Simple reflex: Rule matching · 2. Model-based reflex: Rule matching · 3. Goal-based: Search and Plan.</b> Felle: mange tror modellbasert agent «søker» fordi den har en modell. Men modellen brukes bare til å <em>oppdatere tilstanden</em>; selve handlingsvalget er fortsatt <code>RULE-MATCH</code> (se pseudokoden).</p>
+    </div>
+
+    <div class="widget" id="atype">
+      <p><b>Agenttype-gjenkjenner.</b> Les scenarioet og velg agenttypen som passer best.</p>
+      <p id="atype-q"></p>
+      <div id="atype-btns"></div>
+      <p id="atype-fb" style="font-size:.9rem"></p>
+      <div class="controls"><span id="atype-score" style="font-size:.85rem;color:var(--muted)"></span><button id="atype-restart" class="secondary">Start på nytt</button></div>
+    </div>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">Hvordan er målinformasjon representert i en enkel refleksagent? (Eksamen 2019)</p>
+      <ul class="opts">
+        <li data-why="Refleksagenter har ingen eksplisitt målrepresentasjon.">Som en eksplisitt måltilstand agenten søker mot</li>
+        <li>Implisitt, innebygd i betingelse–handling-reglene («designed in»)</li>
+        <li data-why="Nytte er gradert og hører til nyttebaserte agenter.">Som en nyttefunksjon</li>
+        <li data-why="Den interne tilstanden finnes ikke i en enkel refleksagent.">I den interne tilstanden</li>
+      </ul>
+      <div class="feedback">Designeren har «bygd inn» målet i reglene – agenten vet ikke selv hvorfor den gjør det den gjør.</div>
+    </div>
+
+    <div class="quiz" data-answer="a,c">
+      <p class="q">Hva må en agent ha (utover en enkel refleksagent) for å oppføre seg intelligent i en delvis observerbar omgivelse? Velg alle som passer. (Eksamen 2023)</p>
+      <ul class="opts">
+        <li>Hukommelse / intern tilstand som sporer det den ikke ser nå</li>
+        <li data-why="Flere sensorer kan hjelpe, men løser ikke det grunnleggende problemet at ikke alt kan observeres samtidig.">Bare flere betingelse–handling-regler</li>
+        <li>En modell (transisjon + sensor) som lar den resonnere over mulige tilstander (en «belief state») i stedet for én kjent tilstand</li>
+        <li data-why="Episodisk/sekvensiell er en egenskap ved omgivelsen, ikke agenten.">At omgivelsen gjøres episodisk</li>
+      </ul>
+      <div class="feedback">Fasit 2023: «needs memory and its action/transition function operates with belief states, i.e., not single state». <em>Belief states</em> (trosstilstander) kommer i modul 4.</div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Hvorfor sier boka at den målbaserte agenten er «less efficient but more flexible» enn refleksagenten?</p>
+      <details><summary>Vis et forslag</summary><p>Mindre effektiv: den må simulere framtiden (søke/planlegge) før hver beslutning, i stedet for å slå opp en regel direkte. Mer fleksibel: kunnskapen er eksplisitt og kan endres. Nytt mål (ny destinasjon) = én endring; refleksagenten måtte fått et helt nytt regelsett. Den kan også tilpasse seg ny kunnskap om verden (f.eks. glatt føre → bremse tidligere) ved å oppdatere modellen.</p></details>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>8. Representasjoner: atomisk, faktorisert, strukturert</h2>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>Hvordan skal agenten «skrive ned» en tilstand av verden internt? Som et navn («Trondheim»)? Som et skjema med felt (by = Trondheim, bensin = 40 %, bom-penger = 200)? Eller som en liten database med objekter og relasjoner («lastebilen rygger inn i gården, men en ku sperrer veien»)? Valget bestemmer hvilke algoritmer du kan bruke – og det er den røde tråden gjennom hele kurset.</p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 660 230" width="660" role="img" aria-label="Atomisk, faktorisert og strukturert representasjon">
+        <defs><marker id="m01-rp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker></defs>
+        <!-- atomisk -->
+        <circle class="node" cx="60" cy="100" r="28"/><text x="60" y="105" text-anchor="middle" class="label">B</text>
+        <circle class="node" cx="160" cy="100" r="28"/><text x="160" y="105" text-anchor="middle" class="label">C</text>
+        <line class="edge" x1="88" y1="100" x2="130" y2="100" marker-end="url(#m01-rp)"/>
+        <text x="110" y="200" text-anchor="middle" class="label">(a) Atomisk</text>
+        <text x="110" y="218" text-anchor="middle" class="small">«svart boks» – bare lik/ulik</text>
+        <!-- faktorisert -->
+        <g>
+          <rect class="box" x="240" y="55" width="70" height="90" rx="5"/>
+          <rect class="box-accent" x="248" y="63" width="54" height="16"/><rect class="box" x="248" y="83" width="54" height="16"/><rect class="box-accent" x="248" y="103" width="54" height="16"/><rect class="box" x="248" y="123" width="54" height="16"/>
+          <text x="275" y="47" text-anchor="middle" class="small">B</text>
+          <rect class="box" x="350" y="55" width="70" height="90" rx="5"/>
+          <rect class="box-accent" x="358" y="63" width="54" height="16"/><rect class="box-accent" x="358" y="83" width="54" height="16"/><rect class="box" x="358" y="103" width="54" height="16"/><rect class="box" x="358" y="123" width="54" height="16"/>
+          <text x="385" y="47" text-anchor="middle" class="small">C</text>
+          <line class="edge" x1="312" y1="100" x2="346" y2="100" marker-end="url(#m01-rp)"/>
+        </g>
+        <text x="330" y="200" text-anchor="middle" class="label">(b) Faktorisert</text>
+        <text x="330" y="218" text-anchor="middle" class="small">vektor av variabler/attributter</text>
+        <!-- strukturert -->
+        <circle class="node-hl" cx="490" cy="70" r="16"/><circle class="node-good" cx="560" cy="60" r="16"/><circle class="node-warn" cx="530" cy="130" r="16"/><circle class="node-hl" cx="610" cy="120" r="16"/>
+        <line class="edge" x1="506" y1="68" x2="544" y2="62"/><line class="edge" x1="497" y1="85" x2="522" y2="116"/><line class="edge" x1="546" y1="128" x2="594" y2="122"/><line class="edge" x1="568" y1="74" x2="602" y2="106"/>
+        <text x="490" y="74" text-anchor="middle" class="small">ku</text><text x="560" y="64" text-anchor="middle" class="small">bil</text><text x="530" y="134" text-anchor="middle" class="small">gård</text><text x="610" y="124" text-anchor="middle" class="small">vei</text>
+        <text x="550" y="200" text-anchor="middle" class="label">(c) Strukturert</text>
+        <text x="550" y="218" text-anchor="middle" class="small">objekter + relasjoner</text>
+      </svg>
+      <figcaption>Figur 10: Tre måter å representere tilstander og overganger mellom dem (bok fig. 2.16).</figcaption>
+    </figure>
+
+    <h3>8.1 Atomisk</h3>
+    <p>I en <span class="term" data-en="atomic representation">atomisk representasjon<span class="def">Hver tilstand er udelelig – en «svart boks» uten indre struktur. Det eneste man kan gjøre er å sjekke om to tilstander er like eller ulike.</span></span>
+      er hver tilstand udelelig – en svart boks. Eneste egenskap: lik eller ulik en annen tilstand. Eks.: rutefinning mellom byer – tilstanden er bare bynavnet. <b>Brukes av:</b> søk (kap. 3–4), spill (kap. 6), skjulte Markov-modeller og MDP-er.</p>
+
+    <h3>8.2 Faktorisert</h3>
+    <p>En <span class="term" data-en="factored representation">faktorisert representasjon<span class="def">Hver tilstand er en fast mengde variabler/attributter, hver med en verdi (boolsk, reell eller fra en fast mengde symboler). To tilstander kan dele noen attributter.</span></span>
+      deler tilstanden i et fast sett <b>variabler/attributter</b> med verdier: bensinmengde, GPS-koordinater, om oljelampa virker, penger til bom … To tilstander kan dele noen attributter og ikke andre – det gjør det mye lettere å se <em>hvordan</em> man kommer fra én til en annen. <b>Brukes av:</b> CSP (kap. 5), utsagnslogikk (kap. 7), planlegging (kap. 11), Bayesianske nett, mye maskinlæring.</p>
+
+    <h3>8.3 Strukturert</h3>
+    <p>En <span class="term" data-en="structured representation">strukturert representasjon<span class="def">Tilstanden består av objekter, hver med egne attributter, og relasjoner mellom dem. Grunnlag for førsteordens logikk, relasjonsdatabaser og naturlig språk.</span></span>
+      beskriver <b>objekter og relasjonene mellom dem</b> eksplisitt. «En lastebil rygger inn i innkjørselen til en gård, men en løs ku sperrer veien» – en faktorisert representasjon har neppe attributtet <em>TruckAheadBackingIntoDairyFarmDrivewayBlockedByLooseCow</em>. <b>Brukes av:</b> førsteordens logikk (kap. 8–9), kunnskapsrepresentasjon (kap. 10), relasjonsdatabaser, naturlig språk (kap. 24–25).</p>
+
+    <h3>8.4 Ekspressivitet vs. kompleksitet</h3>
+    <p>Aksen atomisk → faktorisert → strukturert er aksen for økende
+      <span class="term" data-en="expressiveness">ekspressivitet<span class="def">Hvor mye en representasjon kan uttrykke. Et mer ekspressivt språk kan uttrykke alt et mindre ekspressivt kan, minst like konsist – ofte mye mer konsist.</span></span>.
+      Sjakkreglene: én–to sider i førsteordens logikk (strukturert), tusenvis av sider i utsagnslogikk (faktorisert), ca. 10<sup>38</sup> sider som endelig tilstandsmaskin (atomisk). Men <b>resonnering og læring blir mer krevende</b> jo mer ekspressiv representasjonen er. Virkelige systemer bruker ofte flere nivåer samtidig.</p>
+    <p style="font-size:.9rem">(Boka nevner også en annen akse: <em>lokalistisk</em> vs. <em>distribuert</em> representasjon – ett begrep per minnelokasjon vs. begreper spredt over mange lokasjoner, som i nevrale nett. Distribuert er mer robust mot støy.)</p>
+
+    <div class="box warning"><span class="box-title">Ikke bland sammen «atomic»</span>
+      <p>«Atomisk representasjon» (svart-boks-tilstand) ≠ «atomic sentence» i logikk (en enkelt proposisjon/predikat, modul 7–8) ≠ «atomic episodes» (episodisk omgivelse). Tre ulike betydninger av samme ord!</p>
+    </div>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">Hvorfor vil vi ofte bruke en faktorisert heller enn atomisk tilstandsrepresentasjon? (Eksamen 2022, 1.1)</p>
+      <ul class="opts">
+        <li data-why="Det er omvendt – faktorisert er mer ekspressiv og ofte mer krevende.">Fordi faktoriserte representasjoner alltid gir raskere algoritmer</li>
+        <li>Fordi tilstandens indre struktur (variabler med verdier) kan utnyttes: man ser hvilke deler som er like/ulike, kan lage heuristikker, oppdage konflikter tidlig og resonnere generelt</li>
+        <li data-why="Faktorisert er ikke strukturert – objekter og relasjoner er neste nivå.">Fordi man kan uttrykke relasjoner mellom objekter</li>
+      </ul>
+      <div class="feedback">Med en atomisk tilstand kan du bare spørre «er dette målet?» (ja/nei). Med variabler kan algoritmen se <em>hvorfor</em> en tilstand er god/dårlig: CSP-er kan propagere skranker, planleggere kan lage domene-uavhengige heuristikker (f.eks. ignore-delete-lists), og to tilstander kan sammenlignes delvis.</div>
+    </div>
+
+    <div class="check" data-answer="faktorisert" data-mode="text" data-alt="factored|faktorisert representasjon">
+      <p class="q">Et sudoku modellert som 81 variabler med domener {1,…,9} er hvilken type representasjon? (atomisk/faktorisert/strukturert)</p>
+      <div class="explain">Faktorisert: en fast mengde variabler, hver med en verdi. Dette er nøyaktig CSP-formuleringen i modul 5.</div>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>9. Kurskart: hvordan resten av pensum henger sammen</h2>
+    <p>Kapittel 2 er «kartet» for resten av boka. Hver senere modul svarer på spørsmålet: <em>Hvordan bygger vi komponentene i en agent for en bestemt type omgivelse, med en bestemt representasjon?</em></p>
+
+    <figure>
+      <svg viewBox="0 0 680 400" width="680" role="img" aria-label="Kurskart">
+        <defs><marker id="m01-km" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fill-muted"/></marker></defs>
+        <rect class="box-accent" x="180" y="10" width="320" height="44" rx="8"/>
+        <text x="340" y="30" text-anchor="middle" class="label">M1: Rasjonelle agenter</text>
+        <text x="340" y="46" text-anchor="middle" class="small">PEAS · omgivelser · agenttyper · representasjoner</text>
+        <line class="edge" x1="290" y1="54" x2="115" y2="88" marker-end="url(#m01-km)"/>
+        <line class="edge" x1="340" y1="54" x2="340" y2="88" marker-end="url(#m01-km)"/>
+        <line class="edge" x1="390" y1="54" x2="565" y2="88" marker-end="url(#m01-km)"/>
+        <!-- kolonneoverskrifter -->
+        <text x="115" y="104" text-anchor="middle" class="label">Atomisk</text>
+        <text x="340" y="104" text-anchor="middle" class="label">Faktorisert</text>
+        <text x="565" y="104" text-anchor="middle" class="label">Strukturert</text>
+        <text x="115" y="119" text-anchor="middle" class="small">målbasert agent: søk</text>
+        <text x="340" y="119" text-anchor="middle" class="small">variabler, logikk, planer</text>
+        <text x="565" y="119" text-anchor="middle" class="small">objekter og relasjoner</text>
+        <!-- atomisk -->
+        <rect class="box" x="20" y="130" width="190" height="46" rx="6"/><text x="115" y="150" text-anchor="middle" style="font-size:12.5px">M2: Uinformert søk</text><text x="115" y="166" text-anchor="middle" class="small">BFS, DFS, IDS, UCS</text>
+        <rect class="box" x="20" y="186" width="190" height="46" rx="6"/><text x="115" y="206" text-anchor="middle" style="font-size:12.5px">M3: Informert søk</text><text x="115" y="222" text-anchor="middle" class="small">greedy, A*, heuristikker</text>
+        <rect class="box" x="20" y="242" width="190" height="46" rx="6"/><text x="115" y="262" text-anchor="middle" style="font-size:12.5px">M4: Lokalt søk / komplekse omg.</text><text x="115" y="278" text-anchor="middle" class="small">ikke-determ., delvis observerbar</text>
+        <rect class="box" x="20" y="298" width="190" height="46" rx="6"/><text x="115" y="318" text-anchor="middle" style="font-size:12.5px">M6: Adversarialt søk</text><text x="115" y="334" text-anchor="middle" class="small">fleragent, konkurrerende</text>
+        <!-- faktorisert -->
+        <rect class="box" x="245" y="130" width="190" height="46" rx="6"/><text x="340" y="150" text-anchor="middle" style="font-size:12.5px">M5: CSP</text><text x="340" y="166" text-anchor="middle" class="small">variabler, domener, skranker</text>
+        <rect class="box" x="245" y="186" width="190" height="46" rx="6"/><text x="340" y="206" text-anchor="middle" style="font-size:12.5px">M7: Utsagnslogikk</text><text x="340" y="222" text-anchor="middle" class="small">kunnskapsbasert agent</text>
+        <rect class="box" x="245" y="242" width="190" height="46" rx="6"/><text x="340" y="262" text-anchor="middle" style="font-size:12.5px">Planlegging (kap. 11)</text><text x="340" y="278" text-anchor="middle" class="small">PDDL, søk med faktoriserte tilst.</text>
+        <!-- strukturert -->
+        <rect class="box" x="470" y="130" width="190" height="46" rx="6"/><text x="565" y="150" text-anchor="middle" style="font-size:12.5px">M8: Førsteordens logikk</text><text x="565" y="166" text-anchor="middle" class="small">objekter, relasjoner, kvantorer</text>
+        <rect class="box" x="470" y="186" width="190" height="46" rx="6"/><text x="565" y="206" text-anchor="middle" style="font-size:12.5px">M9: FOL-inferens</text><text x="565" y="222" text-anchor="middle" class="small">unifisering, resolusjon</text>
+        <rect class="box" x="470" y="242" width="190" height="46" rx="6"/><text x="565" y="262" text-anchor="middle" style="font-size:12.5px">Kunnskapsrepr. (kap. 10)</text><text x="565" y="278" text-anchor="middle" class="small">ontologier, semantiske nett</text>
+        <!-- bunn -->
+        <rect class="node-warn" x="20" y="360" width="640" height="34" rx="6"/>
+        <text x="340" y="382" text-anchor="middle" style="font-size:12.5px">M11: NLP (kap. 24) · M12: Spillteori (kap. 17.2) · M10: Eksamenstrening · I tillegg: etikk og filosofi (kap. 28)</text>
+      </svg>
+      <figcaption>Figur 11: Kurskart. Kolonnene følger representasjonsaksen; søk/spill bruker atomiske tilstander, CSP/utsagnslogikk/planlegging faktoriserte, og FOL strukturerte.</figcaption>
+    </figure>
+
+    <table class="compact">
+      <tr><th>Modul</th><th>Agenttype i fokus</th><th>Omgivelsen antas typisk å være</th><th>Representasjon</th></tr>
+      <tr><td>M2–M3 Søk</td><td>Målbasert (problemløsende agent)</td><td>Fullt observerbar, deterministisk, statisk, diskret, kjent, én agent</td><td>Atomisk</td></tr>
+      <tr><td>M4 Lokalt søk og komplekse omgivelser</td><td>Mål-/nyttebasert</td><td>Lempet: ikke-deterministisk (AND-OR-søk, betingede planer), delvis/ikke observerbar (belief states), ukjent (online søk), kontinuerlig</td><td>Atomisk (lokalt søk kan bruke faktorisert)</td></tr>
+      <tr><td>M5 CSP</td><td>Målbasert</td><td>Statisk, deterministisk, diskret</td><td>Faktorisert</td></tr>
+      <tr><td>M6 Spill</td><td>Nyttebasert (minimax på nytte)</td><td>Fleragent, konkurrerende; evt. stokastisk (expectiminimax), semidynamisk (tidsbegrensning)</td><td>Atomisk</td></tr>
+      <tr><td>M7 Utsagnslogikk</td><td>Kunnskapsbasert agent (modellbasert, delvis observerbar wumpus-verden)</td><td>Delvis observerbar</td><td>Faktorisert</td></tr>
+      <tr><td>M8–M9 FOL</td><td>Kunnskapsbasert agent</td><td>—</td><td>Strukturert</td></tr>
+    </table>
+
+    <div class="box key"><span class="box-title">Den røde tråden</span>
+      <p>Når du møter en ny eksamensoppgave, spør: (1) Hvilken type omgivelse er dette? (2) Hvilken agenttype trengs? (3) Hvilken representasjon passer? Svaret peker ut algoritmen. Eksempel: «Fullt observerbar, deterministisk, kjent, én agent, atomiske tilstander, finn en sti» → søk (BFS/UCS/A*). «Variabler med domener og skranker» → CSP. «To spillere, nullsum» → minimax/alfa-beta.</p>
+    </div>
+
+    <div class="quiz" data-answer="d">
+      <p class="q">Hvilken kombinasjon er riktig?</p>
+      <ul class="opts">
+        <li data-why="Søk bruker atomiske tilstander; CSP bruker faktoriserte.">Søk = faktorisert, CSP = atomisk, FOL = strukturert</li>
+        <li data-why="Utsagnslogikk er faktorisert (variabler = proposisjonssymboler).">Utsagnslogikk = strukturert, FOL = faktorisert</li>
+        <li data-why="Spilltrær (minimax) behandler tilstander atomisk.">Spill = strukturert</li>
+        <li>Søk = atomisk, CSP og utsagnslogikk = faktorisert, FOL = strukturert</li>
+      </ul>
+      <div class="feedback">Dette er bokas inndeling i kap. 2.4.7.</div>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>10. Eksamensoppgaver</h2>
+    <p>Alle oppgaver om KI-definisjoner, agenter, omgivelser, PEAS og agenttyper fra eksamenene 2015–2025. Oppgaveteksten er på engelsk som på eksamen. Løs på papir først!</p>
+
+    <div class="exercise" data-title="Intelligent Agents – action selection" data-meta="Eksamen 2025 · Q1 · 5 p">
+      <p>This question aims to identify the differences between these 3 types of agents: simple reflex, model-based reflex, and goal-based agents, along with action selection or reasoning mechanisms. Fill in the boxes in the table using one of the following: “Rule matching”, “Search”, “Search and Plan”.</p>
+      <table class="compact"><tr><th></th><th>1. Simple reflex agent</th><th>2. Model-based reflex agent</th><th>3. Goal-based agent</th></tr><tr><td>Action selection / reasoning method</td><td>?</td><td>?</td><td>?</td></tr></table>
+      <p>Which of the following alternatives best reflects the action selection/reasoning method of these agents?</p>
+      <ol type="a">
+        <li>1. Rule matching; 2. Rule matching; 3. Search and Plan</li>
+        <li>1. Rule matching; 2. Rule matching; 3. Search</li>
+        <li>1. Search; 2. Search and Plan; 3. Search and Plan</li>
+        <li>1. Rule matching; 2. Search; 3. Search and Plan</li>
+      </ol>
+      <details class="hint"><summary>Hint</summary><p>Se på pseudokoden for MODEL-BASED-REFLEX-AGENT. Hvilken funksjon velger handlingen?</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>Svar: (a) 1. Rule matching; 2. Rule matching; 3. Search and Plan.</b></p>
+        <ul>
+          <li><b>Simple reflex:</b> <code>rule ← RULE-MATCH(state, rules)</code> – ren regelmatching på nåværende persepsjon.</li>
+          <li><b>Model-based reflex:</b> bruker modellen i <code>UPDATE-STATE</code> for å holde styr på verden, men velger handling med samme <code>RULE-MATCH</code>. «Reflex» i navnet er hintet.</li>
+          <li><b>Goal-based:</b> må vurdere framtidige konsekvenser for å finne handlingssekvenser som når målet → søk (kap. 3–4, 6) og planlegging (kap. 11). Boka nevner begge eksplisitt, derfor «Search and Plan» heller enn bare «Search».</li>
+        </ul>
+        <p>Alternativ (d) er den typiske fella: å tro at «har modell» betyr «søker».</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Agents and environments" data-meta="Eksamen 2024 · Q1 · 4 p">
+      <p>Which of the following sentences is NOT true? Select one alternative:</p>
+      <ol type="a">
+        <li>The set of actions that the agent can take is called “transition model”</li>
+        <li>Model based reflex agents use condition-action rules to decide the next action to take.</li>
+        <li>A vacuum cleaner agent with a dirt sensor but no location sensor may behave intelligently only if it can randomize its action choices.</li>
+        <li>An agents that knows how the world changes can handle partial observability</li>
+        <li>The goal is represented in reflex agents implicitly through condition-action rules</li>
+      </ol>
+      <details class="hint"><summary>Hint</summary><p>Hva beskriver transisjonsmodellen? Og les hvert ord i (c) nøye.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>Tiltenkt svar: (a).</b> Transisjonsmodellen beskriver <em>konsekvensene</em> av handlinger – gitt tilstand og handling, hvilken tilstand får vi (RESULT(s,a)). Mengden handlinger er ACTIONS(s).</p>
+        <p><b>Men (c) ble også godtatt:</b> «only if» gjør påstanden usann – randomisering er én utvei fra uendelige løkker, men ikke den eneste (en agent med intern tilstand kan også klare seg).</p>
+        <p>De andre er sanne: (b) modellbasert refleksagent bruker RULE-MATCH; (d) å vite hvordan verden endrer seg (transisjonsmodell) er nettopp det som lar en modellbasert agent spore det den ikke ser; (e) refleksagentens mål er «designed in» i reglene.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Miscellaneous – Mixture of Chapters" data-meta="Eksamen 2024 · Q2 · 4 p">
+      <p>Which of the following sentences is FALSE? Select one alternative:</p>
+      <ol type="a">
+        <li>In nondeterministic environments agent can apply AND-OR search to generate adversive plans</li>
+        <li>Consider that our simple vacuum cleaner has a suction mechanism that doesn’t suck properly. This is then a fully observable and nondeterministic environment</li>
+        <li>“Proof by refutation” can also be called proof by contradiction</li>
+        <li>A sentence is “satisfiable” if it is true in some models</li>
+        <li>Generalized Modus Ponens is complete for definite clauses</li>
+        <li>When the environment is partially observable, the belief state represents the set of possible states that the agent might be in.</li>
+        <li>Agent functions map the percepts to actions</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>Tiltenkt svar: (a).</b> AND-OR-søk i ikke-deterministiske omgivelser lager <b>betingede planer</b> (contingency plans), ikke «adversive plans» (modul 4).</p>
+        <p><b>(b) ble også godtatt</b>: noen leste «our simple vacuum cleaner» som agenten uten posisjonssensor fra Q1 – da er omgivelsen delvis observerbar, og påstanden usann. Med bokas vanlige støvsuger (posisjons- og smussensor) er den fullt observerbar og (pga. dårlig sug) ikke-deterministisk → sann. Lærdom: <em>skriv antakelsene dine</em>.</p>
+        <p>(c) sant (modul 7). (d) sant – definisjonen av oppfyllbar (modul 7). (e) sant for førsteordens definite clauses (modul 9). (f) sant – definisjonen av belief state (modul 4). (g) sensor kommenterte at boka sier persepsjon<b>sekvens</b> → handling, så formuleringen er unøyaktig, men den ble ikke regnet som «den» usanne.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Theoretical questions 1.1 and 1.2" data-meta="Eksamen 2022 · Task 1">
+      <p><b>1.1)</b> Why we might want to use a factored instead of atomic state representation?</p>
+      <p><b>1.2)</b> What is the benefit of having a model in a model-based agent?</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>1.1</b> I en atomisk representasjon er tilstanden en svart boks: algoritmen kan bare teste «er dette målet?» (ja/nei) og «er dette samme tilstand?». En faktorisert representasjon (variabler med verdier) gjør den indre strukturen synlig. Da kan vi (i) se hvilke deler av tilstanden som allerede er riktige og lage domene-uavhengige heuristikker (f.eks. antall ikke-oppfylte mål i planlegging), (ii) oppdage konflikter tidlig og beskjære søket (skrankepropagering i CSP), (iii) uttrykke handlinger og regler kompakt i stedet for å liste alle tilstander, (iv) dele attributter mellom tilstander så det blir lettere å se hvordan man går fra én til en annen.</p>
+        <p><b>1.2</b> Modellen (transisjonsmodell + sensormodell) lar agenten holde en <b>intern tilstand</b> som sporer deler av verden den ikke ser nå. Den kan dermed handle fornuftig i <b>delvis observerbare</b> omgivelser (unngå løkker som refleksagenten havner i), forutsi effekten av egne handlinger og hvordan verden utvikler seg på egen hånd, og – for mål/nyttebaserte agenter – simulere framtiden («hva skjer hvis jeg gjør A?») for å planlegge.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Intelligent Agents – Grocery Store Robot" data-meta="Eksamen 2022 · Task 2">
+      <p>Grocery store robots can navigate autonomously through the store to scan shelves and report on inventory, e.g. how many products of different types are left. This particular robot is equipped with cameras, ultrasonic sensor (measures distances to obstacles) and collision sensor.</p>
+      <p><b>2.1)</b> Specify: performance measure; environment properties; actuators and sensors. Explain your specification, including the answer for the following questions: Why this performance measure makes sense for this environment? With respect to each of the properties, why this environment can be characterized in this way?</p>
+      <p><b>2.2)</b> What agent type will work best for this environment? Explain why. Make a visualization showing the main components for this type of agent. Briefly describe each component and interaction between them.</p>
+      <details class="hint"><summary>Hint</summary><p>«Environment properties» = både hva omgivelsen består av <em>og</em> de sju dimensjonene. Hvor langt ser roboten? Er det andre agenter? Beveger ting seg mens den tenker?</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>2.1 Ytelsesmål:</b> andel produkter korrekt skannet/registrert (lagerrapportens nøyaktighet), dekning (alle hyller skannet), tid per runde, antall kollisjoner/nesten-kollisjoner (null), minimal forstyrrelse av kunder, energiforbruk. <em>Hvorfor:</em> robotens formål er korrekt lagerstatus; dette måles på resultatet i omgivelsen (rapporten), mens sikkerhetsmålene hindrer at roboten «optimaliserer» ved å kjøre over folk.</p>
+        <p><b>Omgivelsen består av:</b> butikklokalet, hyllegangene, hyller og varer, kunder, ansatte, handlevogner, andre roboter, ladestasjon.</p>
+        <p><b>Aktuatorer:</b> hjul/motorer (bevegelse og styring), evt. kamerastyring (pan/tilt), skjerm/lys/lyd for å varsle kunder, kommunikasjonsmodul som sender rapport til lagersystemet. <b>Sensorer:</b> kameraer (lese varer, etiketter, se hindringer), ultralydsensor (avstand til hindringer), kollisjonssensor, evt. hjulenkodere/odometri for posisjon. (Den offisielle løsningen slo sammen aktuatorer og sensorer i én liste – skill dem!)</p>
+        <table class="compact">
+          <tr><th>Egenskap</th><th>Valg</th><th>Begrunnelse</th></tr>
+          <tr><td>Observerbarhet</td><td>Delvis</td><td>Ser bare noen meter, ikke bak hyller/rundt hjørner; varer kan skjule hverandre.</td></tr>
+          <tr><td>Agenter</td><td>Flere</td><td>Kunder, ansatte og andre roboter har egne mål; roboten må samarbeide (unngå kollisjon).</td></tr>
+          <tr><td>Determinisme</td><td>Ikke-deterministisk/stokastisk</td><td>Mennesker beveger seg uforutsigbart; hjul kan skli; skanning kan feile.</td></tr>
+          <tr><td>Episodisk/sekvensiell</td><td>Sekvensiell</td><td>Hvor roboten kjører nå avgjør hva som gjenstår å skanne og hvor den er senere.</td></tr>
+          <tr><td>Statisk/dynamisk</td><td>Dynamisk</td><td>Kunder flytter seg og tar varer mens roboten tenker.</td></tr>
+          <tr><td>Diskret/kontinuerlig</td><td>Kontinuerlig</td><td>Posisjon, fart og avstander er kontinuerlige (varetellingen er diskret).</td></tr>
+          <tr><td>Kjent/ukjent</td><td>Kjent (stort sett)</td><td>Butikkens planløsning og robotens fysikk er kjent; varenes plassering kan endres.</td></tr>
+        </table>
+        <p><b>2.2</b> En <b>modellbasert, målbasert agent</b> (evt. nyttebasert). <em>Hvorfor modellbasert:</em> omgivelsen er delvis observerbar – roboten må huske hvilke ganger den har skannet, hvor hindringer var, og hvor den selv er. <em>Hvorfor målbasert:</em> den har et eksplisitt mål (skann alle hyller) og må planlegge en rute dit – en refleksagent med faste regler ville ikke klart å dekke hele butikken systematisk. (Nyttebasert er også et godt svar: avveie fart mot sikkerhet og kundeforstyrrelse.)</p>
+        <p><b>Visualisering:</b> tegn figur 7 i seksjon 7.4. Komponenter: <em>Sensorer</em> → «Hvordan er verden nå?» (kombinerer persepsjon med lagret <em>tilstand</em>, <em>hvordan verden utvikler seg</em> og <em>hva handlingene mine gjør</em>) → «Hvordan blir verden om jeg gjør A?» (bruker transisjonsmodellen til å forutsi) → «Hvilken handling bør jeg gjøre nå?» (velger handlingen som fører mot <em>målene</em>) → <em>aktuatorer</em> → omgivelsen. Oppdatert tilstand lagres for neste syklus.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Short questions on agents" data-meta="Eksamen 2023 · kortsvar">
+      <ol>
+        <li>An AI system is used at the Human Resources (HR) department in the recruitment process. The system is given a job advertisement together with the applications of the candidates and it makes a suggestion about who to hire. Assume that the system is taking “corrective decisions”, which means that it takes into consideration the social injustice issues that appear because of the bias in the past decisions and attempts to decrease injustice. Is this an episodic or a sequential environment? Justify your answer.</li>
+        <li>This question is about the environment and agent matching. To behave intelligently in a partially observable environment, in which respects the agent should be different from a simple reflex agent?</li>
+        <li>Aristotle argued that actions are justified by a logical connection between goal and knowledge of the action’s outcome. Over 2000 years later his ideas were implemented in AI by two pioneer AI researchers. Who are/were they and what is the name of the program they designed and coded?</li>
+        <li>What is the difference between stochastic and non-deterministic environments — according to the textbook?</li>
+        <li>In some competitive multiagent environments, randomized behaviour is rational. Why, explain.</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol>
+          <li><b>Sekvensiell.</b> «Korrigerende beslutninger» betyr at hver anbefaling tar hensyn til (og prøver å rette opp) tidligere beslutninger, så dagens beslutning avhenger av – og påvirker – fortid og framtid. (Fasiten skriver «fully observable, and sequential»; observerbarhet ble ikke spurt om, og er diskutabel – søknader viser ikke alt om kandidaten.)</li>
+          <li>Den trenger <b>hukommelse/intern tilstand</b> som sporer det den ikke ser nå, oppdatert via en <b>transisjonsmodell</b> og <b>sensormodell</b> (modellbasert agent). Fasiten: «needs memory and its action transition function operates with belief states, i.e., not single state» – agenten resonnerer over mengden mulige tilstander.</li>
+          <li><b>Allen Newell og Herbert Simon – General Problem Solver (GPS)</b>.</li>
+          <li><b>Stokastisk:</b> usikkerheten om utfall er eksplisitt kvantifisert med sannsynligheter. <b>Ikke-deterministisk:</b> mulige utfall er kjent/listet, men ikke kvantifisert.</li>
+          <li>En forutsigbar agent kan utnyttes av motstanderen. Randomisering gjør atferden uforutsigbar (som i stein-saks-papir eller straffespark), og kan derfor gi høyere forventet ytelse.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Short questions (agents)" data-meta="Eksamen 2019 · Oppg. 1 og 7 · 2 p hver">
+      <ol>
+        <li>(T/F) A sound logical reasoning process is not necessary in order to pass the Turing test.</li>
+        <li>How is the goal information represented in simple reflex agents?</li>
+        <li>Assume a version of the original vacuum cleaner agent in the textbook. 10% of the time the SUCK action of this one does not clean the floor if it is dirty and even may deposit dirt on the floor if the floor is clean. Classify this environment with respect to each of the following dimensions: Sequential/Episodic, deterministic/stochastic, and dynamic versus static.</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol>
+          <li><b>True.</b> Turing-testen måler menneskelignende <em>atferd</em>; mennesker resonnerer ikke alltid logisk korrekt.</li>
+          <li><b>Implisitt</b> – målet er «designed in» i betingelse–handling-reglene; det finnes ingen eksplisitt målrepresentasjon.</li>
+          <li><b>Sekvensiell</b> (om en rute er ren nå påvirker hva som lønner seg senere; feilet sug må gjentas), <b>stokastisk</b> (10 % sannsynlighet for feil – kvantifisert sannsynlighet, derfor stokastisk og ikke bare «ikke-deterministisk»), <b>statisk</b> (verden endrer seg ikke mens agenten tenker; nytt smuss kommer bare som følge av agentens egen handling).</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="True/False og kortsvar" data-meta="Eksamen 2018 · Problem 3 og 8 · 2 p hver (−1 for feil)">
+      <ol>
+        <li>(T/F) Reactive agents typically use partial planning.</li>
+        <li>(T/F) Principal of rationality (due to Allen Newell) maintains that the agent chooses actions in order to achieve its goal using the knowledge it has the knowledge it might gather.</li>
+        <li>In some environments randomized behaviour can be rational. Describe what type of environments and give an example.</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol>
+          <li><b>False.</b> Reaktive (refleks-)agenter planlegger ikke i det hele tatt – de matcher regler på nåværende persepsjon. Planlegging hører til målbaserte agenter.</li>
+          <li><b>False</b> (fasit). Newells rasjonalitetsprinsipp handler om kunnskapen agenten <em>har</em>: «if an agent has knowledge that one of its actions will lead to one of its goals, then the agent will select that action».</li>
+          <li><b>Konkurrerende fleragent-omgivelser</b>: randomisering unngår forutsigbarhet som motstanderen kan utnytte (f.eks. stein-saks-papir, poker-bløff, straffespark). I tillegg (bok 2.4.2): en <em>enkel refleksagent i en delvis observerbar</em> omgivelse kan bruke randomisering for å komme ut av uendelige løkker (støvsuger uten posisjonssensor).</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="True/False" data-meta="Eksamen 2017 · Problem 6 · 2 p hver (−1 for feil)">
+      <ol type="a">
+        <li>Randomized behaviour may be rational in competitive multi-agent environments.</li>
+        <li>There exists a task environment in which every agent is rational.</li>
+        <li>Philosopher John Searle suggests that any physical symbol system has necessary and sufficient means for general intelligent action.</li>
+        <li>Purely reactive agents use semantic networks for planning.</li>
+        <li>Backgammon is a fully observable, sequential, deterministic, static, discrete and multiagent environment.</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol type="a">
+          <li><b>True</b> – unngår forutsigbarhet.</li>
+          <li><b>True</b> – f.eks. en omgivelse der alle handlinger (også å gjøre ingenting) gir samme belønning.</li>
+          <li><b>False</b> – det er Newell &amp; Simons fysisk symbolsystem-hypotese; Searle hevder det motsatte (intelligens krever biologisk substrat).</li>
+          <li><b>False</b> – rent reaktive agenter planlegger ikke og bruker ikke semantiske nett.</li>
+          <li><b>False</b> – terningene gjør backgammon stokastisk, ikke deterministisk.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="TASK 1: Task Environment" data-meta="Eksamen 2016 · 10 p">
+      <p>Specify the task environment of the following four agents. Possible answers: Observable: Fully (F) or partially (P). Agents: Single (S) or Multi (M). Deterministic: Deterministic (D) or stochastic (S). Episodic: Episodic (E) or sequential (S). Static: Static (S), semi (I) or dynamic (D). Discrete: Discrete (D) or continuous (C).</p>
+      <ul>
+        <li><b>Agent 1: Deep Blue.</b> Deep Blue is a chess playing agent that played and won against Garry Kasparov in 1997. Consider one game against Garry using a clock.</li>
+        <li><b>Agent 2: Roomba.</b> Roomba is a vacuum-cleaning robot that drives around and vacuums the floors in all the rooms of a home.</li>
+        <li><b>Agent 3: A Tesla factory paint-robot.</b> A paint robot on the Tesla factory paints one and one car. The cars are transported by a transport robot to and from the paint robot. The paint robot uses a spray-painting robot arm to paint the cars.</li>
+        <li><b>Agent 4: Stats Monkey the robot journalist.</b> Stats Monkey collects box scores and play-by-play data to spit out credible accounts of college baseball games while the games are being played.</li>
+      </ul>
+      <details class="hint"><summary>Hint</summary><p>Deep Blue = «sjakk med klokke» fra boka. For de andre: skriv antakelsene dine – fasiten sier selv at flere svar kan forsvares.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <table class="compact">
+          <tr><th>Agent</th><th>Obs.</th><th>Agenter</th><th>Det.</th><th>Epis.</th><th>Statisk</th><th>Diskret</th></tr>
+          <tr><td>Deep Blue</td><td>F</td><td>M</td><td>D</td><td>S</td><td>I</td><td>D</td></tr>
+          <tr><td>Roomba</td><td>P</td><td>S</td><td>S</td><td>S</td><td>D</td><td>C</td></tr>
+          <tr><td>Paint robot</td><td>P</td><td>M</td><td>S</td><td>S</td><td>S</td><td>C</td></tr>
+          <tr><td>Stats Monkey</td><td>P</td><td>S</td><td>D</td><td>S</td><td>I</td><td>C</td></tr>
+        </table>
+        <p><b>Begrunnelser:</b></p>
+        <ul>
+          <li><b>Deep Blue</b>: brettet er synlig (F), motstander (M), trekk har bestemt utfall (D), trekk påvirker resten av partiet (S), klokka gjør det semidynamisk (I), endelig antall stillinger (D).</li>
+          <li><b>Roomba</b>: ser bare nærområdet (P); mennesker/dyr modelleres som omgivelse (S); hjul glipper, smuss dukker opp (S); hvor den har vært påvirker resten (S); folk og dyr beveger seg (D); kontinuerlig posisjon (C).</li>
+          <li><b>Paint robot</b>: fasiten sier M (transportroboten er en annen agent) og S (sekvensiell: hvert strøk påvirker neste). Merk at «episodisk» kan forsvares hvis du ser hver bil som en uavhengig episode, og «S» (én agent) hvis transportroboten bare er en del av omgivelsen. Statisk: bilen står stille mens den lakkeres.</li>
+          <li><b>Stats Monkey</b>: P (bare statistikk), S, D (å skrive tekst har sikkert utfall), S (referatet bygges over tid), I (fasit). «Dynamisk» kan også forsvares siden kampen pågår mens den skriver. Fasit sier C, men data og tekst er strengt tatt diskrete.</li>
+        </ul>
+        <p><em>Kommentar fra faglærer (2020):</em> «Several students have pointed out that there sometimes exist reasonable alternative answers … On future exams these kinds of questions will be discussion questions where you will explain your answers and what assumptions you make.» Øv på å begrunne – bruk widgeten i seksjon 6.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="True/False og flervalg" data-meta="Eksamen 2015 · Problem 1 (2 p hver) og 2c (3 p)">
+      <ol type="a">
+        <li>(T/F) Knitting is a fully observable, episodic, stochastic, static and exciting agent environment.</li>
+        <li>(T/F) Ontology is not a key component in simple-reflex agents.</li>
+        <li>(T/F) An agent must think like a human in order to pass the Turing test.</li>
+        <li>Which of the following researchers did not participate in the Dartmouth conference where the name "artificial intelligence" was coined? A. John McCarthy B. Marvin Minsky C. Herbert Simon D. Allen Newell E. Alan Turing</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol type="a">
+          <li><b>False</b> – strikking er ikke episodisk (hver maske bygger på de forrige) og ikke stokastisk. («Exciting» er en spøk.)</li>
+          <li><b>True</b> – en enkel refleksagent har bare betingelse–handling-regler; ingen eksplisitt kunnskapsmodell/ontologi over verden.</li>
+          <li><b>False</b> – den må <em>handle</em> (oppføre seg) som et menneske, ikke tenke som et.</li>
+          <li><b>E. Alan Turing.</b></li>
+        </ol>
+      </details>
+    </div>
+
+    <h3>10.1 Nye eksamenslignende oppgaver</h3>
+
+    <div class="exercise" data-title="Autonomous lawn mower" data-meta="Egen oppgave · ~10 p">
+      <p>A company is designing an autonomous robotic lawn mower for private gardens. It has a boundary-wire sensor, bump sensor, rain sensor, GPS and a battery level meter.</p>
+      <p>a) Give a PEAS description. b) Classify the task environment along the seven dimensions, stating your assumptions. c) Which agent type would you choose? Justify, and name the decision mechanism it uses.</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>a)</b> P: andel klippet areal, jevn klippehøyde, tid og energibruk, ingen skade på mennesker/dyr/planter, ingen kollisjoner. E: plenen, grensekabel, bed, busker, hindringer (leker, hageslanger), mennesker og dyr, vær, ladestasjon. A: drivhjul, klippemotor/kniv, lyd/app-varsel. S: grensekabelsensor, støtsensor, regnsensor, GPS, batterimåler (evt. løftesensor).</p>
+        <p><b>b)</b> Delvis observerbar (ser ikke hele plenen, vet ikke hvor den har klippet uten å huske det); én agent (mennesker og dyr som omgivelse – eller flere hvis du ser på dem som agenter; si det); stokastisk (hjul glipper på vått gress, GPS-støy); sekvensiell (klippede områder påvirker hvor den bør kjøre); dynamisk (dyr og barn beveger seg, gresset vokser); kontinuerlig (posisjon/retning); kjent (fysikken), men hagens form kan være ukjent i starten.</p>
+        <p><b>c)</b> Modellbasert, målbasert (eller nyttebasert) agent: den må huske hvilke områder som er klippet og hvor den er (delvis observerbar → modell), og planlegge en rute som dekker hele plenen og tilbake til lading før batteriet går tomt (mål → søk og planlegging). Nyttebasert hvis vi vil avveie dekning mot energibruk og støy. Sikkerhet (stopp kniven ved løft/støt) kan implementeres som refleksregler i tillegg.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Rationality of the vacuum agent" data-meta="Egen oppgave · ~6 p">
+      <p>Consider the two-square vacuum world with the agent REFLEX-VACUUM-AGENT. The performance measure gives +1 for each clean square at each time step, and −1 for each Left/Right movement, over 100 time steps. The agent perceives its location and whether the current square is dirty. a) Is the reflex agent rational? b) Describe an agent that does better, and say which agent type it is. c) Would your answer to a) change if clean squares could become dirty again at random?</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>a)</b> Nei. Når begge rutene er rene, pendler den Left/Right og taper 1 poeng per steg unødvendig. En agent som står stille (NoOp) har høyere forventet ytelse.</p>
+        <p><b>b)</b> En <b>modellbasert refleksagent</b> som husker status for begge rutene: Dirty → Suck; Clean og den andre ruta er ukjent/skitten → flytt; begge kjent rene → NoOp. Med start i A og begge skitne: t1 Suck (+1), t2 Right (+1−1 = 0), t3 Suck (+2), deretter NoOp (+2 per steg) = 1 + 0 + 2 + 97·2 = 197. Refleksagenten: 1 + 0 + 2 + 97·(2−1) = 100.</p>
+        <p><b>c)</b> Ja, det kan endres: hvis rene ruter kan bli skitne, bør agenten innimellom sjekke den andre ruta. Hvor ofte avhenger av sannsynligheten for nytt smuss vs. kostnaden −1 for å flytte – en avveining som naturlig uttrykkes med forventet nytte (nyttebasert agent). Rasjonalitet er alltid relativ til ytelsesmålet, forhåndskunnskapen, handlingene og persepsjonene.</p>
+      </details>
+    </div>
+    <div class="check" data-answer="197" data-mode="number">
+      <p class="q">Kontroller tallet: total ytelse for den modellbaserte agenten i oppgaven over (start i A, begge skitne, 100 steg, −1 per bevegelse)?</p>
+      <div class="explain">t1: Suck → A ren, B skitten: +1. t2: Right → +1 −1 = 0. t3: Suck → +2. t4–t100: 97 steg NoOp à +2 = 194. Sum: 1 + 0 + 2 + 194 = 197. Du kan sjekke med simulatoren i seksjon 3 (velg modellbasert og bevegelsesstraff, kjør 100 steg).</div>
+    </div>
+
+    <div class="exercise" data-title="Agent type identification" data-meta="Egen oppgave · ~6 p">
+      <p>For each system, name the most appropriate agent type (simple reflex, model-based reflex, goal-based, utility-based, learning) and justify briefly: (1) an automatic door that opens when a motion sensor is triggered; (2) a route planner that finds a path from Trondheim to Oslo; (3) a stock trading bot that balances expected return against risk; (4) a robot vacuum that remembers which rooms it has cleaned; (5) a recommendation system that improves from user clicks.</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol>
+          <li><b>Enkel refleks</b>: én regel på nåværende persepsjon (bevegelse → åpne).</li>
+          <li><b>Målbasert</b>: eksplisitt mål (Oslo), søk etter handlingssekvens. (Nyttebasert hvis den veier tid mot bompenger.)</li>
+          <li><b>Nyttebasert</b>: konflikterende mål (avkastning vs. risiko) og usikre utfall → maksimer forventet nytte.</li>
+          <li><b>Modellbasert refleks</b>: intern tilstand om rom den ikke ser, men faste regler for handlingsvalg.</li>
+          <li><b>Lærende</b>: klikk fungerer som tilbakemelding (kritiker), læringselementet forbedrer anbefalingene; problemgeneratoren kan vise nye ting for å utforske.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Concepts – short answers" data-meta="Egen oppgave · 2 p hver">
+      <ol>
+        <li>Explain the difference between an agent function and an agent program.</li>
+        <li>Explain why rationality is not the same as omniscience, using an example.</li>
+        <li>Give an example of an environment that is known but partially observable, and one that is unknown but fully observable.</li>
+        <li>What are the four components of a learning agent? Why must the performance standard be fixed?</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol>
+          <li>Agentfunksjonen er en abstrakt matematisk avbildning fra <em>persepsjonssekvenser</em> til handlinger (beskriver atferd utenfra). Agentprogrammet er en konkret implementasjon som kjører på arkitekturen og tar <em>nåværende persepsjon</em> som input; agent = arkitektur + program.</li>
+          <li>Rasjonalitet maksimerer <em>forventet</em> ytelse gitt persepsjonene så langt; allvitenhet ville krevd å vite det faktiske utfallet på forhånd. Å krysse en tom gate etter å ha sett seg for er rasjonelt selv om en flydør faller ned og treffer deg.</li>
+          <li>Kjent + delvis observerbar: kabal/poker (reglene kjent, kortene skjult). Ukjent + fullt observerbar: nytt dataspill der hele skjermen er synlig, men du ikke vet hva knappene gjør.</li>
+          <li>Ytelseselement, kritiker, læringselement, problemgenerator. Standarden må være fast (og konseptuelt utenfor agenten) så agenten ikke kan «jukse» ved å senke kravene til seg selv i stedet for å forbedre atferden.</li>
+        </ol>
+      </details>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2>11. Oppsummering / jukselapp</h2>
+
+    <div class="box key"><span class="box-title">Definisjoner du må kunne ordrett-ish</span>
+      <ul>
+        <li><b>Agent:</b> alt som oppfatter omgivelsen via sensorer og handler på den via aktuatorer.</li>
+        <li><b>Agentfunksjon:</b> f : persepsjonssekvens → handling (abstrakt). <b>Agentprogram:</b> implementasjon, input = nåværende persepsjon. <b>Agent = arkitektur + program.</b></li>
+        <li><b>Rasjonell agent:</b> for hver mulig persepsjonssekvens, velg handlingen som er forventet å maksimere ytelsesmålet, gitt persepsjonssekvensen og innebygd kunnskap.</li>
+        <li><b>Rasjonalitet avhenger av:</b> ytelsesmål · forhåndskunnskap · mulige handlinger · persepsjonssekvens.</li>
+        <li><b>Rasjonalitet ≠ allvitenhet:</b> forventet vs. faktisk ytelse. Inkluderer informasjonsinnhenting, læring og autonomi.</li>
+      </ul>
+    </div>
+
+    <table class="compact">
+      <tr><th colspan="2">Fire tilnærminger</th></tr>
+      <tr><td>Tenke menneskelig – kognitiv modellering (GPS, kognitiv vitenskap)</td><td>Tenke rasjonelt – tankens lover (Aristoteles, logikk). Problem: uhåndterlig, gir ikke atferd</td></tr>
+      <tr><td>Handle menneskelig – Turing-testen (NLP, KR, resonnering, ML; total: + syn, robotikk)</td><td><b>Handle rasjonelt – rasjonell agent</b> (mer generell, matematisk veldefinert)</td></tr>
+    </table>
+
+    <table class="compact">
+      <tr><th>Historie</th><td>1943 McCulloch &amp; Pitts · 1950 Turing · <b>1956 Dartmouth</b> (McCarthy, Minsky, Newell, Simon … ikke Turing) · 1966–74 kompleksitet · 1980–88 ekspertsystemer · 1988–93 AI-vinter · 1985–95 backprop · 1995– agenter · 2012– dyp læring</td></tr>
+      <tr><th>Filosofi</th><td>Newell &amp; Simon: fysisk symbolsystem er nødvendig og tilstrekkelig. Searle: krever biologisk substrat.</td></tr>
+    </table>
+
+    <table class="compact">
+      <tr><th>PEAS</th><td><b>P</b>erformance (målbart, om omgivelsens tilstand) · <b>E</b>nvironment · <b>A</b>ctuators (påvirker) · <b>S</b>ensors (oppfatter)</td></tr>
+    </table>
+
+    <table class="compact">
+      <tr><th>Dimensjon</th><th>Nøkkelspørsmål</th><th>Typisk felle</th></tr>
+      <tr><td>Fullt / delvis (/ ikke) observerbar</td><td>Ser sensorene hele relevante tilstand?</td><td>Støvsuger med lokal sensor er delvis</td></tr>
+      <tr><td>Én / flere agenter</td><td>Maksimerer B et mål som avhenger av A?</td><td>Konkurrerende (sjakk) vs. samarbeidende (taxi)</td></tr>
+      <tr><td>Deterministisk / ikke-det. (stokastisk)</td><td>Bestemmer tilstand + handling neste tilstand?</td><td>Stokastisk = med sannsynligheter; motstander ≠ tilfeldighet</td></tr>
+      <tr><td>Episodisk / sekvensiell</td><td>Påvirker valget nå framtidige valg?</td><td>Klassifisering er episodisk</td></tr>
+      <tr><td>Statisk / semidynamisk / dynamisk</td><td>Endrer verden (eller scoren) seg mens jeg tenker?</td><td>Sjakk med klokke = semi</td></tr>
+      <tr><td>Diskret / kontinuerlig</td><td>Tilstander, tid, persepsjoner, handlinger</td><td>Taxi = kontinuerlig</td></tr>
+      <tr><td>Kjent / ukjent</td><td>Kjenner agenten «fysikklovene»?</td><td>Uavhengig av observerbarhet (kabal, nytt spill)</td></tr>
+    </table>
+
+    <table class="compact">
+      <tr><th>Agenttype</th><th>Nøkkelidé</th><th>Mekanisme</th></tr>
+      <tr><td>Tabelldrevet</td><td>Slå opp hele persepsjonssekvensen; Σ|P|<sup>t</sup> rader – umulig</td><td>Oppslag</td></tr>
+      <tr><td>Enkel refleks</td><td>Nåværende persepsjon; mål implisitt; krever fullt observerbar; løkker → randomisering</td><td><b>Rule matching</b></td></tr>
+      <tr><td>Modellbasert refleks</td><td>Intern tilstand via transisjonsmodell (egen handling + verdens utvikling) og sensormodell</td><td><b>Rule matching</b></td></tr>
+      <tr><td>Målbasert</td><td>Modell + eksplisitte mål; «hva skjer hvis …»; fleksibel</td><td><b>Search and Plan</b></td></tr>
+      <tr><td>Nyttebasert</td><td>Nyttefunksjon = internalisert ytelsesmål; konflikterende/usikre mål</td><td>Maks forventet nytte</td></tr>
+      <tr><td>Lærende</td><td>Ytelseselement · kritiker (fast standard) · læringselement · problemgenerator</td><td>Forbedrer komponentene</td></tr>
+    </table>
+
+    <table class="compact">
+      <tr><th>Representasjon</th><th>Tilstand er …</th><th>Brukes i</th></tr>
+      <tr><td>Atomisk</td><td>svart boks</td><td>søk, spill (M2–M4, M6)</td></tr>
+      <tr><td>Faktorisert</td><td>variabler med verdier</td><td>CSP, utsagnslogikk, planlegging (M5, M7)</td></tr>
+      <tr><td>Strukturert</td><td>objekter + relasjoner</td><td>FOL, kunnskapsrepr. (M8–M9)</td></tr>
+    </table>
+    <p>Økende ekspressivitet → mer konsist, men tyngre resonnering og læring.</p>
+  </main>
+  <aside class="margin"></aside>
+</div>
+<script src="assets/course.js"></script>
+<script>
+/* ===== m01: modulspesifikke widgets ===== */
+(function () {
+  "use strict";
+  const $ = (sel, r) => (r || document).querySelector(sel);
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function S(tag, attrs, parent) {
+    const e = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) { if (k === "text") e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]); }
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+  /* ------------------------------------------------------------
+     1) Støvsugerverdenen (vacuum world) – simulator
+     ------------------------------------------------------------ */
+  (function vacuum() {
+    const root = document.getElementById("vac");
+    if (!root) return;
+    const svg = $("svg", root), out = $("#vac-log", root), stat = $("#vac-stat", root);
+    const selA = $("#vac-agent", root), selS = $("#vac-start", root);
+    const cbPen = $("#vac-pen", root), cbUnrel = $("#vac-unrel", root);
+    let st;
+
+    function reset() {
+      const [loc, dA, dB] = selS.value.split(",");
+      st = { loc, dirt: { A: dA === "1", B: dB === "1" }, t: 0, score: 0, mem: { A: "?", B: "?" }, last: null };
+      out.textContent = "t   persepsjon          handling   poeng dette steget\n";
+      draw();
+    }
+    function percept() {
+      const status = st.dirt[st.loc] ? "Dirty" : "Clean";
+      const a = selA.value;
+      if (a === "noloc" || a === "random") return { txt: `[${status}]`, status, loc: null };
+      return { txt: `[${st.loc}, ${status}]`, status, loc: st.loc };
+    }
+    function decide(p) {
+      switch (selA.value) {
+        case "reflex":
+          if (p.status === "Dirty") return "Suck";
+          return p.loc === "A" ? "Right" : "Left";
+        case "noloc":
+          return p.status === "Dirty" ? "Suck" : "Right";
+        case "random":
+          if (p.status === "Dirty") return "Suck";
+          return Math.random() < 0.5 ? "Left" : "Right";
+        case "model": {
+          st.mem[p.loc] = p.status;               // oppdater intern tilstand fra persepsjonen
+          if (p.status === "Dirty") return "Suck";
+          const other = p.loc === "A" ? "B" : "A";
+          if (st.mem[other] !== "Clean") return p.loc === "A" ? "Right" : "Left";
+          return "NoOp";                          // vet at alt er rent -> gjør ingenting
+        }
+      }
+    }
+    function step() {
+      const p = percept();
+      const a = decide(p);
+      if (a === "Suck") {
+        const fail = cbUnrel.checked && Math.random() < 0.1;
+        if (!fail) st.dirt[st.loc] = false;
+      } else if (a === "Right") st.loc = "B";
+      else if (a === "Left") st.loc = "A";
+      // modellbasert agent: transisjonsmodellen sier at Suck gjør ruta ren
+      if (selA.value === "model" && a === "Suck") st.mem[p.loc] = cbUnrel.checked ? "?" : "Clean";
+      st.t++;
+      let pts = (st.dirt.A ? 0 : 1) + (st.dirt.B ? 0 : 1);
+      if (cbPen.checked && (a === "Left" || a === "Right")) pts -= 1;
+      st.score += pts;
+      st.last = { p: p.txt, a };
+      out.textContent += `${String(st.t).padEnd(4)}${p.txt.padEnd(20)}${a.padEnd(11)}${pts >= 0 ? "+" : ""}${pts}\n`;
+      out.scrollTop = out.scrollHeight;
+      draw();
+    }
+    function draw() {
+      svg.innerHTML = "";
+      const sq = { A: 40, B: 230 };
+      for (const k of ["A", "B"]) {
+        S("rect", { x: sq[k], y: 20, width: 170, height: 110, rx: 6, class: st.dirt[k] ? "node-warn" : "node" }, svg);
+        S("text", { x: sq[k] + 10, y: 40, class: "label", text: k }, svg);
+        if (st.dirt[k]) {
+          [[40, 95], [62, 108], [120, 100], [140, 82], [95, 112]].forEach(([dx, dy]) =>
+            S("circle", { cx: sq[k] + dx, cy: dy, r: 5, class: "fill-muted" }, svg));
+          S("text", { x: sq[k] + 160, y: 40, "text-anchor": "end", class: "small", text: "skitten" }, svg);
+        } else S("text", { x: sq[k] + 160, y: 40, "text-anchor": "end", class: "small", text: "ren" }, svg);
+      }
+      const ax = sq[st.loc] + 85;
+      S("circle", { cx: ax, cy: 75, r: 20, class: "node-hl" }, svg);
+      S("text", { x: ax, y: 80, "text-anchor": "middle", class: "label", text: "R" }, svg);
+      const info = st.last ? `Sist: persepsjon ${st.last.p} → handling ${st.last.a}` : "Trykk «Ett steg» for å starte.";
+      S("text", { x: 225, y: 158, "text-anchor": "middle", class: "small", text: info }, svg);
+      let s = `Tid t = ${st.t} · Akkumulert ytelse = ${st.score}`;
+      if (selA.value === "model") s += ` · Intern tilstand (modell): A=${st.mem.A}, B=${st.mem.B}`;
+      stat.textContent = s;
+    }
+    $("#vac-step", root).onclick = step;
+    $("#vac-run", root).onclick = () => { for (let i = 0; i < 10; i++) step(); };
+    $("#vac-reset", root).onclick = reset;
+    [selA, selS, cbPen, cbUnrel].forEach(e => e.addEventListener("change", reset));
+    reset();
+  })();
+
+  /* ------------------------------------------------------------
+     2) Oppslagstabell-størrelse (table-driven agent)
+     ------------------------------------------------------------ */
+  (function tableSize() {
+    const root = document.getElementById("tbl");
+    if (!root) return;
+    const P = $("#tbl-p", root), T = $("#tbl-t", root), out = $("#tbl-out", root);
+    function calc() {
+      const p = Math.max(1, parseInt(P.value || "1", 10)), t = Math.max(1, parseInt(T.value || "1", 10));
+      const lg = t * Math.log10(p) + (p > 1 ? Math.log10(p / (p - 1)) : Math.log10(t));
+      let exact = "";
+      if (lg < 60) {
+        let sum = 0n, pw = 1n; const bp = BigInt(p);
+        for (let i = 1; i <= t; i++) { pw *= bp; sum += pw; }
+        exact = sum.toString();
+      }
+      const cmp = lg > 80 ? "flere enn antall atomer i det observerbare universet (≈ 10^80)!" :
+        lg > 12 ? "langt mer enn noen datamaskin kan lagre." : "håndterbart.";
+      out.innerHTML = `Antall rader = Σ<sub>t=1..${t}</sub> ${p}<sup>t</sup> ` +
+        (exact ? `= <b>${exact}</b>` : `≈ <b>10<sup>${lg.toFixed(1)}</sup></b>`) + ` &nbsp;→ ${cmp}`;
+    }
+    P.addEventListener("input", calc); T.addEventListener("input", calc);
+    calc();
+  })();
+
+  /* ------------------------------------------------------------
+     3) PEAS-bygger
+     ------------------------------------------------------------ */
+  (function peas() {
+    const root = document.getElementById("peas");
+    if (!root) return;
+    const SC = {
+      store: {
+        title: "Butikkrobot som skanner hyller (eksamen 2022)",
+        desc: "Roboten kjører autonomt rundt i en dagligvarebutikk, skanner hyllene og rapporterer lagerstatus. Den har kameraer, ultralydsensor (avstand til hindringer) og kollisjonssensor.",
+        items: [["Andel produkter korrekt registrert", "P"], ["Antall kollisjoner (minimer)", "P"], ["Tid brukt per skannerunde", "P"],
+          ["Hyllegangene og hyllene", "E"], ["Kunder og ansatte", "E"], ["Varene i hyllene", "E"], ["Andre roboter / handlevogner", "E"],
+          ["Hjul og motorer", "A"], ["Rapport/varsel til lagersystemet", "A"], ["Skjerm/lys som varsler kunder", "A"],
+          ["Kameraer", "S"], ["Ultralydsensor", "S"], ["Kollisjonssensor", "S"], ["Hjulenkodere (odometri)", "S"]]
+      },
+      roomba: {
+        title: "Robotstøvsuger (Roomba, eksamen 2016)",
+        desc: "Roomba kjører rundt og støvsuger gulvene i alle rommene i et hjem.",
+        items: [["Andel rent gulvareal", "P"], ["Strømforbruk (minimer)", "P"], ["Tid før jobben er ferdig", "P"], ["Ikke skade møbler/kjæledyr", "P"],
+          ["Rom, gulv og tepper", "E"], ["Møbler og trapper", "E"], ["Mennesker og kjæledyr", "E"], ["Ladestasjon", "E"],
+          ["Hjul", "A"], ["Børster og sugemotor", "A"], ["Pipelyd/app-varsel", "A"],
+          ["Støtfangersensor", "S"], ["Trappesensor (cliff-sensor)", "S"], ["Smussensor", "S"], ["Kamera/lidar", "S"]]
+      },
+      medical: {
+        title: "Medisinsk diagnosesystem (læreboka fig. 2.5)",
+        desc: "Et system som foreslår diagnoser og behandlinger ut fra symptomer, testresultater og pasienthistorikk.",
+        items: [["Frisk pasient", "P"], ["Reduserte kostnader", "P"],
+          ["Pasient", "E"], ["Sykehus", "E"], ["Helsepersonell", "E"],
+          ["Vise spørsmål og tester på skjerm", "A"], ["Vise diagnoser og behandlinger", "A"],
+          ["Berøringsskjerm/stemmeinput av symptomer og funn", "S"], ["Testresultater fra laboratoriet", "S"]]
+      },
+      spam: {
+        title: "Spamfilter for e-post",
+        desc: "En programvareagent som avgjør om innkommende e-post skal i innboksen eller i søppelpost-mappen.",
+        items: [["Andel spam som fanges (recall)", "P"], ["Få legitime e-poster feilklassifisert (falske positive)", "P"],
+          ["E-postserveren og innboksen", "E"], ["Avsendere (inkl. spammere som tilpasser seg)", "E"], ["Brukeren", "E"],
+          ["Flytte e-post til søppelpost", "A"], ["Merke e-post som mistenkelig", "A"],
+          ["Innholdet i innkommende e-post (tekst, headere)", "S"], ["Brukerens «ikke spam»-klikk", "S"]]
+      }
+    };
+    const sel = $("#peas-sc", root), box = $("#peas-items", root), desc = $("#peas-desc", root), res = $("#peas-res", root);
+    const NAMES = { P: "Ytelsesmål", E: "Omgivelse", A: "Aktuator", S: "Sensor" };
+    let rows = [];
+    function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+    function load() {
+      const sc = SC[sel.value];
+      desc.textContent = sc.desc;
+      box.innerHTML = ""; res.textContent = ""; rows = [];
+      shuffle(sc.items).forEach(([txt, cat]) => {
+        const row = document.createElement("div");
+        row.className = "peas-row";
+        const lab = document.createElement("span"); lab.className = "peas-txt"; lab.textContent = txt;
+        row.appendChild(lab);
+        const r = { cat, choice: null, row, btns: {} };
+        ["P", "E", "A", "S"].forEach(c => {
+          const b = document.createElement("button");
+          b.className = "secondary peas-btn"; b.textContent = c; b.title = NAMES[c];
+          b.onclick = () => { r.choice = c; Object.values(r.btns).forEach(x => x.classList.add("secondary")); b.classList.remove("secondary"); row.classList.remove("ok", "no"); };
+          r.btns[c] = b; row.appendChild(b);
+        });
+        rows.push(r); box.appendChild(row);
+      });
+      CourseKit.relayout();
+    }
+    $("#peas-check", root).onclick = () => {
+      let ok = 0, ans = 0;
+      rows.forEach(r => { if (!r.choice) return; ans++; const good = r.choice === r.cat; if (good) ok++; r.row.classList.toggle("ok", good); r.row.classList.toggle("no", !good); });
+      res.textContent = `${ok} av ${rows.length} riktig` + (ans < rows.length ? ` (${rows.length - ans} ikke besvart)` : "") + (ok === rows.length ? " – perfekt!" : "");
+    };
+    $("#peas-show", root).onclick = () => {
+      rows.forEach(r => { r.choice = r.cat; Object.entries(r.btns).forEach(([c, b]) => b.classList.toggle("secondary", c !== r.cat)); r.row.classList.add("ok"); r.row.classList.remove("no"); });
+      res.textContent = "Fasit vist.";
+    };
+    sel.onchange = load; $("#peas-new", root).onclick = load;
+    load();
+  })();
+
+  /* ------------------------------------------------------------
+     4) Klassifiser omgivelser
+     ------------------------------------------------------------ */
+  (function envClassifier() {
+    const root = document.getElementById("envc");
+    if (!root) return;
+    const DIMS = [
+      ["obs", "Observerbarhet", [["F", "Fullt observerbar"], ["P", "Delvis observerbar"], ["U", "Ikke observerbar"]]],
+      ["ag", "Agenter", [["S", "Én agent"], ["M", "Flere agenter"]]],
+      ["det", "Utfall", [["D", "Deterministisk"], ["N", "Ikke-deterministisk/stokastisk"]]],
+      ["epi", "Episoder", [["E", "Episodisk"], ["Q", "Sekvensiell"]]],
+      ["sta", "Endring", [["S", "Statisk"], ["I", "Semidynamisk"], ["D", "Dynamisk"]]],
+      ["dis", "Verdier", [["D", "Diskret"], ["C", "Kontinuerlig"]]],
+      ["kno", "Regler", [["K", "Kjent"], ["U", "Ukjent"]]]
+    ];
+    // a: aksepterte svar per dimensjon, w: begrunnelse
+    const ENV = [
+      { n: "Kryssord", src: "Bok fig. 2.6", d: "En agent løser et kryssord alene.",
+        a: { obs: "F", ag: "S", det: "D", epi: "Q", sta: "S", dis: "D", kno: "K" },
+        w: { obs: "Hele rutenettet og alle hint er synlige.", ag: "Ingen andre aktører påvirker resultatet.", det: "Å skrive et ord gir alltid samme resultat.", epi: "Et ord du skriver begrenser senere ord (kryssende bokstaver).", sta: "Kryssordet endrer seg ikke mens du tenker, og det er ingen klokke.", dis: "Endelig mange bokstaver og ruter.", kno: "Reglene er kjent." } },
+      { n: "Sjakk med klokke", src: "Bok fig. 2.6 / eksamen 2016 (Deep Blue)", d: "Et sjakkprogram spiller mot et menneske med sjakkur.",
+        a: { obs: "F", ag: "M", det: "D", epi: "Q", sta: "I", dis: "D", kno: "K" },
+        w: { obs: "Hele brettet er synlig.", ag: "Motstanderen maksimerer sitt eget ytelsesmål, som minimerer ditt → konkurrerende fleragent.", det: "Neste tilstand er gitt av tilstand + trekk. (At motstanderen er uforutsigbar gjør det ikke ikke-deterministisk i bokas forstand – motstanderens valg er en annen agents handling.)", epi: "Hvert trekk påvirker resten av partiet.", sta: "Brettet står stille mens du tenker, men klokka tikker og påvirker ytelsen → semidynamisk.", dis: "Endelig mange stillinger og trekk (vi ser bort fra klokka).", kno: "Reglene er kjent." } },
+      { n: "Poker", src: "Bok fig. 2.6", d: "En pokerbot spiller Texas Hold'em mot andre spillere.",
+        a: { obs: "P", ag: "M", det: "N", epi: "Q", sta: "S", dis: "D", kno: "K" },
+        w: { obs: "Du ser ikke motstandernes kort.", ag: "Flere spillere med motstridende mål.", det: "Kortstokken stokkes tilfeldig – utfallet av å dele ut kort er stokastisk.", epi: "Innsatser tidligere i hånda påvirker senere valg.", sta: "Ingen endring mens du tenker (uten klokke).", dis: "Endelig mange kort og innsatsvalg.", kno: "Reglene er kjent (men motstanderens strategi er det ikke)." } },
+      { n: "Backgammon", src: "Bok fig. 2.6 / eksamen 2017", d: "Et program spiller backgammon (terningkast avgjør hvor langt man kan flytte).",
+        a: { obs: "F", ag: "M", det: "N", epi: "Q", sta: "S", dis: "D", kno: "K" },
+        w: { obs: "Brettet er fullt synlig.", ag: "To spillere.", det: "Terningkast → stokastisk. (Eksamen 2017 f: «Backgammon is … deterministic …» er derfor FALSE.)", epi: "Trekk påvirker framtiden.", sta: "Statisk.", dis: "Diskret brett og terninger.", kno: "Kjent." } },
+      { n: "Taxisjåfør (automatisk)", src: "Bok fig. 2.6", d: "En selvkjørende taxi frakter passasjerer i en by.",
+        a: { obs: "P", ag: "M", det: "N", epi: "Q", sta: "D", dis: "C", kno: "K" },
+        w: { obs: "Kan ikke se rundt hjørner eller hva andre sjåfører tenker.", ag: "Andre biler er agenter (delvis samarbeid: unngå kollisjon; delvis konkurranse: parkeringsplasser).", det: "Trafikk er uforutsigbar, dekk kan punktere.", epi: "Valg nå påvirker hvor du er senere.", sta: "Trafikken beveger seg mens du tenker.", dis: "Posisjon, fart, rattutslag er kontinuerlige.", kno: "Boka: «the driver's environment is mostly known» – trafikkreglene og fysikken er kjent." } },
+      { n: "Medisinsk diagnose", src: "Bok fig. 2.6", d: "Et system foreslår diagnose og behandling for pasienter.",
+        a: { obs: "P", ag: "S|M", det: "N", epi: "Q|E", sta: "D", dis: "C", kno: "K|U" },
+        w: { obs: "Sykdommen kan ikke observeres direkte, bare symptomer.", ag: "Boka sier én agent (sykdommen er ikke en agent), men nevner at vanskelige pasienter/skeptisk personale gir et fleragent-aspekt. Begge kan forsvares.", det: "Pasienters respons på behandling er usikker.", epi: "Boka: sekvensiell hvis oppgaven inkluderer en serie tester og oppfølging; episodisk hvis den bare er «velg diagnose gitt symptomliste». Begrunn!", sta: "Pasientens tilstand endrer seg over tid.", dis: "Målinger (blodtrykk, temperatur) er kontinuerlige.", kno: "Medisinsk kunnskap er i stor grad kjent, men ufullstendig – begge kan forsvares." } },
+      { n: "Bildeanalyse", src: "Bok fig. 2.6", d: "Et system klassifiserer satellittbilder (f.eks. skog, by, vann).",
+        a: { obs: "F", ag: "S", det: "D", epi: "E", sta: "I", dis: "C", kno: "K" },
+        w: { obs: "Hele bildet er tilgjengelig.", ag: "Ingen andre agenter.", det: "Å klassifisere et bilde endrer ikke bildet – utfallet av handlingen er bestemt.", epi: "Hvert bilde er en uavhengig episode.", sta: "Boka sier semidynamisk: bildet endrer seg ikke, men ytelsen avhenger av hvor raskt du svarer.", dis: "Pikselintensiteter behandles som kontinuerlige.", kno: "Kjent." } },
+      { n: "Plukkerobot (part-picking)", src: "Bok fig. 2.6", d: "En robotarm plukker deler fra et samlebånd og legger dem i riktig kasse.",
+        a: { obs: "P", ag: "S", det: "N", epi: "E", sta: "D", dis: "C", kno: "K" },
+        w: { obs: "Kamera og sensorer gir ikke full informasjon (støy, skjulte deler).", ag: "Ingen andre agenter.", det: "Grep kan feile.", epi: "Hver del vurderes uavhengig av tidligere deler.", sta: "Båndet går mens roboten tenker.", dis: "Armvinkler og posisjoner er kontinuerlige.", kno: "Kjent." } },
+      { n: "Raffineri-kontroller", src: "Bok fig. 2.6", d: "Et system styrer ventiler, pumper og varmeelementer i et oljeraffineri.",
+        a: { obs: "P", ag: "S", det: "N", epi: "Q", sta: "D", dis: "C", kno: "K" },
+        w: { obs: "Sensorer måler bare enkelte punkter.", ag: "Én agent (operatører regnes som del av omgivelsen).", det: "Kjemiske prosesser har usikkerhet.", epi: "Justeringer nå påvirker prosessen senere.", sta: "Prosessen går kontinuerlig.", dis: "Temperatur, trykk, strømning er kontinuerlige.", kno: "Kjent." } },
+      { n: "Interaktiv engelsklærer", src: "Bok fig. 2.6", d: "Et program gir elever oppgaver og tilbakemelding i engelsk.",
+        a: { obs: "P", ag: "M", det: "N", epi: "Q", sta: "D", dis: "D", kno: "K|U" },
+        w: { obs: "Kan ikke se hva eleven faktisk forstår.", ag: "Elevene er agenter med egne mål.", det: "Elevens svar er usikre.", epi: "Tidligere undervisning påvirker hva eleven kan senere.", sta: "Eleven gjør ting (eller gir opp) mens systemet tenker.", dis: "Tekst/tastetrykk er diskrete.", kno: "Boka har ikke kolonnen. Hvordan elever lærer er delvis ukjent – begge kan forsvares." } },
+      { n: "Roomba", src: "Eksamen 2016", d: "En robotstøvsuger kjører rundt og støvsuger alle rommene i et hjem.",
+        a: { obs: "P", ag: "S", det: "N", epi: "Q", sta: "D", dis: "C", kno: "K|U" },
+        w: { obs: "Ser bare nærområdet (fasit: P).", ag: "Fasit: S – mennesker og kjæledyr modelleres som deler av omgivelsen.", det: "Fasit: S (stokastisk) – hjul kan skli, nytt smuss kan dukke opp.", epi: "Hvor den har vært påvirker hva som gjenstår.", sta: "Fasit: D – folk og dyr flytter seg, smuss dukker opp.", dis: "Fasit: C – posisjon og retning er kontinuerlige.", kno: "Ikke spurt om i 2016. Rommets planløsning er ukjent i starten (må utforskes), mens fysikken er kjent." } },
+      { n: "Tesla-lakkeringsrobot", src: "Eksamen 2016", d: "Lakkerer én og én bil. Bilene transporteres til og fra av en transportrobot. Bruker en sprøytelakkerings-robotarm.",
+        a: { obs: "P", ag: "M|S", det: "N", epi: "Q|E", sta: "S", dis: "C", kno: "K" },
+        w: { obs: "Fasit: P – kan f.eks. ikke se hele bilen samtidig.", ag: "Fasit: M (transportroboten er en annen agent). «S» kan forsvares hvis transportroboten bare ses som del av omgivelsen.", det: "Fasit: S – sprøyting har usikkerhet.", epi: "Fasit: S (sekvensiell innenfor én bil – hvert strøk påvirker neste). Episodisk kan forsvares hvis hver bil ses som en uavhengig episode. Begrunn!", sta: "Fasit: S – bilen står stille mens den lakkeres.", dis: "Fasit: C.", kno: "Kjent." } },
+      { n: "Stats Monkey (robotjournalist)", src: "Eksamen 2016", d: "Samler kampstatistikk og skriver troverdige referater fra baseballkamper mens kampene pågår.",
+        a: { obs: "P", ag: "S", det: "D", epi: "Q", sta: "I|D", dis: "C|D", kno: "K" },
+        w: { obs: "Fasit: P – får bare statistikk, ikke alt som skjer.", ag: "Fasit: S.", det: "Fasit: D – å skrive tekst har sikre utfall.", epi: "Fasit: S – referatet bygges opp over tid.", sta: "Fasit: I (semidynamisk). Fordi kampen pågår mens den skriver kan også «dynamisk» forsvares.", dis: "Fasit: C. Men box scores og tekst er diskrete data, så «diskret» kan også forsvares. (Merk 2020-kommentaren: slike oppgaver har flere rimelige svar.)", kno: "Kjent." } },
+      { n: "Støvsuger med upålitelig sug", src: "Eksamen 2019", d: "Støvsugeren fra boka (to ruter, sensor for posisjon og smuss), men 10 % av gangene virker ikke Suck, og den kan til og med legge igjen smuss på en ren rute.",
+        a: { obs: "F|P", ag: "S", det: "N", epi: "Q", sta: "S", dis: "D", kno: "K" },
+        w: { obs: "Ikke spurt om i 2019. Boka: med bare lokal smussensor vet agenten ikke om den andre ruta er skitten → delvis observerbar. Antar du at agenten ser begge rutene (som i kap. 3–4), er den fullt observerbar. Si hva du antar!", ag: "Én agent.", det: "Fasit: stokastisk – 10 % sannsynlighet for feil (kvantifisert sannsynlighet → stokastisk).", epi: "Fasit: sekvensiell.", sta: "Fasit: statisk – ingenting skjer mens agenten tenker.", dis: "To ruter, diskrete handlinger.", kno: "Kjent (også sannsynligheten)." } },
+      { n: "Kabal (solitaire)", src: "Bok s. 64", d: "Du legger kabal; noen kort ligger med baksiden opp.",
+        a: { obs: "P", ag: "S", det: "D|N", epi: "Q", sta: "S", dis: "D", kno: "K" },
+        w: { obs: "Kortene med baksiden opp er skjult.", ag: "Du spiller alene.", det: "Kortstokken er allerede stokket, så verden er egentlig deterministisk, men den ser ikke-deterministisk ut for agenten fordi den ikke ser kortene. Begge kan forsvares.", epi: "Trekk påvirker senere muligheter.", sta: "Statisk.", dis: "Diskret.", kno: "Bokas eksempel på kjent men delvis observerbar." } },
+      { n: "Nytt dataspill (aldri sett før)", src: "Bok s. 64", d: "Du ser hele skjermen i et nytt plattformspill, men vet ikke hva knappene gjør.",
+        a: { obs: "F", ag: "S|M", det: "D|N", epi: "Q", sta: "D|I|S", dis: "D|C", kno: "U" },
+        w: { obs: "Hele spilltilstanden vises på skjermen.", ag: "Avhenger av spillet.", det: "Avhenger av spillet.", epi: "Typisk sekvensielt.", sta: "Avhenger av spillet.", dis: "Avhenger av modelleringen.", kno: "Bokas eksempel på ukjent men fullt observerbar: du må lære hva knappene gjør." } },
+      { n: "Strikking", src: "Eksamen 2015", d: "En agent strikker et skjerf etter oppskrift.",
+        a: { obs: "F", ag: "S", det: "D", epi: "Q", sta: "S", dis: "D|C", kno: "K" },
+        w: { obs: "Strikketøyet er synlig.", ag: "Én agent.", det: "Fasit 2015: «not stochastic» – hver maske gir forutsigbart resultat.", epi: "Fasit 2015: «not episodic» – hver maske bygger på de forrige.", sta: "Ingenting endrer seg mens du tenker.", dis: "Masker og rader er diskrete (garnets posisjon er kontinuerlig – avhenger av modelleringen).", kno: "Kjent." } }
+    ];
+    const sel = $("#envc-sel", root), desc = $("#envc-desc", root), tbl = $("#envc-tbl", root), res = $("#envc-res", root);
+    ENV.forEach((e, i) => { const o = document.createElement("option"); o.value = i; o.textContent = e.n; sel.appendChild(o); });
+    let cur = null;
+    function load() {
+      cur = ENV[+sel.value];
+      desc.innerHTML = `<b>${esc(cur.n)}</b> <span class="pill">${esc(cur.src)}</span><br>${esc(cur.d)}`;
+      tbl.innerHTML = ""; res.textContent = "";
+      DIMS.forEach(([k, label, opts]) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td><b>${label}</b></td><td class="envc-opts"></td><td class="envc-why"></td>`;
+        const cell = tr.children[1];
+        opts.forEach(([v, txt]) => {
+          const b = document.createElement("button");
+          b.className = "secondary"; b.textContent = txt; b.dataset.v = v;
+          b.onclick = () => { cell.querySelectorAll("button").forEach(x => x.classList.add("secondary")); b.classList.remove("secondary"); tr.dataset.choice = v; tr.className = ""; tr.children[2].textContent = ""; };
+          cell.appendChild(b);
+        });
+        tr.dataset.k = k;
+        tbl.appendChild(tr);
+      });
+      CourseKit.relayout();
+    }
+    function check(reveal) {
+      let ok = 0, n = 0;
+      tbl.querySelectorAll("tr").forEach(tr => {
+        const k = tr.dataset.k, acc = cur.a[k].split("|");
+        if (reveal) {
+          tr.querySelectorAll("button").forEach(b => b.classList.toggle("secondary", !acc.includes(b.dataset.v)));
+          tr.dataset.choice = acc[0];
+        }
+        const c = tr.dataset.choice;
+        const why = tr.children[2];
+        if (!c) { tr.className = ""; why.textContent = ""; return; }
+        n++;
+        const good = acc.includes(c);
+        if (good) ok++;
+        tr.className = good ? "ok" : "no";
+        why.textContent = (good ? "✓ " : "✗ ") + cur.w[k];
+      });
+      res.textContent = reveal ? "Fasit med begrunnelse vist. Der flere knapper er markert, kan begge svar forsvares." : `${ok} av ${DIMS.length} riktig${n < DIMS.length ? " (" + (DIMS.length - n) + " ikke besvart)" : ""}.`;
+      CourseKit.relayout();
+    }
+    sel.onchange = load;
+    $("#envc-check", root).onclick = () => check(false);
+    $("#envc-show", root).onclick = () => check(true);
+    $("#envc-rand", root).onclick = () => { sel.value = Math.floor(Math.random() * ENV.length); load(); };
+    load();
+  })();
+
+  /* ------------------------------------------------------------
+     5) Agenttype-gjenkjenner
+     ------------------------------------------------------------ */
+  (function agentType() {
+    const root = document.getElementById("atype");
+    if (!root) return;
+    const T = { reflex: "Enkel refleksagent", model: "Modellbasert refleksagent", goal: "Målbasert agent", utility: "Nyttebasert agent", learning: "Lærende agent" };
+    const Q = [
+      ["En termostat slår på varmen når temperaturen er under 20 °C og av når den er over 21 °C.", "reflex",
+        "Handlingen avhenger bare av nåværende persepsjon (temperatur) via en fast betingelse–handling-regel. Ingen hukommelse, ingen eksplisitte mål."],
+      ["En robotstøvsuger husker hvilke rom den allerede har støvsuget (den kan ikke se dem nå), og bruker faste regler som «hvis rommet er rent og et nabotrom er ukjent, kjør dit».", "model",
+        "Intern tilstand som sporer det den ikke ser lenger (modell), men handlingsvalget er fortsatt regelmatching – ingen søk mot et eksplisitt mål."],
+      ["En GPS-app får en adresse, beregner en rute fram dit og velger neste sving ut fra ruten. Endrer du adressen, beregnes en ny rute.", "goal",
+        "Eksplisitt mål (destinasjon) + søk/planlegging. Fleksibelt: bytte mål krever ingen nye regler."],
+      ["En GPS-app velger mellom flere ruter til målet ved å veie reisetid, bompenger og risiko for kø, og velger ruten med høyest forventet verdi.", "utility",
+        "Flere veier når målet; agenten bruker en nyttefunksjon for å avveie konflikterende kriterier og usikkerhet (forventet nytte)."],
+      ["Et sjakkprogram justerer evalueringsfunksjonen sin etter hvert parti basert på om det vant eller tapte, og prøver av og til uvanlige åpninger for å lære mer.", "learning",
+        "Kritiker (vant/tapte mot en fast standard), læringselement (justerer evalueringen) og problemgenerator (utforskende åpninger)."],
+      ["En bil har en nødbremsfunksjon: hvis radaren måler at avstanden til bilen foran er under 2 m, bremses det fullt.", "reflex",
+        "Ren betingelse–handling-regel på nåværende persepsjon."],
+      ["En robot i et lager følger med på hvor gaffeltruckene var sist den så dem, og bruker en kunnskapsbase av regler for å unngå dem.", "model",
+        "Sporer usett del av verden (intern tilstand + hvordan verden utvikler seg), men velger handling via regler."],
+      ["En robot på Mars får beskjed om å hente en steinprøve ved et bestemt krater og planlegger en sekvens av kjøreoperasjoner for å komme dit.", "goal",
+        "Planlegger en handlingssekvens for å nå et eksplisitt mål (binært: nådd/ikke nådd)."],
+      ["En selvkjørende taxi må avveie hvor raskt den kjører mot hvor trygt og komfortabelt det er for passasjeren.", "utility",
+        "Konflikterende mål (fart vs. sikkerhet) – bare en nyttefunksjon kan spesifisere avveiningen."],
+      ["En spamfilter-agent oppdaterer modellen sin hver gang brukeren markerer en e-post som «ikke spam».", "learning",
+        "Brukerens tilbakemelding fungerer som kritiker; læringselementet endrer ytelseselementet (klassifikatoren)."],
+      ["En porteføljeagent velger mellom investeringer med usikker avkastning ved å maksimere forventet avkastning justert for risiko.", "utility",
+        "Usikre utfall + gradert preferanse → maksimer forventet nytte."],
+      ["En støvsuger med bare smussensor (ingen posisjonssensor) suger hvis det er skittent og ellers velger tilfeldig Left eller Right.", "reflex",
+        "Fortsatt en enkel refleksagent – bare randomisert. Den har ingen intern tilstand. (Boka: randomisering kan hjelpe en refleksagent å unngå uendelige løkker.)"]
+    ];
+    const qEl = $("#atype-q", root), btns = $("#atype-btns", root), fb = $("#atype-fb", root), sc = $("#atype-score", root);
+    let order = [], i = 0, right = 0, answered = false, firstTry = true;
+    function start() { order = Q.map((_, j) => j).sort(() => Math.random() - 0.5); i = 0; right = 0; show(); }
+    function show() {
+      answered = false; firstTry = true; fb.innerHTML = "";
+      if (i >= order.length) { qEl.innerHTML = `<b>Ferdig!</b> Du fikk ${right} av ${order.length} riktig på første forsøk.`; btns.style.display = "none"; return; }
+      btns.style.display = "";
+      const q = Q[order[i]];
+      qEl.innerHTML = `<span class="pill">${i + 1} / ${order.length}</span> ${esc(q[0])}`;
+      btns.querySelectorAll("button").forEach(b => { b.classList.add("secondary"); b.disabled = false; });
+      sc.textContent = `Riktig på første forsøk: ${right}`;
+    }
+    Object.entries(T).forEach(([k, name]) => {
+      const b = document.createElement("button"); b.className = "secondary"; b.textContent = name;
+      b.onclick = () => {
+        if (answered) return;
+        const q = Q[order[i]];
+        if (k === q[1]) {
+          answered = true; if (firstTry) right++;
+          b.classList.remove("secondary");
+          fb.innerHTML = `<span style="color:var(--good);font-weight:700">Riktig – ${T[q[1]]}.</span> ${esc(q[2])} <button id="atype-next">Neste →</button>`;
+          $("#atype-next", root).onclick = () => { i++; show(); };
+          sc.textContent = `Riktig på første forsøk: ${right}`;
+        } else {
+          firstTry = false; b.disabled = true;
+          fb.innerHTML = `<span style="color:var(--bad);font-weight:700">Ikke helt.</span> Tenk: bruker agenten hukommelse om det den ikke ser? Har den et eksplisitt mål? Avveier den grader av «hvor bra»? Lærer den av tilbakemelding?`;
+        }
+        CourseKit.relayout();
+      };
+      btns.appendChild(b);
+    });
+    $("#atype-restart", root).onclick = start;
+    start();
+  })();
+})();
+
+</script>
+</body>
+</html>

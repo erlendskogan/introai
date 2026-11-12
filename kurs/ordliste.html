@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ordliste · TDT4136</title><link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="home-wrap" style="max-width:860px">
+<div class="kicker">Oppslagsverk</div>
+<h1>Ordliste</h1>
+<p class="lead">Alle 519 fagbegreper fra kurset, med engelsk betegnelse (som brukes på eksamen) og lenke til modulen der begrepet forklares.</p>
+<input class="glossary-search" id="q" placeholder="Søk etter begrep (norsk eller engelsk) …" autofocus>
+<dl class="glossary" id="list">
+<div class="g-item" data-s="&lt;unk&gt; unk token (unknown word)"><dt>&lt;UNK&gt;<span class="en">UNK token (unknown word)</span></dt>
+<dd>Spesialsymbol som erstatter sjeldne ord i treningskorpuset (f.eks. alt utenom de 50 000 vanligste). Et ukjent ord i testteksten får sannsynligheten til &lt;UNK&gt;. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="a*-søk a* search"><dt>A*-søk<span class="en">A* search</span></dt>
+<dd>Best-first search med f(n) = g(n) + h(n): estimert kostnad for den billigste løsningen som går gjennom n. Uttales «A-stjerne» / «A-star». <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="abstraksjon abstraction"><dt>abstraksjon<span class="en">abstraction</span></dt>
+<dd>Å fjerne detaljer fra en representasjon slik at bare det som er relevant for problemet blir igjen. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="ac-3 ac-3 (arc consistency algorithm #3)"><dt>AC-3<span class="en">AC-3 (arc consistency algorithm #3)</span></dt>
+<dd>Algoritme som gjør et helt CSP buekonsistent. Har en kø med buer, reviderer én bue om gangen og legger buene inn mot en variabel tilbake i køen når domenet til variabelen krymper. O(cd³). <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="admissibel admissible heuristic"><dt>admissibel<span class="en">admissible heuristic</span></dt>
+<dd>h overestimerer aldri: h(n) ≤ h*(n) for alle n, der h*(n) er den sanne kostnaden for billigste vei fra n til et mål. En admissibel heuristikk er optimistisk. <br><a href="m03-informert-sok.html">Modul 3</a> · <a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="adversarialt søk adversarial search"><dt>adversarialt søk<span class="en">adversarial search</span></dt>
+<dd>Søk i omgivelser med en eller flere motstandere som har motstridende mål. Klassisk eksempel: brettspill som sjakk og Go. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="agent agent"><dt>agent</dt>
+<dd>Alt som kan sees på som å oppfatte omgivelsen sin gjennom sensorer og handle på den gjennom aktuatorer. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="agentfunksjonen agent function"><dt>agentfunksjonen<span class="en">agent function</span></dt>
+<dd>Den abstrakte, matematiske avbildningen fra persepsjonssekvenser til handlinger: f : P* → A. En ekstern beskrivelse av atferd. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="agentprogrammet agent program"><dt>agentprogrammet<span class="en">agent program</span></dt>
+<dd>Den konkrete implementasjonen av agentfunksjonen som kjører på agentarkitekturen. Tar inn <em>nåværende</em> persepsjon og returnerer en handling. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="aksiom axiom"><dt>aksiom<span class="en">axiom</span></dt>
+<dd>En setning i KB som tas som gitt (ikke utledet fra andre setninger). <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="aktuatorer actuators"><dt>aktuatorer<span class="en">actuators</span></dt>
+<dd>Det agenten påvirker omgivelsen med: hender, motorer, hjul, skjerm, høyttaler, å skrive filer/sende pakker … <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="alfa-beta-beskjæring alpha–beta pruning"><dt>Alfa-beta-beskjæring<span class="en">alpha–beta pruning</span></dt>
+<dd>Variant av minimax som gir nøyaktig samme verdi og trekk i roten, men hopper over (beskjærer) grener som beviselig ikke kan påvirke resultatet. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="alldiff alldiff (all different)"><dt>Alldiff<span class="en">Alldiff (all different)</span></dt>
+<dd>Global skranke som krever at alle variablene i den har ulike verdier. Alldiff(X₁,X₂,X₃) = {X₁≠X₂, X₁≠X₃, X₂≠X₃}. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="allianser alliance"><dt>allianser<span class="en">alliance</span></dt>
+<dd>Samarbeid mellom spillere i flerspiller-spill. Kan oppstå av ren egeninteresse (to svake spillere angriper den sterke) og brytes når de ikke lenger lønner seg. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="allkvantoren universal quantifier"><dt>Allkvantoren<span class="en">universal quantifier</span></dt>
+<dd>∀x P er sann i en modell hvis P er sann for hver eneste mulige verdi av x i domenet. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="allvitende omniscience"><dt>allvitende<span class="en">omniscience</span></dt>
+<dd>En allvitende agent vet det faktiske utfallet av handlingene sine på forhånd. Umulig i virkeligheten. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="and-elimination and-elimination"><dt>And-Elimination</dt>
+<dd>Fra en konjunksjon α ∧ β kan hver av delene (α, β) utledes. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="and-noder and node"><dt>AND-noder<span class="en">AND node</span></dt>
+<dd>Noder der omgivelsene velger utfall av en handling. ALLE utfall må ha en plan. Tegnes som sirkler med en bue over grenene. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="and-or-graf and-or graph"><dt>AND-OR-graf<span class="en">AND-OR graph</span></dt>
+<dd>Grafisk fremstilling av en Horn-KB: kanter fra premisser til konklusjon. Kanter samlet med en bue er AND (alle må bevises); kanter uten bue er OR (én holder). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="and-or-søk and-or search"><dt>AND-OR-søk<span class="en">AND-OR search</span></dt>
+<dd>Søk der OR-noder krever at ett av barna lykkes (valg av regel), og AND-noder krever at alle barna lykkes (alle premissene). Samme struktur som i kap. 4. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="aritet arity"><dt>aritet<span class="en">arity</span></dt>
+<dd>Antall argumenter et predikat- eller funksjonssymbol tar. Brother har aritet 2, Person aritet 1. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="arkitekturen agent architecture"><dt>arkitekturen<span class="en">agent architecture</span></dt>
+<dd>Den fysiske plattformen (PC, robotbil …) med sensorer og aktuatorer som agentprogrammet kjører på. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="atomisk representasjon atomic representation"><dt>atomisk representasjon<span class="en">atomic representation</span></dt>
+<dd>Hver tilstand er udelelig – en «svart boks» uten indre struktur. Det eneste man kan gjøre er å sjekke om to tilstander er like eller ulike. <br><a href="m01-agenter.html">Modul 1</a> · <a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="atomær setning atomic sentence (atom)"><dt>atomær setning<span class="en">atomic sentence (atom)</span></dt>
+<dd>Et predikatsymbol brukt på termer (Brother(Richard, John)), eller en likhet mellom to termer (Father(John) = Henry). Har en sannhetsverdi. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="autonomi autonomy"><dt>autonomi<span class="en">autonomy</span></dt>
+<dd>Å basere seg på egne persepsjoner og egen læring heller enn bare på designerens innebygde kunnskap. En rasjonell agent bør være autonom. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="averaging over clairvoyance averaging over clairvoyance"><dt>averaging over clairvoyance</dt>
+<dd>Behandle skjult informasjon (f.eks. kortutdeling) som en sjansenode i roten og anta at spillet deretter er fullt observerbart. Feiler fordi den aldri verdsetter å samle eller skjule informasjon (og aldri bløffer). <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="avkjølingsplanen (cooling) schedule"><dt>avkjølingsplanen<span class="en">(cooling) schedule</span></dt>
+<dd>Funksjon som bestemmer temperaturen T ved tidssteg t; T starter høyt og synker mot 0. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="b branching factor b"><dt>b<span class="en">branching factor b</span></dt>
+<dd>Forgreiningsfaktoren: (maksimalt) antall etterfølgere en node har. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="backed-up value backed-up value"><dt>backed-up value</dt>
+<dd>Når RBFS/SMA* glemmer et subtre, lagres beste f-verdi i subtreet i foreldrenoden, slik at algoritmen vet om det lønner seg å gå tilbake dit senere. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="backoff-modell backoff model"><dt>backoff-modell<span class="en">backoff model</span></dt>
+<dd>Bruk n-gram-estimatet hvis tellingen er høy nok; ellers «rygg tilbake» til (n−1)-gram, og så videre ned til unigram. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="backtracking search backtracking search"><dt>Backtracking search</dt>
+<dd>Variant av DFS som genererer ett barn om gangen og endrer tilstanden på stedet (med angre-operasjon). Minne O(m). Grunnmuren i CSP-løsning (modul 5). <br><a href="m02-uinformert-sok.html">Modul 2</a> · <a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="backward chaining backward chaining"><dt>Backward chaining</dt>
+<dd>Målrettet inferens for definite clauses: start med spørringen q; er q kjent, ferdig; ellers finn regler med q som konklusjon og prøv å bevise alle premissene rekursivt. <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="bag-of-words bag-of-words model"><dt>bag-of-words<span class="en">bag-of-words model</span></dt>
+<dd>Språkmodell som ser på en tekst som en uordnet samling ord. Rekkefølgen ignoreres; bare hvor mange ganger hvert ord forekommer teller. Basert på naiv Bayes-antakelsen. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="bakoverinduksjon backward induction"><dt>bakoverinduksjon<span class="en">backward induction</span></dt>
+<dd>Løs et spill med kjent, endelig antall runder bakfra: finn optimalt spill i siste runde, bruk det til å finne optimalt spill i nest siste, osv. I gjentatt fangens dilemma gir det «vitne» i alle runder. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="beam search beam search"><dt>Beam search</dt>
+<dd>Best-first search som bare beholder de k beste nodene (eller de innenfor δ av beste f) i grensen. Sparer minne, men er verken komplett eller optimal. <br><a href="m03-informert-sok.html">Modul 3</a> · <a href="m06-adversarialt-sok.html">Modul 6</a> · <a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="belief states belief state"><dt>belief states<span class="en">belief state</span></dt>
+<dd>Mengden av fysiske tilstander agenten mener den kan være i. «Jeg er enten i s1 eller s3.» <br><a href="m04-lokalt-sok.html">Modul 4</a> · <a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="beskjæring pruning"><dt>Beskjæring<span class="en">pruning</span></dt>
+<dd>Å utelukke deler av søketreet uten å undersøke dem. A* beskjærer alle noder med f &gt; C*. <br><a href="m03-informert-sok.html">Modul 3</a> · <a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="best-first search best-first search"><dt>best-first search</dt>
+<dd>Generell søkealgoritme: velg alltid noden i frontier med lavest verdi av en evalueringsfunksjon f(n), returner den hvis den er et mål, ellers ekspander den. Ulike f gir ulike algoritmer. <br><a href="m02-uinformert-sok.html">Modul 2</a> · <a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="beste respons best response"><dt>beste respons<span class="en">best response</span></dt>
+<dd>Den (eller de) strategien(e) som gir høyest utbytte for en spiller gitt de andres strategier. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="betingelse–handling-regler condition–action rule"><dt>betingelse–handling-regler<span class="en">condition–action rule</span></dt>
+<dd>Regler på formen «if betingelse then handling», f.eks. «if car-in-front-is-braking then initiate-braking». Kalles også situation–action rules, productions eller if–then rules. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="betinget plan conditional plan / contingency plan / strategy"><dt>betinget plan<span class="en">conditional plan / contingency plan / strategy</span></dt>
+<dd>Plan med if–then–else (og evt. løkker) som sier hva agenten skal gjøre avhengig av hva den observerer underveis. Kalles også contingency plan eller strategi. Løsninger er trær, ikke sekvenser. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="bevis proof"><dt>bevis<span class="en">proof</span></dt>
+<dd>En kjede av slutninger (inferensregler anvendt på setninger) som fører fra KB til målsetningen. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="bevis ved motsigelse refutation / proof by contradiction / reductio ad absurdum"><dt>bevis ved motsigelse<span class="en">refutation / proof by contradiction / reductio ad absurdum</span></dt>
+<dd>Refutation / proof by contradiction / reductio ad absurdum: For å vise KB ⊨ α, anta ¬α og vis at KB ∧ ¬α er uoppfyllbar (gir en selvmotsigelse). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="bevis ved motsigelse proof by refutation / contradiction"><dt>bevis ved motsigelse<span class="en">proof by refutation / contradiction</span></dt>
+<dd>Legg ¬α til KB og utled en motsigelse (den tomme klausulen). Da kan ikke KB være sann uten at α er sann, altså KB ⊨ α. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="bidireksjonalt søk bidirectional search"><dt>Bidireksjonalt søk<span class="en">bidirectional search</span></dt>
+<dd>Søker samtidig forover fra start og bakover fra målet, og stopper når frontene møtes. b^(d/2) + b^(d/2) ≪ b^d. Krever at man kan regne baklengs. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="binær resolusjon binary resolution"><dt>binær resolusjon<span class="en">binary resolution</span></dt>
+<dd>Resolusjon som fjerner nøyaktig ett komplementært par literaler (ett fra hver klausul). <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="binær skranke binary constraint"><dt>Binær skranke<span class="en">binary constraint</span></dt>
+<dd>Skranke mellom to variabler, f.eks. SA ≠ NSW. Et CSP med bare unære og binære skranker kalles et binært CSP og kan tegnes som en skrankegraf. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="blandet strategi mixed strategy"><dt>blandet strategi<span class="en">mixed strategy</span></dt>
+<dd>Randomisert strategi som velger handlinger etter en sannsynlighetsfordeling, skrevet [p: a; (1 − p): b]. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="blindveier dead end / safely explorable"><dt>Blindveier<span class="en">dead end / safely explorable</span></dt>
+<dd>Tilstander der ingen mål kan nås (f.eks. etter en irreversibel handling). Et rom er «safely explorable» hvis et mål kan nås fra alle nåbare tilstander. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="bløffer bluff"><dt>bløffer<span class="en">bluff</span></dt>
+<dd>Å by/satse som om man har en god hånd når man ikke har det. Gir bare mening når motstanderen ikke ser kortene dine. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="body body / head"><dt>body<span class="en">body / head</span></dt>
+<dd>I Horn-form A ∧ B ⇒ C kalles premisset (A ∧ B) body og konklusjonen (C) head. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="bottom-up bottom-up parsing"><dt>Bottom-up<span class="en">bottom-up parsing</span></dt>
+<dd>Parsing som starter med ordene og slår dem sammen til større fraser (erstatter Y … med X for en regel X → Y …) til man når S. Ulempe: kan bygge delstrukturer som ikke inngår i noen fullstendig parse. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="bounded suboptimal search bounded suboptimal search"><dt>Bounded suboptimal search</dt>
+<dd>Søk som garanterer en løsning innenfor en konstant faktor W av optimal kostnad. Weighted A* gir denne garantien. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="bredde først-søk breadth-first search (bfs)"><dt>Bredde først-søk<span class="en">breadth-first search (BFS)</span></dt>
+<dd>Ekspanderer roten, så alle barna, så alle barnebarna osv. Bruker FIFO-kø og tidlig målsjekk. Komplett; optimal bare når alle handlinger koster det samme. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="buekonsistens arc consistency"><dt>Buekonsistens<span class="en">arc consistency</span></dt>
+<dd>Xᵢ er buekonsistent med Xⱼ hvis hver verdi i Dᵢ har minst én «støtte» y ∈ Dⱼ som sammen med den oppfyller skranken mellom dem. Retningsavhengig: (Xᵢ, Xⱼ) ≠ (Xⱼ, Xᵢ). <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="buekonsistent arc consistent"><dt>buekonsistent<span class="en">arc consistent</span></dt>
+<dd>X er buekonsistent med hensyn på Y hvis hver verdi i D_X har minst én verdi i D_Y som oppfyller skranken mellom dem (en «støtte»). <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="chart chart"><dt>chart</dt>
+<dd>Tabell i en chart-parser som lagrer alle fraser som er funnet for hver delstreng, slik at de kan gjenbrukes i stedet for å parses på nytt. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="chart-parser chart parser"><dt>chart-parser<span class="en">chart parser</span></dt>
+<dd>Parser som bruker dynamisk programmering: hver analysert delstreng lagres i en tabell (chart) og gjenbrukes. CYK er en bottom-up chart-parser. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="chomsky-normalform chomsky normal form (cnf)"><dt>Chomsky-normalform<span class="en">Chomsky Normal Form (CNF)</span></dt>
+<dd>Grammatikkformat der alle regler er enten leksikalske, X → ord [p], eller har nøyaktig to kategorier på høyresiden, X → Y Z [p]. Enhver kontekstfri grammatikk kan gjøres om automatisk. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="closed-liste closed list / explored set"><dt>closed-liste<span class="en">closed list / explored set</span></dt>
+<dd>Mengden av ekspanderte tilstander. I den strenge varianten åpnes en tilstand i closed aldri igjen, selv om en billigere vei dukker opp. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="coerce coercion"><dt>coerce<span class="en">coercion</span></dt>
+<dd>Å tvinge verden inn i en kjent tilstand gjennom handlinger, uten observasjoner. F.eks. [Right, Suck, Left, Suck] tvinger støvsugerverdenen til tilstand 7. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="competitive ratio competitive ratio"><dt>Competitive ratio</dt>
+<dd>Forholdet mellom kostnaden online-agenten faktisk bruker og kostnaden til optimal sti hvis rommet var kjent på forhånd. Vi vil ha den så liten som mulig. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="crossover crossover"><dt>Crossover</dt>
+<dd>Rekombinasjon: velg et tilfeldig kuttpunkt, og lag et barn av første del av forelder 1 og resten av forelder 2 (og evt. omvendt). <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="cutoff cutoff"><dt>cutoff</dt>
+<dd>Returverdi fra DLS som betyr «ingen løsning innenfor grensen ℓ, men det fantes noder vi kuttet, så en løsning kan finnes dypere». <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="cutoff-test cutoff test"><dt>cutoff-test<span class="en">cutoff test</span></dt>
+<dd>IS-CUTOFF(s, d): bestemmer når søket skal stoppe, f.eks. ved en fast dybdegrense d. Må være sann for alle terminaltilstander. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="cutset conditioning cutset conditioning / cycle cutset"><dt>cutset conditioning<span class="en">cutset conditioning / cycle cutset</span></dt>
+<dd>Velg en mengde S (cycle cutset) slik at resten av grafen blir et tre. Prøv hver konsistent tilordning av S, krymp domenene til de andre og løs treet med TREE-CSP-SOLVER. O(dᶜ·(n−c)d²). <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="cyk cyk algorithm (cocke–younger–kasami)"><dt>CYK<span class="en">CYK algorithm (Cocke–Younger–Kasami)</span></dt>
+<dd>Bottom-up, probabilistisk chart-parser (Cocke, Younger, Kasami). Fyller en tabell P[X, i, k] med sannsynligheten til det beste treet av kategori X over ordene i..k, fra korte til lange spenn. Krever Chomsky-normalform. Tid O(n³m), plass O(n²m). <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="d depth d"><dt>d<span class="en">depth d</span></dt>
+<dd>Dybden (antall handlinger) til den grunneste løsningen. (Boka: «depth of the shallowest solution», i 3.3.4 også «number of actions in an optimal solution».) <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="databasesemantikk database semantics"><dt>databasesemantikk<span class="en">database semantics</span></dt>
+<dd>Standard FOL-semantikk pluss tre antakelser: unike navn, lukket verden og domenelukning. Gir langt færre modeller, men krever at vi kjenner alle objekter og fakta. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="datadrevet data-driven reasoning"><dt>datadrevet<span class="en">data-driven reasoning</span></dt>
+<dd>Resonnering som starter fra kjente data/fakta og utleder alt som følger (forward chaining). Nyttig når nye persepsjoner kommer inn uten et konkret spørsmål. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="datalog datalog"><dt>Datalog</dt>
+<dd>En KB med første ordens definite klausuler og ingen funksjonssymboler. Tilsvarer relasjonsdatabaser; entailment er avgjørbart i polynomisk tid. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="de morgans lover de morgan&#x27;s rules for quantifiers"><dt>De Morgans lover<span class="en">De Morgan&#x27;s rules for quantifiers</span></dt>
+<dd>¬∀x P ≡ ∃x ¬P og ¬∃x P ≡ ∀x ¬P. Negasjon «snur» kvantoren når den flyttes innover. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="deduksjonsteoremet deduction theorem"><dt>deduksjonsteoremet<span class="en">deduction theorem</span></dt>
+<dd>For alle α, β: α ⊨ β hvis og bare hvis (α ⇒ β) er gyldig. Kobler entailment (meta) til implikasjon (i språket). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="definisjon definition"><dt>Definisjon<span class="en">definition</span></dt>
+<dd>Et aksiom på formen ∀x, y P(x, y) ⇔ …, som fullt ut definerer P ved hjelp av andre predikater. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="definite clause definite clause"><dt>definite clause</dt>
+<dd>En klausul med NØYAKTIG ett positivt literal, f.eks. ¬A ∨ ¬B ∨ C. Kan skrives som implikasjon A ∧ B ⇒ C (eller et faktum C). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="definite klausuler first-order definite clause"><dt>definite klausuler<span class="en">first-order definite clause</span></dt>
+<dd>Disjunksjon av literaler med nøyaktig én positiv literal. Enten et atom (et faktum, f.eks. King(John) eller Greedy(y)), eller en implikasjon p₁ ∧ … ∧ pₙ ⇒ q med atomer. Ingen ∃; ∀ er implisitt. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="deklarativ declarative"><dt>deklarativ<span class="en">declarative</span></dt>
+<dd>Kunnskap og inferens er adskilt: du skriver ned <em>hva</em> som er sant, og en generell, domeneuavhengig inferensmotor finner konsekvensene. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="deklarative tilnærmingen declarative approach"><dt>deklarative tilnærmingen<span class="en">declarative approach</span></dt>
+<dd>Bygg systemet ved å fortelle det fakta og regler (hva som er sant), og la en generell inferensmotor finne ut hva som skal gjøres. Motsatt: den prosedurale tilnærmingen, som koder ønsket oppførsel direkte som programkode. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="delvis observerbar partially observable"><dt>Delvis observerbar<span class="en">partially observable</span></dt>
+<dd>Deler av tilstanden er skjult – pga. støyende/unøyaktige sensorer eller fordi informasjonen rett og slett ikke er i persepsjonen. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="demodulation demodulation"><dt>demodulation</dt>
+<dd>Fra en enhetsklausul x = y og en klausul α som inneholder et term som unifiserer med x: bytt det termet med (den substituerte) y. Retningsbestemt: x byttes alltid med y. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="deterministisk deterministic"><dt>Deterministisk<span class="en">deterministic</span></dt>
+<dd>Neste tilstand er fullstendig bestemt av nåværende tilstand og handlingen(e) agenten(e) utfører. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="deterministisk parser deterministic parser"><dt>deterministisk parser<span class="en">deterministic parser</span></dt>
+<dd>Parser som bare følger én kandidat (beam search med b = 1). Shift-reduce er et eksempel. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="diameter diameter"><dt>diameter</dt>
+<dd>Det største antall handlinger som trengs mellom to tilstander i grafen. Romania-kartet har diameter 9. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="differensialheuristikk differential heuristic"><dt>differensialheuristikk<span class="en">differential heuristic</span></dt>
+<dd>h_DH(n) = max over landemerker av |C*(n,L) − C*(mål,L)|. Admissibel som følge av trekantulikheten; best når landemerket ligger «bak» målet. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="disjunkte pattern databases disjoint pattern databases"><dt>Disjunkte pattern databases<span class="en">disjoint pattern databases</span></dt>
+<dd>Pattern databases der hver database bare teller trekk av sine egne brikker. Da kan verdiene summeres og fortsatt være admissible. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="diskonteringsfaktor discount factor"><dt>diskonteringsfaktor<span class="en">discount factor</span></dt>
+<dd>δ ∈ (0, 1). Utbytte i runde t vektes med δ^t, så summen Σ δ^t U blir endelig. Liten δ: bare de første rundene betyr noe (utålmodig spiller). Stor δ: fremtiden betyr mye. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="diskriminativ discriminative model"><dt>Diskriminativ<span class="en">discriminative model</span></dt>
+<dd>Modell som lærer den betingede fordelingen P(C | W) direkte (f.eks. logistisk regresjon). Kan ikke generere tekst, men kan bruke vilkårlige trekk. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="distribusjonshypotesen distributional hypothesis"><dt>distribusjonshypotesen<span class="en">distributional hypothesis</span></dt>
+<dd>Antakelsen om at ord som brukes i lignende sammenhenger, har lignende betydning («you shall know a word by the company it keeps»). <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="domene domain"><dt>domene<span class="en">domain</span></dt>
+<dd>Mengden verdier Dᵢ = {v₁, …, vₖ} som variabelen Xᵢ kan få. Ulike variabler kan ha ulike domener. <br><a href="m05-csp.html">Modul 5</a> · <a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="domenelukning domain closure"><dt>Domenelukning<span class="en">domain closure</span></dt>
+<dd>Det finnes ikke flere objekter enn dem som er navngitt av konstantsymbolene. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="dominant strategi dominant strategy"><dt>dominant strategi<span class="en">dominant strategy</span></dt>
+<dd>En strategi som dominerer alle andre strategier for spilleren: den er best uansett hva de andre gjør. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="dominant strategi-likevekt dominant strategy equilibrium"><dt>dominant strategi-likevekt<span class="en">dominant strategy equilibrium</span></dt>
+<dd>Utfallet når alle spillerne spiller en dominant strategi. Et svært sterkt løsningsbegrep, men finnes sjelden. Er alltid også en Nash-likevekt. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="dominerer dominance (h2 dominates h1)"><dt>dominerer<span class="en">dominance (h2 dominates h1)</span></dt>
+<dd>h₂ dominerer h₁ hvis h₂(n) ≥ h₁(n) for alle n (begge admissible). Da ekspanderer A* med h₂ aldri flere noder enn med h₁ (bortsett fra uheldig tiebreaking). <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="dominerer dominates"><dt>dominerer<span class="en">dominates</span></dt>
+<dd>h₂ dominerer h₁ hvis h₂(n) ≥ h₁(n) for alle n (og begge er admissible). Da ekspanderer A* med h₂ aldri flere noder enn med h₁. <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="dpll dpll"><dt>DPLL</dt>
+<dd>Davis–Putnam–Logemann–Loveland: rekursiv, dybde-først oppramsing av delvise modeller for CNF-setninger, med tidlig terminering, pure symbol-heuristikk og unit clause-heuristikk. Komplett. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="dybde først-søk depth-first search (dfs)"><dt>Dybde først-søk<span class="en">depth-first search (DFS)</span></dt>
+<dd>Ekspanderer alltid den dypeste noden i frontier (LIFO-stakk, f = −depth). Ikke kostnadsoptimal; ikke komplett i uendelige eller sykliske rom (tree-like). Minne O(bm). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="dybdebegrenset søk depth-limited search (dls)"><dt>Dybdebegrenset søk<span class="en">depth-limited search (DLS)</span></dt>
+<dd>DFS med en dybdegrense ℓ: noder på dybde ℓ behandles som om de ikke har barn. Returnerer løsning, failure eller cutoff. Tid O(b^ℓ), plass O(bℓ). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="dynamisk dynamic"><dt>Dynamisk<span class="en">dynamic</span></dt>
+<dd>Omgivelsen kan endre seg mens agenten tenker; å ikke bestemme seg teller som å velge «gjør ingenting». <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="effektiv forgreningsfaktor effective branching factor b*"><dt>effektiv forgreningsfaktor<span class="en">effective branching factor b*</span></dt>
+<dd>b*: forgreningsfaktoren et uniformt tre med dybde d må ha for å inneholde N + 1 noder, der N er antall noder A* genererte. Nær 1 er bra. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="egalitær sosial velferd egalitarian social welfare"><dt>Egalitær sosial velferd<span class="en">egalitarian social welfare</span></dt>
+<dd>Fokuserer på fordelingen, f.eks. ved å maksimere utbyttet til den som har det dårligst (maximin), eller med Gini-koeffisienten. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="egenskaper features"><dt>egenskaper<span class="en">features</span></dt>
+<dd>Målbare kjennetegn ved en stilling (features), f.eks. antall bønder, antall dronninger, antall lovlige trekk. Grunnlaget for evalueringsfunksjoner. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="eksistenskvantoren existential quantifier"><dt>Eksistenskvantoren<span class="en">existential quantifier</span></dt>
+<dd>∃x P er sann i en modell hvis P er sann for minst én verdi av x i domenet. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="ekspandere expand"><dt>ekspandere<span class="en">expand</span></dt>
+<dd>Å ta en node, se på alle lovlige handlinger ACTIONS(s), bruke RESULT for å finne nye tilstander og generere en barnenode for hver. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="ekspressivitet expressiveness"><dt>ekspressivitet<span class="en">expressiveness</span></dt>
+<dd>Hvor mye en representasjon kan uttrykke. Et mer ekspressivt språk kan uttrykke alt et mindre ekspressivt kan, minst like konsist – ofte mye mer konsist. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="elitisme elitism"><dt>elitisme<span class="en">elitism</span></dt>
+<dd>De beste individene fra forrige generasjon kopieres uendret inn i neste. Garanterer at beste fitness aldri synker. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="enhetsklausul unit clause"><dt>enhetsklausul<span class="en">unit clause</span></dt>
+<dd>En klausul med nøyaktig ett literal, f.eks. P eller ¬P (unit clause). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="enhetsklausul unit clause heuristic / unit propagation"><dt>Enhetsklausul<span class="en">unit clause heuristic / unit propagation</span></dt>
+<dd>I DPLL: en klausul der alle literaler unntatt ett allerede er usanne. Det siste literalet MÅ gjøres sant. Kaskaden av slike tvungne tilordninger kalles unit propagation. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="enkel refleksagent simple reflex agent"><dt>enkel refleksagent<span class="en">simple reflex agent</span></dt>
+<dd>Velger handling bare ut fra nåværende persepsjon, med betingelse–handling-regler. Ignorerer persepsjonshistorikken. Fungerer bare godt hvis omgivelsen er fullt observerbar. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="enkeltrundespill stage game"><dt>enkeltrundespill<span class="en">stage game</span></dt>
+<dd>Spillet som spilles i hver runde av et gjentatt spill, f.eks. ett fangens dilemma. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="entailment entailment"><dt>Entailment</dt>
+<dd>α ⊨ β («α medfører β», «β følger logisk av α») hvis og bare hvis β er sann i alle modeller der α er sann, dvs. M(α) ⊆ M(β). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="episodisk episodic"><dt>Episodisk<span class="en">episodic</span></dt>
+<dd>Erfaringen er delt i atomiske episoder (persepsjon → én handling), og neste episode avhenger ikke av handlingene i tidligere episoder. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="epistemologiske forpliktelsen epistemological commitment"><dt>epistemologiske forpliktelsen<span class="en">epistemological commitment</span></dt>
+<dd>Hvilke holdninger en agent kan ha til et faktum: sann/usann/ukjent (logikk), en grad av tro i [0,1] (sannsynlighet) osv. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="equational unification equational unification"><dt>equational unification</dt>
+<dd>En utvidet UNIFY som også kan gjøre termer like når de er beviselig like, f.eks. Add(1,2) og Add(2,1) når kommutativitet er kjent. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="evalueringsfunksjon evaluation function f(n)"><dt>evalueringsfunksjon<span class="en">evaluation function f(n)</span></dt>
+<dd>f : Node → ℝ som bestemmer hvilken node i frontier som ekspanderes neste. Lav f = velges først. <br><a href="m02-uinformert-sok.html">Modul 2</a> · <a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="evalueringsfunksjon evaluation function"><dt>evalueringsfunksjon<span class="en">evaluation function</span></dt>
+<dd>EVAL(s, p): et raskt estimat av forventet nytte av tilstand s for spiller p. Brukes i stedet for UTILITY når søket kuttes av før terminaltilstanden. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="evolusjonære algoritmer evolutionary algorithms"><dt>Evolusjonære algoritmer<span class="en">evolutionary algorithms</span></dt>
+<dd>Familie av populasjonsbaserte optimeringsmetoder inspirert av naturlig seleksjon. Kan sees som varianter av stochastic beam search. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="existential instantiation existential instantiation (ei)"><dt>Existential Instantiation<span class="en">Existential Instantiation (EI)</span></dt>
+<dd>Fra ∃v α kan vi slutte SUBST({v/k}, α), der k er en NY konstant (Skolem-konstant) som ikke finnes noe annet sted i KB. Brukes bare én gang; deretter kan ∃-setningen kastes. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="expectiminimax-verdien expectiminimax value"><dt>expectiminimax-verdien<span class="en">expectiminimax value</span></dt>
+<dd>Generalisering av minimax med sjansenoder: MAX tar maks, MIN tar min, og en sjansenode tar den sannsynlighetsvektede summen Σ P(r)·verdi over utfallene r. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="f1 f1 score"><dt>F1<span class="en">F1 score</span></dt>
+<dd>Det harmoniske gjennomsnittet av presisjon og recall: 2PR / (P + R). <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="faktorisering factoring"><dt>faktorisering<span class="en">factoring</span></dt>
+<dd>Å fjerne dupliserte literaler i en klausul, f.eks. A ∨ A → A. Automatisk hvis klausuler sees som mengder. <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="faktorisert representasjon factored representation"><dt>faktorisert representasjon<span class="en">factored representation</span></dt>
+<dd>Hver tilstand er en fast mengde variabler/attributter, hver med en verdi (boolsk, reell eller fra en fast mengde symboler). To tilstander kan dele noen attributter. <br><a href="m01-agenter.html">Modul 1</a> · <a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="faktum fact"><dt>faktum<span class="en">fact</span></dt>
+<dd>En definite clause uten premisser: et enkelt positivt literal, f.eks. L₁,₁ (≡ True ⇒ L₁,₁). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="fifo-kø fifo queue"><dt>FIFO-kø<span class="en">FIFO queue</span></dt>
+<dd>First-in-first-out: den noden som ble lagt inn først, tas ut først. Brukes i BFS. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="fikspunkt fixed point"><dt>fikspunkt<span class="en">fixed point</span></dt>
+<dd>Tilstand der ingen nye slutninger er mulige. For forward chaining: inferred-tabellen definerer da en modell av KB, som viser kompletthet. <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="first-choice hill climbing first-choice hill climbing"><dt>First-choice hill climbing</dt>
+<dd>Stokastisk hill climbing der man genererer tilfeldige naboer én og én til man finner en som er bedre enn nåværende, og tar den. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="fitness-funksjon fitness function"><dt>Fitness-funksjon<span class="en">fitness function</span></dt>
+<dd>Objektfunksjonen i en GA: høyere er bedre. For 8-dronninger: antall ikke-angripende par (maks 28). <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="fokuspunkt focal point"><dt>fokuspunkt<span class="en">focal point</span></dt>
+<dd>Et utfall som av en eller annen grunn peker seg ut som det «opplagte» å koordinere på, f.eks. fordi det gir begge mye høyere utbytte. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="forventet nytte expected utility"><dt>forventet nytte<span class="en">expected utility</span></dt>
+<dd>Nytten agenten forventer i snitt: summen over mulige utfall av P(utfall) · U(utfall). <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="forward chaining forward chaining"><dt>Forward chaining</dt>
+<dd>Datadrevet inferens for definite clauses: start med kjente fakta, avfyr hver regel der alle premisser er kjente (Modus Ponens), legg konklusjonen til, gjenta til spørringen q er funnet eller ingenting nytt kan utledes. <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="forward checking forward checking"><dt>Forward checking</dt>
+<dd>Etter hver tilordning X = v: fjern fra domenet til hver ikke-tilordnet nabo Y alle verdier som er inkonsistente med v. Ser bare ett steg frem (bare naboene til X). <br><a href="m05-csp.html">Modul 5</a> · <a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="forward pruning forward pruning"><dt>Forward pruning</dt>
+<dd>Kutter trekk som ser dårlige ut, uten bevis for at de er det. Sparer tid, men kan kutte det beste trekket. Shannons Type B. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="frasestrukturen phrase structure"><dt>frasestrukturen<span class="en">phrase structure</span></dt>
+<dd>Den hierarkiske oppdelingen av en setning i fraser (NP, VP, PP …). Gir et rammeverk for meningen: hvem gjør hva. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="frontier frontier"><dt>Frontier</dt>
+<dd>Mengden noder som er generert, men ennå ikke ekspandert. De ligger klar til å bli valgt. Kalles også «open list». <br><a href="m02-uinformert-sok.html">Modul 2</a> · <a href="m03-informert-sok.html">Modul 3</a> · <a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="fullt observerbar fully observable"><dt>Fullt observerbar<span class="en">fully observable</span></dt>
+<dd>Sensorene gir tilgang til hele (den relevante delen av) omgivelsens tilstand ved hvert tidspunkt. Agenten trenger da ikke intern tilstand for å holde oversikt. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="funksjoner function"><dt>funksjoner<span class="en">function</span></dt>
+<dd>En spesiell relasjon der hvert input-tuppel er knyttet til nøyaktig ett objekt, f.eks. «venstre bein til». I FOL må funksjoner være totale. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="funksjonssymbol function symbol"><dt>Funksjonssymbol<span class="en">function symbol</span></dt>
+<dd>Navn på en funksjon; brukt på termer gir det en ny term (et objekt), ikke en sannhetsverdi: LeftLeg(John). <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="g(n) path cost g(n)"><dt>g(n)<span class="en">path cost g(n)</span></dt>
+<dd>Faktisk kostnad for veien fra start til node n (summen av alle kantkostnadene langs veien). <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="generalized modus ponens generalized modus ponens (gmp)"><dt>Generalized Modus Ponens<span class="en">Generalized Modus Ponens (GMP)</span></dt>
+<dd>For atomsetninger pᵢ', pᵢ, q: fra p₁',…,pₙ' og (p₁ ∧ … ∧ pₙ ⇒ q) sluttes SUBST(θ, q), der θ gjør SUBST(θ, pᵢ') = SUBST(θ, pᵢ) for alle i. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="generativ generative model"><dt>Generativ<span class="en">generative model</span></dt>
+<dd>Modell som lærer den felles fordelingen P(W, C) (f.eks. naiv Bayes, HMM). Kan generere nye eksempler ved sampling. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="generere generate (child / successor node)"><dt>generere<span class="en">generate (child / successor node)</span></dt>
+<dd>Å lage en ny barnenode (child/successor) for en tilstand man kan nå med én handling. Barnet får den ekspanderte noden som forelder (parent). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="genetisk algoritme genetic algorithm (ga)"><dt>genetisk algoritme<span class="en">genetic algorithm (GA)</span></dt>
+<dd>Evolusjonær algoritme der hvert individ er en streng over et endelig alfabet. Nye individer lages ved seleksjon (vektet etter fitness), crossover og mutasjon. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="gjenhentingsøving retrieval practice"><dt>gjenhentingsøving<span class="en">retrieval practice</span></dt>
+<dd>Å trene ved å hente kunnskap fra hukommelsen (løse oppgaver blankt) i stedet for å lese den på nytt. Gir mye bedre langtidshukommelse. <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="gjennomsnittet i grensen limit of means"><dt>gjennomsnittet i grensen<span class="en">limit of means</span></dt>
+<dd>Bokas mål på utbyttet i uendelig gjentatte spill: lim (1/T) Σ U_t når T → ∞. Konvergerer når strategiene er endelige tilstandsmaskiner. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="gjentatt spill repeated game (iterated game)"><dt>gjentatt spill<span class="en">repeated game (iterated game)</span></dt>
+<dd>Spill der spillerne spiller samme enkeltrundespill (stage game) mange ganger. En strategi angir et valg i hver runde for hver mulig historie av tidligere valg. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="gjentatt tilstand repeated state"><dt>gjentatt tilstand<span class="en">repeated state</span></dt>
+<dd>En tilstand som forekommer i flere noder i søketreet. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="glatting smoothing"><dt>Glatting<span class="en">smoothing</span></dt>
+<dd>Teknikker som flytter litt sannsynlighetsmasse fra sette (hyppige) n-gram til sjeldne og usette, slik at ingen n-gram får sannsynlighet 0 og variansen i estimatene reduseres. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="global skranke global constraint"><dt>Global skranke<span class="en">global constraint</span></dt>
+<dd>Skranke med et vilkårlig antall variabler, f.eks. Alldiff. Den trenger ikke omfatte alle variablene i problemet, selv om navnet kan tyde på det. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="globalt maksimum global maximum"><dt>Globalt maksimum<span class="en">global maximum</span></dt>
+<dd>Tilstanden med høyest verdi i hele tilstandsrommet. Det er dette vi egentlig vil finne. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="goal clause goal clause"><dt>goal clause</dt>
+<dd>En Horn-klausul uten positive literaler, f.eks. ¬A ∨ ¬B, som kan skrives A ∧ B ⇒ False. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="gradheuristikken degree heuristic"><dt>gradheuristikken<span class="en">degree heuristic</span></dt>
+<dd>Velg variabelen som er med i flest skranker med andre ikke-tilordnede variabler. Brukes mest som tie-breaker for MRV. <br><a href="m05-csp.html">Modul 5</a> · <a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="gradient descent gradient descent"><dt>gradient descent</dt>
+<dd>Lokalt søk som minimerer en kostnadsfunksjon ved å gå i retningen der kostnaden synker mest (motsatt av gradienten). <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="gradienten gradient ∇f"><dt>gradienten<span class="en">gradient ∇f</span></dt>
+<dd>Vektoren av partielle deriverte ∇f = (∂f/∂x₁, …, ∂f/∂xₙ). Peker i retningen der f øker raskest. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="grammatikk grammar"><dt>grammatikk<span class="en">grammar</span></dt>
+<dd>Et sett med regler som definerer trestrukturen til tillatte fraser. Språket er mengden setninger som følger reglene. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="graph search graph search"><dt>graph search</dt>
+<dd>En søkealgoritme som sjekker for redundante stier ved å huske alle nådde tilstander (reached-tabellen). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="graph search (bokas, fig. 3.7) graph search (best-first with reached)"><dt>Graph search (bokas, fig. 3.7)<span class="en">graph search (best-first with reached)</span></dt>
+<dd>Husker reached[s] = beste kjente vei til s. Et barn legges inn hvis tilstanden er ny eller veien er billigere – også hvis tilstanden allerede er ekspandert (gjenåpning). <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="greedy best-first search greedy best-first search"><dt>Greedy best-first search</dt>
+<dd>Best-first search med f(n) = h(n): ekspanderer alltid den noden som ser ut til å være nærmest målet, uten å bry seg om hva det har kostet å komme dit. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="grensepropagering bounds propagation"><dt>grensepropagering<span class="en">bounds propagation</span></dt>
+<dd>Domenene representeres som intervaller [min, max], og skrankene brukes til å stramme inn grensene. Eksempel: F₁ ∈ [0,165], F₂ ∈ [0,385], F₁+F₂ = 420 gir F₁ ∈ [35,165] og F₂ ∈ [255,385]. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="grim trigger grim trigger"><dt>Grim trigger</dt>
+<dd>Samarbeid (nekt) helt til motstanderen har vitnet én gang; deretter vitne for alltid. Uforsonlig straff. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="ground resolution theorem ground resolution theorem"><dt>ground resolution theorem</dt>
+<dd>Hvis en klausulmengde er uoppfyllbar, inneholder dens resolusjonslukning (alle klausuler som kan utledes ved resolusjon) den tomme klausulen. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="grounding grounding"><dt>Grounding</dt>
+<dd>Forbindelsen mellom KB (syntaks inne i agenten) og den virkelige verden. Persepsjonssetninger er grounded via sensorene; generelle regler kommer fra læring, som kan feile. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="grunnterm ground term"><dt>grunnterm<span class="en">ground term</span></dt>
+<dd>En term uten variabler, f.eks. LeftLeg(John). Den peker alltid på et bestemt objekt (gitt en tolkning). <br><a href="m08-forsteordens-logikk.html">Modul 8</a> · <a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="grådig lokalt søk greedy local search"><dt>grådig lokalt søk<span class="en">greedy local search</span></dt>
+<dd>Annet navn på hill climbing: den tar den beste naboen nå uten å tenke på hvor det leder senere. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="gyldig valid / tautology"><dt>gyldig<span class="en">valid / tautology</span></dt>
+<dd>En setning er gyldig (valid, en tautologi) hvis den er sann i ALLE modeller, f.eks. P ∨ ¬P. Alle gyldige setninger er ekvivalente med True. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="gyldig valid"><dt>gyldig<span class="en">valid</span></dt>
+<dd>Sann i alle modeller (tautologi), f.eks. P ∨ ¬P. <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="h*(n) h*(n), true cost-to-go"><dt>h*(n)<span class="en">h*(n), true cost-to-go</span></dt>
+<dd>Den sanne (optimale) kostnaden fra n til nærmeste mål. Finnes ved å regne billigste vei baklengs fra målet. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="handlinger actions / actions(s)"><dt>Handlinger<span class="en">actions / ACTIONS(s)</span></dt>
+<dd>ACTIONS(s) gir den endelige mengden handlinger som kan utføres i tilstand s («applicable» handlinger). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="handlingskostnad action cost function c(s, a, s′)"><dt>Handlingskostnad<span class="en">action cost function c(s, a, s′)</span></dt>
+<dd>ACTION-COST(s, a, s′), i matte c(s, a, s′): tallkostnaden for å gjøre a i s og havne i s′. Bør gjenspeile agentens ytelsesmål (km, tid, penger …). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="heuristisk funksjon heuristic function h(n)"><dt>heuristisk funksjon<span class="en">heuristic function h(n)</span></dt>
+<dd>h(n) = estimert kostnad for billigste vei fra tilstanden i node n til en måltilstand. Avhenger bare av tilstanden, ikke av hvordan vi kom dit. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="hill climbing hill climbing (steepest ascent)"><dt>Hill climbing<span class="en">hill climbing (steepest ascent)</span></dt>
+<dd>Lokalt søk som i hvert steg flytter seg til den beste naboen (steepest ascent), og stopper når ingen nabo er bedre enn nåværende tilstand. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="horisonteffekten horizon effect"><dt>horisonteffekten<span class="en">horizon effect</span></dt>
+<dd>Når programmet står overfor et uunngåelig tap, men kan skyve det forbi søkedybden («horisonten») med forsinkende trekk, og derfor tror tapet er unngått. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="horn-klausul horn clause"><dt>Horn-klausul<span class="en">Horn clause</span></dt>
+<dd>En klausul med HØYST ett positivt literal. Omfatter definite clauses (nøyaktig ett) og goal clauses (null). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="høyereordens logikk higher-order logic"><dt>høyereordens logikk<span class="en">higher-order logic</span></dt>
+<dd>Logikk der relasjoner og funksjoner selv er objekter man kan kvantifisere over, f.eks. «for alle relasjoner R: hvis R er transitiv …». Strengt mer uttrykksfull enn FOL. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="ida* iterative-deepening a* (ida*)"><dt>IDA*<span class="en">iterative-deepening A* (IDA*)</span></dt>
+<dd>Iterativ fordypning der grensen er en f-kostnad: dybde-først-søk som kutter noder med f &gt; grense; neste grense = minste f som ble kuttet. Lineært minne. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="ikke-deterministisk nondeterministic"><dt>ikke-deterministisk<span class="en">nondeterministic</span></dt>
+<dd>Utfallet av en handling er ikke entydig bestemt; mulige utfall er listet, men ikke nødvendigvis tallfestet med sannsynligheter. <br><a href="m01-agenter.html">Modul 1</a> · <a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="ikke-konstruktive bevis nonconstructive proof"><dt>ikke-konstruktive bevis<span class="en">nonconstructive proof</span></dt>
+<dd>Et bevis for at ∃x P(x) er sant uten at det finnes én bestemt binding for x – f.eks. når beviset bruker en disjunksjon «enten A eller B». <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="ikke-kooperativ spillteori non-cooperative game theory"><dt>ikke-kooperativ spillteori<span class="en">non-cooperative game theory</span></dt>
+<dd>Spillteori der spillerne velger hver for seg og ikke kan inngå bindende avtaler. Kap. 17.2. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="indifferensprinsippet indifference principle"><dt>indifferensprinsippet<span class="en">indifference principle</span></dt>
+<dd>I en blandet Nash-likevekt gir alle handlingene en spiller blander mellom, samme forventede nytte, gitt motspillerens blanding. Ellers ville spilleren bare valgt den beste. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="inferens inference"><dt>inferens<span class="en">inference</span></dt>
+<dd>Å utlede nye setninger fra gamle. Kravet: svaret på ASK skal følge av det som er TELL-et tidligere – inferensen skal aldri «finne på» ting. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="inferensielt ekvivalent inferentially equivalent"><dt>inferensielt ekvivalent<span class="en">inferentially equivalent</span></dt>
+<dd>Satisfiable nøyaktig når originalen er satisfiable. Nok til at motsigelsesbevis gir samme svar. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="inferensmotoren inference engine"><dt>inferensmotoren<span class="en">inference engine</span></dt>
+<dd>Den domene-uavhengige algoritmen som utfører inferens på KB (f.eks. sannhetstabell, resolusjon, forward chaining). KB er domene-spesifikk; inferensmotoren er generell. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="inferensregler inference rules"><dt>inferensregler<span class="en">inference rules</span></dt>
+<dd>Mønstre for sunne slutninger, skrevet som brøk: premisser over streken, konklusjon under. Eks.: Modus Ponens α ⇒ β, α / β. <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="informasjonsekstraksjon information extraction (ie)"><dt>Informasjonsekstraksjon<span class="en">information extraction (IE)</span></dt>
+<dd>Å finne objekter og relasjoner mellom dem i tekst og gjøre dem om til strukturerte fakta, f.eks. adresser → (gate, by, stat, postnummer). Ofte basert på maler (templates). <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="informasjonsgjenfinning information retrieval (ir)"><dt>Informasjonsgjenfinning<span class="en">information retrieval (IR)</span></dt>
+<dd>Å finne dokumentene som er relevante og viktige for et søk (query). Kjernen i søkemotorer. Returnerer en rangert liste med dokumenter, ikke et svar. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="informasjonsinnhenting information gathering"><dt>informasjonsinnhenting<span class="en">information gathering</span></dt>
+<dd>Å gjøre handlinger for å forbedre framtidige persepsjoner (f.eks. se seg for før man krysser veien, utforske et ukjent rom). En del av rasjonalitet. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="informert søk informed search / heuristic search"><dt>informert søk<span class="en">informed search / heuristic search</span></dt>
+<dd>Søk som bruker domenespesifikk kunnskap om hvor målet ligger, i form av en heuristisk funksjon h(n), for å velge hvilken node som skal ekspanderes. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="input resolution input resolution"><dt>Input resolution</dt>
+<dd>Hvert steg kombinerer en av input-klausulene (fra KB eller spørsmålet) med en annen klausul. Gir «ryggrad»-bevis. Komplett for Horn, ikke generelt. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="intern tilstand internal state"><dt>intern tilstand<span class="en">internal state</span></dt>
+<dd>Agentens lagrede «beste gjetning» om verdens tilstand, oppdatert fra persepsjonshistorikken. Reflekterer aspekter som ikke er synlige i nåværende persepsjon. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="iterativ fordypning iterative deepening search (ids)"><dt>Iterativ fordypning<span class="en">iterative deepening search (IDS)</span></dt>
+<dd>Kjør DLS med ℓ = 0, 1, 2, … til en løsning finnes eller DLS returnerer failure. Kombinerer DFS sitt lave minnebruk med BFS sin kompletthet og (ved lik kostnad) optimalitet. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="iterert eliminering av strengt dominerte strategier iterated elimination of strictly dominated strategies (iesds)"><dt>iterert eliminering av strengt dominerte strategier<span class="en">iterated elimination of strictly dominated strategies (IESDS)</span></dt>
+<dd>Gjentatt fjerning av strategier som er strengt dominert (i den gjenværende matrisen), for begge spillerne, til ingen flere kan fjernes. Fjerner aldri en Nash-likevekt. Rekkefølgen spiller ingen rolle for strengt dominerte strategier. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="k-cnf k-cnf"><dt>k-CNF</dt>
+<dd>En CNF-setning der hver klausul har høyst k literaler. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="k-konsistent k-consistency"><dt>k-konsistent<span class="en">k-consistency</span></dt>
+<dd>For enhver mengde av k−1 variabler og enhver konsistent tilordning av dem kan en hvilken som helst k-te variabel få en konsistent verdi. 1 = node-, 2 = bue-, 3 = stikonsistens (for binære CSP-er). <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="kb ⊢i α derivation (kb ⊢ᵢ α)"><dt>KB ⊢i α<span class="en">derivation (KB ⊢ᵢ α)</span></dt>
+<dd>«α kan utledes (derives) fra KB med inferensalgoritmen i». Syntaktisk: noe algoritmen gjør, i motsetning til ⊨ som er semantisk. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="killer moves killer moves / killer move heuristic"><dt>Killer moves<span class="en">killer moves / killer move heuristic</span></dt>
+<dd>Trekk som har vist seg å være best (ofte ved å gi kutt) tidligere i søket. «Killer move heuristic» = prøv disse først i andre deler av treet. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="kjent omgivelse known environment"><dt>kjent omgivelse<span class="en">known environment</span></dt>
+<dd>Utfallene (eller sannsynlighetene for utfall) av alle handlinger er gitt. I en ukjent omgivelse må agenten lære hvordan den fungerer. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="klausul clause"><dt>klausul<span class="en">clause</span></dt>
+<dd>En disjunksjon (∨) av literaler, f.eks. ¬P ∨ Q ∨ ¬R. Kan sees på som en mengde literaler. <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m09-fol-inferens.html">Modul 9</a> · <a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="kognitiv vitenskap cognitive science"><dt>kognitiv vitenskap<span class="en">cognitive science</span></dt>
+<dd>Tverrfaglig felt som bruker datamodeller fra KI og eksperimenter fra psykologi for å lage testbare teorier om menneskesinnet. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="kommutativitet commutativity"><dt>kommutativitet<span class="en">commutativity</span></dt>
+<dd>Rekkefølgen vi gjør tilordningene i, endrer ikke resultatet. Derfor trenger backtracking bare å vurdere én variabel per nivå i søketreet. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="komplementære complementary literals"><dt>komplementære<span class="en">complementary literals</span></dt>
+<dd>To literaler der det ene er negasjonen av det andre, f.eks. P og ¬P. <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="komplett complete assignment"><dt>komplett<span class="en">complete assignment</span></dt>
+<dd>Alle variablene har fått en verdi. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="komplett-tilstandsformulering complete-state formulation"><dt>komplett-tilstandsformulering<span class="en">complete-state formulation</span></dt>
+<dd>Hver tilstand er en fullstendig (men kanskje dårlig) kandidatløsning, f.eks. alle 8 dronninger på brettet. Motsatt av inkrementell formulering, der man bygger løsningen bit for bit. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="komplett? complete"><dt>Komplett?<span class="en">complete</span></dt>
+<dd>En algoritme er komplett hvis den garantert finner en løsning når en finnes (og rapporterer feil ellers). <br><a href="m03-informert-sok.html">Modul 3</a> · <a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="kompletthet completeness"><dt>Kompletthet<span class="en">completeness</span></dt>
+<dd>Algoritmen finner garantert en løsning når en finnes, og rapporterer failure når ingen finnes. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="kompositorisk compositional"><dt>kompositorisk<span class="en">compositional</span></dt>
+<dd>Betydningen av en setning er en funksjon av betydningen til delene. «S<sub>1,4</sub> ∧ S<sub>1,2</sub>» betyr noe som er bygd av hva S<sub>1,4</sub> og S<sub>1,2</sub> betyr. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="konjunktiv normalform (cnf) conjunctive normal form (cnf)"><dt>konjunktiv normalform (CNF)<span class="en">conjunctive normal form (CNF)</span></dt>
+<dd>En konjunksjon (∧) av klausuler, der hver klausul er en disjunksjon (∨) av literaler. F.eks. (P ∨ Q ∨ ¬R) ∧ (¬S ∨ T). «OG av ELLER-er». <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="konjunktrekkefølge conjunct ordering"><dt>konjunktrekkefølge<span class="en">conjunct ordering</span></dt>
+<dd>Problemet å velge hvilken rekkefølge premissene i en regel skal matches i. NP-hardt i verste fall; heuristikk som MRV fra CSP hjelper. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="konnektiver logical connectives"><dt>konnektiver<span class="en">logical connectives</span></dt>
+<dd>Logiske operatorer: ¬ (not), ∧ (and), ∨ (or), ⇒ (implies), ⇔ (if and only if). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="konsistent consistent heuristic"><dt>konsistent<span class="en">consistent heuristic</span></dt>
+<dd>For hver node n og hvert barn n′ (via handling a): h(n) ≤ c(n, a, n′) + h(n′). Estimatet kan ikke falle mer enn det koster å ta steget. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="konsistent consistent (legal) assignment"><dt>konsistent<span class="en">consistent (legal) assignment</span></dt>
+<dd>En tilordning som ikke bryter noen skranke. Kalles også «legal». <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="konsistent heuristikk consistent (monotone) heuristic"><dt>konsistent heuristikk<span class="en">consistent (monotone) heuristic</span></dt>
+<dd>h(n) ≤ c(n,a,n′) + h(n′) for hver kant – trekantulikheten. Gir ikke-synkende f langs enhver sti. <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="konstantsymbol constant symbol"><dt>Konstantsymbol<span class="en">constant symbol</span></dt>
+<dd>Navn på et bestemt objekt: Richard, John, Alice, Arithmetic, 0. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="kontekstfri context-free"><dt>Kontekstfri<span class="en">context-free</span></dt>
+<dd>En regel som NP → Article Noun kan brukes hvor som helst, uavhengig av hva som står rundt. Samme frase får samme sannsynlighet uansett hvor i setningen den står. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="konturer contour"><dt>konturer<span class="en">contour</span></dt>
+<dd>«Høydekurver» i tilstandsrommet: kontur c omslutter alle noder med f(n) ≤ c. A* utvider seg i bånd med økende f. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="koordineringsproblem coordination problem"><dt>koordineringsproblem<span class="en">coordination problem</span></dt>
+<dd>Spill med flere Nash-likevekter der spillerne tjener på å velge samme likevekt, men må velge hver for seg uten å kunne avtale noe. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="korpus corpus (pl. corpora)"><dt>korpus<span class="en">corpus (pl. corpora)</span></dt>
+<dd>En stor samling tekst (eventuelt merket med klasser, ordklasser osv.) som modellen trenes på. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="kostnadsoptimalitet cost optimality"><dt>Kostnadsoptimalitet<span class="en">cost optimality</span></dt>
+<dd>Algoritmen finner alltid løsningen med lavest stikostnad. Noen forfattere kaller dette «admissibility» eller bare «optimality». <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="kretsverifikasjon circuit verification"><dt>kretsverifikasjon<span class="en">circuit verification</span></dt>
+<dd>Å bruke logisk inferens til å sjekke at en krets gjør det den skal, f.eks. at adderen faktisk adderer. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="kunnskapsbase (kb) knowledge base (kb)"><dt>kunnskapsbase (KB)<span class="en">knowledge base (KB)</span></dt>
+<dd>En mengde setninger (sentences) i et kunnskapsrepresentasjonsspråk. Hver setning er en påstand om verden. Behandles ofte som konjunksjonen (∧) av alle setningene. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="kunnskapsbasert agent knowledge-based agent"><dt>kunnskapsbasert agent<span class="en">knowledge-based agent</span></dt>
+<dd>En agent som tar beslutninger ved å resonnere over en eksplisitt, intern representasjon av kunnskap (en kunnskapsbase). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="kunnskapsinnhenting knowledge acquisition"><dt>kunnskapsinnhenting<span class="en">knowledge acquisition</span></dt>
+<dd>Prosessen å hente ut kunnskap fra domeneeksperter. Kunnskapen er ennå ikke formalisert. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="kunnskapsnivået knowledge level"><dt>kunnskapsnivået<span class="en">knowledge level</span></dt>
+<dd>Beskrivelse av en agent bare ut fra hva den vet og hvilke mål den har – uavhengig av hvordan dette er implementert (implementation level). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="kunnskapsrepresentasjonsspråk knowledge representation language"><dt>kunnskapsrepresentasjonsspråk<span class="en">knowledge representation language</span></dt>
+<dd>Et formelt språk (f.eks. utsagnslogikk eller førsteordens logikk) som setningene i KB er skrevet i. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="kunnskapsutvikling knowledge engineering"><dt>Kunnskapsutvikling<span class="en">knowledge engineering</span></dt>
+<dd>Den generelle prosessen å bygge en kunnskapsbase: undersøke et domene, finne de viktige begrepene og lage en formell representasjon av objektene og relasjonene. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="kunstig intelligens artificial intelligence (ai)"><dt>kunstig intelligens<span class="en">artificial intelligence (AI)</span></dt>
+<dd>«The science and engineering of making intelligent machines, especially intelligent computer programs» (McCarthy). Intelligens = den beregningsmessige delen av evnen til å nå mål i verden. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="kvantorene quantifier"><dt>kvantorene<span class="en">quantifier</span></dt>
+<dd>∀ («for alle») og ∃ («det finnes»). De binder en variabel og sier noe om alle eller minst ett objekt i domenet. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="landemerker landmark points"><dt>landemerker<span class="en">landmark points</span></dt>
+<dd>Utvalgte noder L der eksakte kostnader C*(v, L) til/fra alle andre noder er forhåndsberegnet. Brukes til raske heuristikker for ruteplanlegging. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="laplace-glatting laplace smoothing / add-one smoothing"><dt>Laplace-glatting<span class="en">Laplace smoothing / add-one smoothing</span></dt>
+<dd>Legg til 1 i alle tellinger: P(w_i | w_i−1) = (c(w_i−1 w_i) + 1) / (c(w_i−1) + V), der V er størrelsen på ordforrådet. Enkel, men flytter ofte for mye masse til usette n-gram. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="lcv least-constraining-value (lcv)"><dt>LCV<span class="en">least-constraining-value (LCV)</span></dt>
+<dd>Prøv først verdien som fjerner færrest verdier fra naboenes domener. <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="lcv-heuristikken least-constraining-value (lcv) heuristic"><dt>LCV-heuristikken<span class="en">least-constraining-value (LCV) heuristic</span></dt>
+<dd>Least-constraining-value: prøv først verdien som fjerner færrest verdier fra domenene til naboene (de ikke-tilordnede). «Fail-last». <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="lifo-kø (stakk) lifo queue / stack"><dt>LIFO-kø (stakk)<span class="en">LIFO queue / stack</span></dt>
+<dd>Last-in-first-out: den sist innlagte noden tas ut først. Brukes i DFS. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="likhetssymbolet equality symbol"><dt>likhetssymbolet<span class="en">equality symbol</span></dt>
+<dd>t₁ = t₂ er sann hvis de to termene refererer til samme objekt. ¬(x = y) skrives ofte x ≠ y. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="lineær interpolasjon linear interpolation smoothing"><dt>Lineær interpolasjon<span class="en">linear interpolation smoothing</span></dt>
+<dd>Glatting som alltid blander trigram-, bigram- og unigramestimater med vekter λ₃ + λ₂ + λ₁ = 1. Vektene kan være faste, læres med EM, eller avhenge av tellingene. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="literal literal"><dt>literal</dt>
+<dd>Et utsagnssymbol (positivt literal, f.eks. P) eller et negert utsagnssymbol (negativt literal, f.eks. ¬P). <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="local beam search local beam search"><dt>Local beam search</dt>
+<dd>Lokalt søk som holder k tilstander; genererer alle etterfølgere av alle k og beholder de k beste av hele listen. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="logisistiske tradisjonen logicist tradition"><dt>logisistiske tradisjonen<span class="en">logicist tradition</span></dt>
+<dd>Retningen i KI som vil bygge intelligente systemer ved å representere kunnskap i logikk og trekke slutninger med logisk inferens. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="logisk ekvivalens logical equivalence"><dt>logisk ekvivalens<span class="en">logical equivalence</span></dt>
+<dd>α ≡ β betyr at α og β er sanne i nøyaktig de samme modellene. Da kan den ene byttes ut med den andre hvor som helst i en formel. <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="logisk ekvivalente logical equivalence (≡)"><dt>logisk ekvivalente<span class="en">logical equivalence (≡)</span></dt>
+<dd>α ≡ β hvis de er sanne i nøyaktig de samme modellene. Ekvivalent: α ⊨ β og β ⊨ α. ≡ er en påstand OM setninger; ⇔ er en del AV en setning. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="logistisk regresjon logistic regression"><dt>logistisk regresjon<span class="en">logistic regression</span></dt>
+<dd>Diskriminativ klassifikator: P(klasse | x) = σ(w · x), der x er en vektor av (binære) trekk, w vekter og σ den logistiske funksjonen som klemmer tallet inn i [0, 1]. Trenes med gradient descent. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="lokalisering localization"><dt>Lokalisering<span class="en">localization</span></dt>
+<dd>Tilstandsestimering der agenten skal finne ut hvor den er, gitt kart, handlinger og percepts. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="lokalt maksimum local maximum"><dt>Lokalt maksimum<span class="en">local maximum</span></dt>
+<dd>En topp som er høyere enn alle sine naboer, men lavere enn det globale maksimumet. Hill climbing stopper her. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="lokalt søk local search"><dt>Lokalt søk<span class="en">local search</span></dt>
+<dd>Søk som starter i en tilstand og gjentatt flytter seg til en nabotilstand, uten å huske stier eller hvilke tilstander som er besøkt. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="lrta* lrta* (learning real-time a*)"><dt>LRTA*<span class="en">LRTA* (learning real-time A*)</span></dt>
+<dd>Learning Real-Time A*: online-agent som lagrer et estimat H(s) for hver besøkt tilstand, flytter seg til naboen som minimerer c(s,a,s′) + H(s′), og oppdaterer H(s) underveis. Uprøvde handlinger antas å gå rett til mål med kostnad h(s) (optimisme). <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="luftlinjeavstanden straight-line distance, h_sld"><dt>luftlinjeavstanden<span class="en">straight-line distance, h_SLD</span></dt>
+<dd>h<sub>SLD</sub>(n): avstanden i rett linje fra byen n til Bucharest. Klassisk heuristikk for ruteplanlegging. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="lukket verden closed-world assumption"><dt>Lukket verden<span class="en">closed-world assumption</span></dt>
+<dd>Atomære setninger som ikke er kjent som sanne, antas å være usanne. (Eksamen 2017: «True».) <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="lærende agent learning agent"><dt>lærende agent<span class="en">learning agent</span></dt>
+<dd>En agent som forbedrer komponentene sine med erfaring. Består av ytelseselement, læringselement, kritiker og problemgenerator. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="løfting lifting / lifted inference"><dt>Løfting<span class="en">lifting / lifted inference</span></dt>
+<dd>Å «løfte» en utsagnslogisk slutningsregel opp til FOL, slik at den virker direkte på setninger med variabler. Variabler bindes bare så langt det trengs, via unifisering. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="løsning solution"><dt>løsning<span class="en">solution</span></dt>
+<dd>En sti (sekvens av handlinger) fra starttilstanden til en måltilstand. <br><a href="m02-uinformert-sok.html">Modul 2</a> · <a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="løsningsbegreper solution concept"><dt>løsningsbegreper<span class="en">solution concept</span></dt>
+<dd>Presise definisjoner av hva det vil si å spille «rasjonelt» i et spill, f.eks. dominant strategi-likevekt, Nash-likevekt og maximin. Det finnes ikke ett perfekt løsningsbegrep. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="m maximum depth m"><dt>m<span class="en">maximum depth m</span></dt>
+<dd>Maksimal dybde i tilstandsrommet / lengden på den lengste stien. Kan være ∞. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="mac mac (maintaining arc consistency)"><dt>MAC<span class="en">MAC (maintaining arc consistency)</span></dt>
+<dd>Maintaining Arc Consistency: etter hver tilordning Xᵢ = v kjøres AC-3 med startkø (Xⱼ, Xᵢ) for alle ikke-tilordnede naboer Xⱼ. Propagerer videre i motsetning til forward checking, og er derfor strengt sterkere. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="manhattan-avstandene manhattan distance (city-block distance)"><dt>Manhattan-avstandene<span class="en">Manhattan distance (city-block distance)</span></dt>
+<dd>Summen av horisontal og vertikal avstand: |x₁ − x₂| + |y₁ − y₂|. For 8-puslespillet: hvor mange ruter hver brikke er fra målposisjonen, uten diagonaler. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="markov-antakelsen markov assumption"><dt>Markov-antakelsen<span class="en">Markov assumption</span></dt>
+<dd>Antakelsen om at bare de n−1 siste ordene påvirker sannsynligheten for neste ord: P(w_j | w_1:j−1) ≈ P(w_j | w_j−n+1:j−1). <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="maskinoversettelse machine translation"><dt>Maskinoversettelse<span class="en">machine translation</span></dt>
+<dd>Å oversette tekst fra ett språk til et annet. Trenes på parallelle tekster (samme dokument på to språk), uten annen annotering. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="matching pennies matching pennies"><dt>matching pennies</dt>
+<dd>Begge velger kron eller mynt samtidig. Like valg: P1 vinner 1; ulike: P2 vinner 1. Ingen Nash-likevekt i rene strategier; blandet likevekt 50/50. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="maximin-likevekt maximin equilibrium"><dt>maximin-likevekt<span class="en">maximin equilibrium</span></dt>
+<dd>I nullsumspill: strategien som maksimerer det minste utbyttet spilleren kan bli presset ned til. von Neumann (1928): ethvert endelig to-spiller nullsumspill har en maximin-likevekt i blandede strategier, og den er en Nash-likevekt. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="metaresonnering metareasoning"><dt>metaresonnering<span class="en">metareasoning</span></dt>
+<dd>Resonnering om resonnering: å velge hvilke beregninger (nodeekspansjoner) som er verdt kostnaden, f.eks. stoppe søket når ingen ekspansjon lenger kan endre beslutningen. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="min-conflicts min-conflicts heuristic"><dt>min-conflicts<span class="en">min-conflicts heuristic</span></dt>
+<dd>Lokalsøk for CSP-er: velg tilfeldig en variabel som er i konflikt, og gi den verdien som gir færrest brutte skranker (uavgjort brytes tilfeldig). <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="minimax-beslutningen minimax decision"><dt>minimax-beslutningen<span class="en">minimax decision</span></dt>
+<dd>Trekket i roten som fører til barnet med høyest minimax-verdi: argmax<sub>a</sub> MINIMAX(RESULT(s, a)). <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="minimax-verdien minimax value"><dt>Minimax-verdien<span class="en">minimax value</span></dt>
+<dd>MINIMAX(s): nytten (for MAX) av å være i tilstand s, gitt at begge spillere spiller optimalt herfra og til slutten. Terminal: nytten. MAX-node: maks over barna. MIN-node: min over barna. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="model checking model checking"><dt>model checking</dt>
+<dd>Inferens ved å telle opp alle modeller og sjekke at α er sann i alle modeller der KB er sann (M(KB) ⊆ M(α)). Sannhetstabell-metoden er model checking. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="modell model"><dt>modell<span class="en">model</span></dt>
+<dd>En matematisk abstraksjon av en mulig verden. I utsagnslogikk: en tilordning av true/false til hvert utsagnssymbol, f.eks. {Rain = true, Wind = false}. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="modus ponens modus ponens"><dt>Modus Ponens</dt>
+<dd>Fra α ⇒ β og α kan β utledes. «Bekreftende modus». Grunnlaget for forward og backward chaining. <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="modus tollens modus tollens"><dt>Modus Tollens</dt>
+<dd>Fra α ⇒ β og ¬β kan ¬α utledes. Følger av kontraposisjon + Modus Ponens. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="monitoring, filtrering eller tilstandsestimering monitoring / filtering / state estimation"><dt>monitoring, filtrering eller tilstandsestimering<span class="en">monitoring / filtering / state estimation</span></dt>
+<dd>Å kontinuerlig vedlikeholde belief state ut fra handlinger og percepts: b′ = UPDATE(PREDICT(b, a), o). En rekursiv tilstandsestimator. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="monoton monotonicity"><dt>monoton<span class="en">monotonicity</span></dt>
+<dd>Mengden setninger som følger av KB kan bare vokse når KB utvides: hvis KB ⊨ α, så KB ∧ β ⊨ α. Ny kunnskap kan aldri ugyldiggjøre en tidligere konklusjon. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="monotonisitet monotonic heuristic"><dt>monotonisitet<span class="en">monotonic heuristic</span></dt>
+<dd>Synonym for konsistens. Navnet kommer av at f = g + h da aldri synker langs en vei (er monotont ikke-avtagende). <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="monte carlo-tresøk monte carlo tree search (mcts)"><dt>Monte Carlo-tresøk<span class="en">Monte Carlo tree search (MCTS)</span></dt>
+<dd>Søk som anslår verdien til en tilstand som gjennomsnittlig utfall av mange simulerte partier (playouts), og som gradvis bygger et søketre med fire steg: selection, expansion, simulation, back-propagation. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="morfologi morphology"><dt>Morfologi<span class="en">morphology</span></dt>
+<dd>Læren om hvordan ord er bygd opp av mindre deler (stammer, endelser). F.eks. at ord som slutter på «-ous» nesten alltid er adjektiver. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="most general unifier most general unifier (mgu)"><dt>most general unifier<span class="en">most general unifier (MGU)</span></dt>
+<dd>Den unifikatoren som legger færrest mulig begrensninger på variablene. Alle andre unifikatorer kan fås ved å substituere videre i MGU-ens resultat. Unik opp til omdøping av variabler. <br><a href="m09-fol-inferens.html">Modul 9</a> · <a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="mrv minimum-remaining-values (mrv)"><dt>MRV<span class="en">minimum-remaining-values (MRV)</span></dt>
+<dd>Velg den ikke-tilordnede variabelen med færrest lovlige verdier igjen («fail first»). <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="mrv-heuristikken minimum-remaining-values (mrv) heuristic"><dt>MRV-heuristikken<span class="en">minimum-remaining-values (MRV) heuristic</span></dt>
+<dd>Minimum-remaining-values: velg den ikke-tilordnede variabelen med færrest lovlige verdier igjen. Kalles også «most constrained variable» og «fail-first». <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="mutasjon mutation"><dt>Mutasjon<span class="en">mutation</span></dt>
+<dd>Liten tilfeldig endring av et barn (f.eks. ett siffer byttes ut) med lav sannsynlighet (mutation rate). Gir utforskning og mangfold. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="målbasert agent goal-based agent"><dt>målbasert agent<span class="en">goal-based agent</span></dt>
+<dd>Bruker modellen pluss eksplisitt målinformasjon (ønskede situasjoner) og velger handlinger som vil oppnå målet. Krever å vurdere framtiden: søk og planlegging. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="målformulering goal formulation"><dt>Målformulering<span class="en">goal formulation</span></dt>
+<dd>Agenten bestemmer seg for et mål (f.eks. «være i Bucuresti»). Målet begrenser hvilke handlinger som er relevante. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="målinformasjon goal"><dt>målinformasjon<span class="en">goal</span></dt>
+<dd>Beskrivelse av ønskede situasjoner, f.eks. «å være på en bestemt destinasjon». Gir et binært skille: mål nådd / ikke nådd. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="målrettet goal-directed reasoning"><dt>målrettet<span class="en">goal-directed reasoning</span></dt>
+<dd>Resonnering som starter fra målet/spørsmålet og bare berører relevante fakta (backward chaining). F.eks. «hvor er nøklene mine?». <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="måltilstand(er) goal state(s) / is-goal"><dt>Måltilstand(er)<span class="en">goal state(s) / IS-GOAL</span></dt>
+<dd>Én eller flere tilstander som er mål. Kan være én tilstand, en liten mengde, eller definert ved en egenskap (f.eks. «ingen skitt»). Testes med IS-GOAL(s). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="n-gram n-gram"><dt>n-gram</dt>
+<dd>En sekvens av n påfølgende symboler (ord eller tegn). «a black cat» er et (ord-)trigram. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="n-gram-modell n-gram model"><dt>n-gram-modell<span class="en">n-gram model</span></dt>
+<dd>Språkmodell der hvert ord (eller tegn) avhenger av de n−1 foregående. n = 1: unigram, n = 2: bigram, n = 3: trigram. Parametrene estimeres ved å telle n-gram i et korpus. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="nabolaget neighbourhood"><dt>nabolaget<span class="en">neighbourhood</span></dt>
+<dd>Mengden tilstander man kan nå fra en tilstand med én lokal endring (én handling). Lokalt søk ser bare på nabolaget når det velger neste steg. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="naiv bayes-antakelsen naive bayes assumption"><dt>naiv Bayes-antakelsen<span class="en">naive Bayes assumption</span></dt>
+<dd>Antakelsen om at hvert ord genereres uavhengig av de andre ordene, gitt klassen (temaet) til teksten. Feil i virkeligheten, men gir enkle modeller som klassifiserer godt. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="nash' folketeoremer nash folk theorems"><dt>Nash' folketeoremer<span class="en">Nash folk theorems</span></dt>
+<dd>Resultater som sier at ethvert utfall der alle spillerne får minst sin sikkerhetsverdi (det de kan garantere seg selv), kan opprettholdes som en Nash-likevekt i et uendelig gjentatt spill – typisk med grim-strategier som trussel. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="nash-likevekt nash equilibrium"><dt>Nash-likevekt<span class="en">Nash equilibrium</span></dt>
+<dd>En strategiprofil der ingen spiller kan få høyere utbytte ved å endre sin egen strategi alene, gitt at de andre holder fast ved sine. Alle spiller beste respons til hverandre. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="naturlig språkbehandling natural language processing (nlp)"><dt>Naturlig språkbehandling<span class="en">natural language processing (NLP)</span></dt>
+<dd>Området i KI som handler om å få datamaskiner til å forstå, generere og samhandle ved hjelp av menneskelig språk (norsk, engelsk …). Overlapper med maskinlæring. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="node node"><dt>node</dt>
+<dd>En datastruktur i søketreet med fire felter: STATE, PARENT, ACTION og PATH-COST (g). En node er ett steg i søket, ikke en tilstand. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="nodekonsistent node consistency"><dt>nodekonsistent<span class="en">node consistency</span></dt>
+<dd>Alle verdiene i domenet oppfyller variabelens unære skranker. Oppnås ved å stryke verdier som bryter en unær skranke. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="normalformspill normal form game"><dt>normalformspill<span class="en">normal form game</span></dt>
+<dd>Spill der alle spillerne velger handling samtidig (eller uten å vite hva de andre har valgt). Definert av spillere, handlinger og en utbyttefunksjon. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="nullsum zero-sum game"><dt>Nullsum<span class="en">zero-sum game</span></dt>
+<dd>Det som er bra for den ene spilleren er like dårlig for den andre; summen av nytteverdiene er konstant (strengt tatt «konstantsum»). Ingen vinn-vinn-utfall. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="nullsumspill zero-sum game"><dt>nullsumspill<span class="en">zero-sum game</span></dt>
+<dd>Spill der utbyttene i hver celle summerer til 0 (eller en konstant): det den ene vinner, taper den andre. To-fingers Morra og stein-saks-papir er nullsum; fangens dilemma er det ikke. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="nyttefunksjon utility function"><dt>nyttefunksjon<span class="en">utility function</span></dt>
+<dd>Avbilder en tilstand (eller tilstandssekvens) til et reelt tall som angir hvor ønskelig den er. En internalisering av ytelsesmålet. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="nyttefunksjonen utility function / objective function / payoff function"><dt>Nyttefunksjonen<span class="en">utility function / objective function / payoff function</span></dt>
+<dd>Gir den numeriske sluttverdien av terminaltilstand s for spiller p, f.eks. +1/0/−1 eller 1/½/0 i sjakk. Kalles også objektivfunksjon eller payoff-funksjon. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="nådd reached"><dt>nådd<span class="en">reached</span></dt>
+<dd>En tilstand er «reached» hvis det er generert en node for den, enten noden er ekspandert eller ikke. Reached = frontier ∪ expanded. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="objekter object / domain element"><dt>objekter<span class="en">object / domain element</span></dt>
+<dd>Ting i verden: personer, ruter, tall, kroner, ben … Objekter trenger ikke ha navn. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="objektfunksjon objective function"><dt>objektfunksjon<span class="en">objective function</span></dt>
+<dd>Funksjonen som gir hver tilstand en verdi («høyde») vi vil maksimere. Er det en kostnad vil vi minimere den. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="occurs check occur check / occurs check"><dt>occurs check<span class="en">occur check / occurs check</span></dt>
+<dd>Sjekk om variabelen v forekommer inne i termen t før v/t legges til. I så fall feiler unifiseringen, f.eks. S(x) mot S(S(x)), fordi x = S(x) ville krevd et uendelig term. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="offline søk offline search"><dt>offline søk<span class="en">offline search</span></dt>
+<dd>Agenten beregner en fullstendig løsning (på en modell) før den utfører første handling. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="omdøping renaming"><dt>omdøping<span class="en">renaming</span></dt>
+<dd>To setninger som er like bortsett fra variabelnavnene, f.eks. Likes(x, IceCream) og Likes(y, IceCream). De betyr det samme. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="omgivelse environment"><dt>omgivelse<span class="en">environment</span></dt>
+<dd>Den delen av universet hvis tilstand vi bryr oss om når vi designer agenten: det som påvirker hva agenten oppfatter, og som påvirkes av agentens handlinger. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="omveisindeks detour index"><dt>omveisindeks<span class="en">detour index</span></dt>
+<dd>Detour index: faktor (typisk 1,2–1,6) som ganges med luftlinjen for å estimere faktisk veilengde. Gir et bedre, men inadmissibelt estimat. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="online søk online search"><dt>online søk<span class="en">online search</span></dt>
+<dd>Agenten veksler mellom å handle, observere og beregne. Nødvendig i ukjente omgivelser der den må utforske for å lære hva handlingene gjør. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="ontologi ontology"><dt>ontologi<span class="en">ontology</span></dt>
+<dd>Vokabularet av predikater, funksjoner og konstanter for et domene – hva slags ting som finnes, men ikke deres egenskaper og relasjoner. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="ontologiske forpliktelse ontological commitment"><dt>ontologiske forpliktelse<span class="en">ontological commitment</span></dt>
+<dd>Hva språket antar at virkeligheten består av: bare fakta (utsagnslogikk), eller objekter og relasjoner (FOL), eller tid i tillegg (temporal logikk) osv. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="oppfyllbar satisfiable"><dt>oppfyllbar<span class="en">satisfiable</span></dt>
+<dd>En setning er oppfyllbar (satisfiable) hvis den er sann i MINST ÉN modell. Er den sann i ingen, er den uoppfyllbar (unsatisfiable), en selvmotsigelse. <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="oppgaveomgivelsen task environment"><dt>oppgaveomgivelsen<span class="en">task environment</span></dt>
+<dd>«Problemet» som en rasjonell agent er «løsningen» på. Spesifiseres med PEAS. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="optimal løsning optimal solution"><dt>optimal løsning<span class="en">optimal solution</span></dt>
+<dd>Den løsningen som har lavest stikostnad blant alle løsninger. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="optimal? cost-optimal"><dt>Optimal?<span class="en">cost-optimal</span></dt>
+<dd>Kostnadsoptimal: algoritmen finner alltid løsningen med lavest total veikostnad blant alle løsninger. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="optimalt effektiv optimally efficient"><dt>Optimalt effektiv<span class="en">optimally efficient</span></dt>
+<dd>A* med konsistent h: enhver annen algoritme som utvider søkeveier fra start og bruker samme heuristikk, må ekspandere minst alle nodene A* garantert ekspanderer (bortsett fra likhet i f = C*). <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="optimeringsproblemer optimization problem"><dt>optimeringsproblemer<span class="en">optimization problem</span></dt>
+<dd>Problemer der målet er å finne den beste tilstanden etter en objektfunksjon, ikke bare en hvilken som helst måltilstand. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="or-noder or node"><dt>OR-noder<span class="en">OR node</span></dt>
+<dd>Noder der agenten velger handling. Det holder at ÉN av handlingene fører til en løsning. Tegnes som tilstander (rektangler). <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="ordinnbygginger word embedding"><dt>ordinnbygginger<span class="en">word embedding</span></dt>
+<dd>Lærte vektorer (lister med tall) som representerer ord, slik at ord med lignende bruk får lignende vektorer. Bygger på distribusjonshypotesen. Kap. 25.1. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="ordklasse part of speech (pos)"><dt>ordklasse<span class="en">part of speech (POS)</span></dt>
+<dd>Den grammatiske kategorien et ord tilhører i en setning: substantiv, verb, adjektiv, preposisjon … Kalles også en tag (POS-tag). <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="ordklassetagging part-of-speech tagging"><dt>Ordklassetagging<span class="en">part-of-speech tagging</span></dt>
+<dd>Å gi hvert ord i en setning riktig ordklasse (tag). Et første steg for spørsmålssvar, oversettelse og tekst-til-tale. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="overbegrenset overconstrained"><dt>overbegrenset<span class="en">overconstrained</span></dt>
+<dd>SAT/CSP-problem med mange klausuler per variabel. Har trolig ingen løsning, og det oppdages ofte raskt. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="overgangsmodell transition model / result(s, a)"><dt>Overgangsmodell<span class="en">transition model / RESULT(s, a)</span></dt>
+<dd>Beskriver hva hver handling gjør: RESULT(s, a) er tilstanden man havner i etter å utføre a i s. Ikke det samme som mengden handlinger! <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="overgangsmodellen transition model"><dt>Overgangsmodellen<span class="en">transition model</span></dt>
+<dd>I en HMM: P(C_t | C_t−1), sannsynligheten for neste skjulte tilstand (tag) gitt den forrige. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="overgenerering overgeneration"><dt>Overgenerering<span class="en">overgeneration</span></dt>
+<dd>Grammatikken genererer setninger som ikke er grammatiske, f.eks. «Me go I.» <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="paramodulation paramodulation"><dt>Paramodulation</dt>
+<dd>Generalisering av demodulation til klausuler der likheten står sammen med andre literaler. Gir en komplett inferensprosedyre for FOL med likhet. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="pareto-dominert pareto dominated"><dt>Pareto-dominert<span class="en">Pareto dominated</span></dt>
+<dd>Det finnes et annet utfall der alle har det minst like bra og minst én har det strengt bedre. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="pareto-optimalt pareto optimal"><dt>Pareto-optimalt<span class="en">Pareto optimal</span></dt>
+<dd>Det finnes ikke noe annet utfall som gjør minst én spiller bedre stilt uten å gjøre noen dårligere stilt. Et utfall som ikke er Pareto-optimalt, er Pareto-dominert. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="parsing parsing"><dt>Parsing</dt>
+<dd>Å analysere en streng av ord for å finne frasestrukturen (parsetreet) ifølge reglene i en grammatikk. Kan ses som et søk etter et parsetre der bladene er ordene. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="pattern database pattern database"><dt>pattern database</dt>
+<dd>Forhåndsberegnet tabell med eksakt løsningskostnad for hver konfigurasjon av et delproblem (f.eks. posisjonene til brikke 1–4 og blanken). Oppslag gir en admissibel heuristikk. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="peano-aksiomene peano axioms"><dt>Peano-aksiomene<span class="en">Peano axioms</span></dt>
+<dd>Aksiomer som definerer de naturlige tallene rekursivt fra 0 og etterfølgerfunksjonen S. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="peas peas (performance, environment, actuators, sensors)"><dt>PEAS<span class="en">PEAS (Performance, Environment, Actuators, Sensors)</span></dt>
+<dd>Performance measure, Environment, Actuators, Sensors – de fire delene av en oppgaveomgivelse. Første steg i agentdesign er alltid å spesifisere PEAS så fullstendig som mulig. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="penn treebank penn treebank"><dt>Penn Treebank</dt>
+<dd>Et korpus på over 3 millioner ord som er merket med ordklasser (45 tagger) og parsetrær. Standard treningsdata for taggere og parsere. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="perfekt informasjon perfect information"><dt>Perfekt informasjon<span class="en">perfect information</span></dt>
+<dd>Begge spillerne ser hele tilstanden til enhver tid. Synonym for «fullt observerbar». Sjakk ja, poker nei. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="persepsjon percept"><dt>persepsjon<span class="en">percept</span></dt>
+<dd>Det agentens sensorer oppfatter i ett gitt øyeblikk. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="persepsjonssekvens percept sequence"><dt>persepsjonssekvens<span class="en">percept sequence</span></dt>
+<dd>Hele historikken av alt agenten noensinne har oppfattet. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="plasskompleksitet space complexity"><dt>Plasskompleksitet<span class="en">space complexity</span></dt>
+<dd>Hvor mye minne søket trenger (frontier + reached). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="platå plateau"><dt>Platå<span class="en">plateau</span></dt>
+<dd>Et flatt område i landskapet der naboene har samme verdi. Enten et flatt lokalt maksimum eller en skulder. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="playout playout / rollout / simulation"><dt>playout<span class="en">playout / rollout / simulation</span></dt>
+<dd>Én simulering av et helt parti fra en gitt stilling til slutt, der trekkene velges av en playout policy. Kalles også rollout eller simulation. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="playout policy playout policy"><dt>playout policy</dt>
+<dd>Regelen som velger trekk under en playout, ofte vektet mot gode trekk (lært med nevrale nett via selvspill, eller spillspesifikke regler som «prøv slag først»). <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="ply ply"><dt>ply</dt>
+<dd>Ett trekk av én spiller = ett nivå dypere i spilltreet. Brukes fordi «move» i noen spill betyr at begge har trukket. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="populasjon population / individual"><dt>Populasjon<span class="en">population / individual</span></dt>
+<dd>Mengden av k tilstander (individer) algoritmen jobber med samtidig. Hvert individ er typisk en streng, f.eks. «24748552». <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="predikatindeksering predicate indexing"><dt>predikatindeksering<span class="en">predicate indexing</span></dt>
+<dd>Legg alle fakta med samme predikat i samme «bøtte» (hashtabell), så Knows-spørsmål bare sammenlignes med Knows-fakta. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="predikatsymbol predicate symbol"><dt>Predikatsymbol<span class="en">predicate symbol</span></dt>
+<dd>Navn på en relasjon eller egenskap; brukt på termer gir det en setning som er sann eller usann: Brother(Richard, John). <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="prediksjon prediction"><dt>prediksjon<span class="en">prediction</span></dt>
+<dd>b̂ = PREDICT(b, a): mengden tilstander agenten kan være i etter handling a, gitt belief state b. Union av RESULTS(s, a) for alle s ∈ b. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="preferanseskranker preference constraint / constrained optimization problem (cop)"><dt>preferanseskranker<span class="en">preference constraint / constrained optimization problem (COP)</span></dt>
+<dd>Ønsker, ikke krav (f.eks. «Prof. R vil helst undervise om morgenen»). Kodes ofte som kostnader, og da blir problemet et constrained optimization problem (COP). <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="presedens operator precedence"><dt>presedens<span class="en">operator precedence</span></dt>
+<dd>Hvor hardt en operator binder. I utsagnslogikk: ¬ binder hardest, så ∧, så ∨, så ⇒, så ⇔ (forelesningen legger til ≡ helt nederst). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="presisjon precision"><dt>Presisjon<span class="en">precision</span></dt>
+<dd>Andelen av de returnerte dokumentene som faktisk er relevante: TP / (TP + FP). «Hvor mye av det jeg fant, er riktig?» <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="prioritetskø priority queue"><dt>prioritetskø<span class="en">priority queue</span></dt>
+<dd>Tar alltid ut noden med lavest verdi av f(n). Brukes i UCS (f = g), greedy (f = h) og A* (f = g + h). <br><a href="m02-uinformert-sok.html">Modul 2</a> · <a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="probabilistisk kontekstfri grammatikk probabilistic context-free grammar (pcfg)"><dt>probabilistisk kontekstfri grammatikk<span class="en">probabilistic context-free grammar (PCFG)</span></dt>
+<dd>Kontekstfri grammatikk der hver regel har en sannsynlighet; sannsynlighetene for alle regler med samme venstreside summerer til 1. Gir en sannsynlighet til hvert parsetre og hver streng. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="problemformulering problem formulation"><dt>Problemformulering<span class="en">problem formulation</span></dt>
+<dd>Agenten lager en abstrakt modell: hvilke tilstander og handlinger som trengs for å nå målet. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="problemløsende agent problem-solving agent"><dt>problemløsende agent<span class="en">problem-solving agent</span></dt>
+<dd>En agent som finner en sekvens av handlinger som fører fra nåværende tilstand til et mål, ved å simulere handlingene i en modell av verden. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="propositionalisering propositionalization"><dt>Propositionalisering<span class="en">propositionalization</span></dt>
+<dd>Å gjøre en FOL-KB om til utsagnslogikk: instansier alle ∀-setninger med alle mulige grunntermer (UI), erstatt ∃ med Skolem-konstanter (EI), og gi hver grunn-atomsetning et proposisjonssymbol. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="prosedurale tilnærmingen procedural approach"><dt>prosedurale tilnærmingen<span class="en">procedural approach</span></dt>
+<dd>Ønsket oppførsel kodes direkte som programkode («hvordan»), i motsetning til deklarativt («hva»). <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="påstander assertion"><dt>påstander<span class="en">assertion</span></dt>
+<dd>Setninger lagt inn i kunnskapsbasen med TELL, f.eks. TELL(KB, King(John)). <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="quiescence search quiescence search"><dt>quiescence search</dt>
+<dd>Ekstra søk forbi dybdegrensen fra urolige stillinger, ofte begrenset til f.eks. slagtrekk, til man når rolige stillinger som kan evalueres trygt. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="random-restart hill climbing random-restart hill climbing"><dt>Random-restart hill climbing</dt>
+<dd>Kjører hill climbing gjentatte ganger fra tilfeldige starttilstander til et mål er funnet. Komplett med sannsynlighet 1. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="rasjonell agent rational agent"><dt>rasjonell agent<span class="en">rational agent</span></dt>
+<dd>En agent som handler for å oppnå best mulig utfall – eller, under usikkerhet, best mulig <em>forventet</em> utfall – gitt det den vet. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="rasjonelt individ rational individual / rational agent"><dt>rasjonelt individ<span class="en">rational individual / rational agent</span></dt>
+<dd>Har veldefinerte mål og velger den beste tilgjengelige strategien for å oppnå dem (jf. rasjonell agent i modul 1). <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="rbfs recursive best-first search (rbfs)"><dt>RBFS<span class="en">recursive best-first search (RBFS)</span></dt>
+<dd>Rekursiv best-first search med lineært minne. Følger beste barn så lenge f er under f_limit (beste alternativ ellers); ved tilbaketrekking lagres beste f i det glemte subtreet som «backed-up value». <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="reached-tabell reached / explored set"><dt>reached-tabell<span class="en">reached / explored set</span></dt>
+<dd>Oppslagstabell over tilstander som allerede er nådd. Hindrer at samme tilstand legges i grensen flere ganger (graph search). <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="recall recall"><dt>Recall</dt>
+<dd>Andelen av alle relevante dokumenter som ble returnert: TP / (TP + FN). «Hvor mye av det riktige fant jeg?» <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="redundant sti redundant path"><dt>redundant sti<span class="en">redundant path</span></dt>
+<dd>En dårligere (eller like god) vei til en tilstand vi allerede har nådd på en annen måte, f.eks. Arad–Zerind–Oradea–Sibiu (297) vs. Arad–Sibiu (140). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="relaksert problem relaxed problem"><dt>relaksert problem<span class="en">relaxed problem</span></dt>
+<dd>Et forenklet problem med færre restriksjoner på handlingene. Optimal kostnad i det relakserte problemet er en admissibel (og konsistent) heuristikk for originalproblemet. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="relasjoner relation"><dt>relasjoner<span class="en">relation</span></dt>
+<dd>En relasjon er rett og slett mengden av tupler av objekter som står i relasjonen. Unær relasjon = egenskap. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="ren strategi pure strategy"><dt>ren strategi<span class="en">pure strategy</span></dt>
+<dd>Deterministisk strategi: velger én bestemt handling (med sannsynlighet 1). <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="rent symbol pure symbol"><dt>Rent symbol<span class="en">pure symbol</span></dt>
+<dd>Et symbol som har samme fortegn i alle (gjenværende, ikke allerede sanne) klausuler. Det kan trygt settes slik at literalene blir sanne. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="resolusjon resolution"><dt>resolusjon<span class="en">resolution</span></dt>
+<dd>Inferensregel på klausuler: fra ℓ₁ ∨ … ∨ ℓₖ og m₁ ∨ … ∨ mₙ, der ℓᵢ og mⱼ er komplementære, utled klausulen med alle de andre literalene. Sunn, og (med refutation) komplett for utsagnslogikk. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="resolusjonslukningen resolution closure rc(s)"><dt>Resolusjonslukningen<span class="en">resolution closure RC(S)</span></dt>
+<dd>RC(S): mengden av alle klausuler som kan utledes ved gjentatt resolusjon fra S. Endelig, takket være faktorisering. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="resolventen resolvent"><dt>resolventen<span class="en">resolvent</span></dt>
+<dd>Klausulen som resolusjonsregelen produserer fra to klausuler. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="retningsbestemt buekonsistent directional arc consistency (dac)"><dt>retningsbestemt buekonsistent<span class="en">directional arc consistency (DAC)</span></dt>
+<dd>Under en ordning X₁, …, Xₙ er CSP-et DAC hvis hver Xᵢ er buekonsistent med hver Xⱼ for j &gt; i. Det holder å sjekke én retning. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="retrograd minimax retrograde minimax search"><dt>retrograd minimax<span class="en">retrograde minimax search</span></dt>
+<dd>Bygger sluttspilltabeller baklengs: start i vunne/tapte sluttstillinger og gå «baklengs» i reglene til alle stillinger med de gitte brikkene er klassifisert som vinst, tap eller remis. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="rolige (quiescent) stillinger quiescent position"><dt>rolige (quiescent) stillinger<span class="en">quiescent position</span></dt>
+<dd>Stillinger der det ikke finnes ventende trekk (f.eks. slag) som vil endre evalueringen kraftig. Bare slike bør evalueres med EVAL. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="rutenettverden grid world"><dt>rutenettverden<span class="en">grid world</span></dt>
+<dd>Et 2D-rutenett av celler der agenten kan flytte seg til ledige naboceller; celler kan inneholde objekter (skitt, bokser) eller hindringer. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="rygg ridge"><dt>Rygg<span class="en">ridge</span></dt>
+<dd>En skrå «fjellrygg» som gir en sekvens av lokale maksima som ikke er direkte forbundet; alle tilgjengelige handlinger peker nedover selv om ryggen stiger. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="sammensatte setninger complex sentence"><dt>Sammensatte setninger<span class="en">complex sentence</span></dt>
+<dd>Setninger bygd av andre setninger med ¬, ∧, ∨, ⇒, ⇔ eller kvantorer. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="sannhetstabell truth table"><dt>sannhetstabell<span class="en">truth table</span></dt>
+<dd>Tabell som gir sannhetsverdien til en setning for hver mulig kombinasjon av sannhetsverdier for symbolene. n symboler gir 2ⁿ rader. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="sat sat problem"><dt>SAT<span class="en">SAT problem</span></dt>
+<dd>Problemet å avgjøre om en utsagnslogisk setning er oppfyllbar. Det første problemet som ble bevist NP-komplett. Alle CSP-er er egentlig SAT-lignende problemer. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="satisfiability threshold conjecture satisfiability threshold conjecture"><dt>satisfiability threshold conjecture</dt>
+<dd>Formodning: for hver k ≥ 3 finnes en terskel rₖ slik at når n → ∞ er CNFₖ(rn, n) oppfyllbar med sannsynlighet 1 under terskelen og 0 over. Ubevist. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="satisficing satisficing solution"><dt>satisficing<span class="en">satisficing solution</span></dt>
+<dd>«Satisfy + suffice»: en løsning som er god nok, selv om den ikke er optimal. Vi bytter litt kvalitet mot mye raskere søk. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="sekvensiell sequential"><dt>Sekvensiell<span class="en">sequential</span></dt>
+<dd>Nåværende beslutning kan påvirke alle framtidige beslutninger. Agenten må tenke framover. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="selection policy selection policy"><dt>selection policy</dt>
+<dd>Regelen som velger hvilken node som skal få neste playout. Balanserer exploration (noder med få playouts) og exploitation (noder som har gjort det bra). <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="seleksjon selection"><dt>Seleksjon<span class="en">selection</span></dt>
+<dd>Valg av foreldre, typisk med sannsynlighet proporsjonal med fitness (eller turnering: trekk n tilfeldige, velg de beste). <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="semantikk semantics"><dt>Semantikk<span class="en">semantics</span></dt>
+<dd>Definerer meningen til setninger: sannhetsverdien til hver setning i hver mulig verden (modell). <br><b>Modul 11:</b> Meningen til ord, fraser og setninger. <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="semi-avgjørbart semidecidable"><dt>semi-avgjørbart<span class="en">semidecidable</span></dt>
+<dd>Det finnes algoritmer som sier «ja» i endelig tid til alle setninger som ER entailed, men ingen algoritme som også alltid sier «nei» til setninger som IKKE er entailed – den kan gå evig. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="semidynamisk semidynamic"><dt>Semidynamisk<span class="en">semidynamic</span></dt>
+<dd>Omgivelsen selv endrer seg ikke med tiden, men agentens ytelsesscore gjør det (f.eks. sjakk med klokke). <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="sen målsjekk late goal test"><dt>Sen målsjekk<span class="en">late goal test</span></dt>
+<dd>Sjekk om en node er et mål når den tas ut av frontier for å ekspanderes. Brukes i best-first search (UCS, A*), DFS og DLS/IDS. Nødvendig for kostnadsoptimalitet i UCS. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="sensor-/emisjonsmodellen sensor model / emission model"><dt>Sensor-/emisjonsmodellen<span class="en">sensor model / emission model</span></dt>
+<dd>I en HMM: P(W_t | C_t), sannsynligheten for å observere ordet W_t gitt at den skjulte tilstanden (taggen) er C_t. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="sensorer sensors"><dt>sensorer<span class="en">sensors</span></dt>
+<dd>Det agenten tar inn informasjon med: øyne, kamera, mikrofon, tastaturinput, nettverkspakker … <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="sensorløst problem sensorless / conformant problem"><dt>sensorløst problem<span class="en">sensorless / conformant problem</span></dt>
+<dd>Problem der agenten ikke får noen observasjoner. Kalles også conformant problem. Løsningen er en sekvens av handlinger som virker uansett hvilken tilstand man startet i. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="sensormodell sensor model"><dt>Sensormodell<span class="en">sensor model</span></dt>
+<dd>Kunnskap om hvordan verdens tilstand gjenspeiles i agentens persepsjoner (f.eks. røde felt i kamerabildet når bilen foran bremser). <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="sentimentanalyse sentiment analysis"><dt>Sentimentanalyse<span class="en">sentiment analysis</span></dt>
+<dd>Å avgjøre om en tekst (anmeldelse, tweet …) uttrykker en positiv, negativ eller nøytral holdning. En tekstklassifiseringsoppgave. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="separator separator"><dt>separator</dt>
+<dd>Frontier skiller det indre området (ekspanderte tilstander) fra det ytre (tilstander som ikke er nådd). Enhver sti fra start til en ikke-nådd tilstand må gå gjennom frontier. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="set of support set of support"><dt>Set of support</dt>
+<dd>Hvert resolusjonssteg må bruke minst én klausul fra en spesiell mengde (typisk det negerte målet og alt utledet fra det). Komplett hvis resten av KB er satisfiable. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="shift-reduce shift-reduce parsing"><dt>shift-reduce<span class="en">shift-reduce parsing</span></dt>
+<dd>Shift-reduce parsing: legg neste ord på en stakk (shift), eller slå sammen de øverste elementene på stakken med en grammatikkregel (reduce). <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="sidelengs trekk sideways move"><dt>Sidelengs trekk<span class="en">sideways move</span></dt>
+<dd>Tillat trekk til en nabo med lik verdi, i håp om at platået er en skulder. Begrens antall sidelengs trekk på rad for å unngå evig vandring. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="simulated annealing simulated annealing"><dt>Simulated annealing</dt>
+<dd>Lokalt søk som velger en tilfeldig nabo; bedre trekk aksepteres alltid, dårligere aksepteres med sannsynlighet e^(ΔE/T) som synker med hvor mye verre trekket er og med temperaturen T. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="singular extensions singular extension"><dt>singular extensions<span class="en">singular extension</span></dt>
+<dd>Forleng søket forbi dybdegrensen for trekk som er «klart bedre» enn alle andre i stillingen. Demper horisonteffekten uten å gjøre treet mye større. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="sjansenoder chance node"><dt>sjansenoder<span class="en">chance node</span></dt>
+<dd>Noder i spilltreet (tegnes som sirkler) der utfallet bestemmes av tilfeldighet. Hver gren har en sannsynlighet; verdien er forventningsverdien over grenene. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="skip-gram skip-gram"><dt>Skip-gram</dt>
+<dd>Par (eller sekvenser) av ord som står nær hverandre, men med noen ord hoppet over. 1-skip-bigrammer i «je ne comprends pas» er «je comprends» og «ne pas». <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="skjemaer schema"><dt>skjemaer<span class="en">schema</span></dt>
+<dd>Delstreng der noen posisjoner er uspesifisert (*), f.eks. 246*****. Strenger som passer er instanser. Skjemaer med over-snittlig fitness får flere instanser over tid. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="skjult markov-modell hidden markov model (hmm)"><dt>skjult Markov-modell<span class="en">hidden Markov model (HMM)</span></dt>
+<dd>Sannsynlighetsmodell med skjulte tilstander (her: taggene C_t) som følger en Markov-kjede, og observasjoner (her: ordene W_t) som avhenger av den nåværende skjulte tilstanden. Definert av en overgangsmodell og en sensor-/emisjonsmodell. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="skolem-funksjon skolem function"><dt>Skolem-funksjon<span class="en">Skolem function</span></dt>
+<dd>En ny funksjon F(x₁,…,xₙ) som erstatter en ∃-variabel. Argumentene er ALLE ∀-variablene som ∃ står innenfor (i skopet til). Står ∃ ikke innenfor noen ∀, blir det en Skolem-konstant. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="skolem-konstant skolem constant"><dt>Skolem-konstant<span class="en">Skolem constant</span></dt>
+<dd>Et nytt konstantnavn som står for «det objektet som finnes» i en ∃-setning. Må ikke være brukt før i KB. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="skolemiser skolemization"><dt>Skolemiser<span class="en">Skolemization</span></dt>
+<dd>Fjern ∃ ved å erstatte variabelen med en ny konstant (hvis ingen ∀ utenfor) eller en ny funksjon av alle ∀-variabler den står innenfor, f.eks. ∀x ∃y ⇒ F(x). <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="skranke constraint"><dt>skranke<span class="en">constraint</span></dt>
+<dd>Et krav som begrenser hvilke verdikombinasjoner som er lov. Skrives formelt som et par ⟨scope, rel⟩. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="skrankegraf constraint graph"><dt>skrankegraf<span class="en">constraint graph</span></dt>
+<dd>Graf der nodene er variablene og en kant forbinder to variabler som er med i samme (binære) skranke. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="skrankehypergraf constraint hypergraph"><dt>skrankehypergraf<span class="en">constraint hypergraph</span></dt>
+<dd>Graf med vanlige noder for variablene og egne hypernoder (firkanter) for n-ære skranker. Hver hypernode er koblet til alle variablene i skranken. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="skrankeproblem (csp) constraint satisfaction problem (csp)"><dt>skrankeproblem (CSP)<span class="en">constraint satisfaction problem (CSP)</span></dt>
+<dd>Et problem gitt ved variabler X, domener D og skranker C. Målet er å gi hver variabel en verdi fra domenet sitt slik at alle skrankene er oppfylt. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="skrankepropagering constraint propagation"><dt>Skrankepropagering<span class="en">constraint propagation</span></dt>
+<dd>Inferens som bruker skrankene til å fjerne verdier fra domenene. En reduksjon kan føre til nye reduksjoner hos naboene. Kan gjøres før søket eller underveis. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="skulder shoulder"><dt>skulder<span class="en">shoulder</span></dt>
+<dd>Et platå som det går an å komme videre oppover fra – flatt et stykke, så stiger det igjen. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="sma* sma* (simplified memory-bounded a*)"><dt>SMA*<span class="en">SMA* (simplified memory-bounded A*)</span></dt>
+<dd>Kjører som A* til minnet er fullt, kaster så den dårligste bladnoden (høyest f) og lagrer verdien i forelderen. Komplett hvis grunneste mål får plass i minnet; optimal hvis optimal løsning er nåbar. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="sosial velferd social welfare"><dt>sosial velferd<span class="en">social welfare</span></dt>
+<dd>Mål på hvor godt et utfall er for alle spillerne samlet, sett utenfra (ikke fra én spillers side). Vanlige mål: Pareto-optimalitet, utilitaristisk og egalitær velferd. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="spillteori game theory"><dt>spillteori<span class="en">game theory</span></dt>
+<dd>Systematisk studie av strategisk samhandling mellom rasjonelle individer: situasjoner der utfallet for hver aktør avhenger av hva de andre velger. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="spilltre game tree"><dt>spilltre<span class="en">game tree</span></dt>
+<dd>Søketre der hver node er en spilltilstand og hver kant et trekk. Det komplette spilltreet følger alle trekksekvenser helt ned til terminaltilstander. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="spredt repetisjon spaced repetition"><dt>spredt repetisjon<span class="en">spaced repetition</span></dt>
+<dd>Å repetere samme ferdighet med økende mellomrom (f.eks. 1, 3, 7, 14 dager), rett før du ville glemt den. <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="språkmodellen language model"><dt>språkmodellen<span class="en">language model</span></dt>
+<dd>En sannsynlighetsfordeling over strenger (tekster): P(«Do I dare disturb the universe?») ≫ P(«Universe dare the I disturb do?»). Brukes til å forutsi neste ord, rette stavefeil og velge beste oversettelse. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="spørringer query / goal"><dt>spørringer<span class="en">query / goal</span></dt>
+<dd>Spørsmål til KB med ASK. Svaret skal være ja hvis spørringen er logisk entailet av KB. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="spørsmålssvar question answering (qa)"><dt>Spørsmålssvar<span class="en">question answering (QA)</span></dt>
+<dd>Å returnere et svar på et spørsmål, ikke en liste med dokumenter. F.eks. ASKMSR, som søker etter mønstre som «* founded the U.S. Coast Guard». <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="standardiserte problemer standardized problem"><dt>standardiserte problemer<span class="en">standardized problem</span></dt>
+<dd>«Leketøysproblemer» med presis, kort beskrivelse, brukt til å illustrere og sammenligne algoritmer (vakuumverden, 8-puslespill, grid world). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="standardizing apart standardizing apart"><dt>standardizing apart</dt>
+<dd>Å gi variablene i to setninger forskjellige navn før de unifiseres (f.eks. x → x17). Lov fordi variabelnavn i en ∀-setning er vilkårlige. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="standardmodellen standard model"><dt>standardmodellen<span class="en">standard model</span></dt>
+<dd>KI som studiet av agenter som maksimerer et gitt mål (objective). Samme idé som i kontrollteori (minimer kostnad), operasjonsanalyse (maksimer belønning) og økonomi (maksimer nytte). <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="starttilstand initial state"><dt>Starttilstand<span class="en">initial state</span></dt>
+<dd>Tilstanden agenten begynner i, ofte kalt s₀ (f.eks. Arad). <br><a href="m02-uinformert-sok.html">Modul 2</a> · <a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="statisk static"><dt>Statisk<span class="en">static</span></dt>
+<dd>Omgivelsen endrer seg ikke mens agenten tenker. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="steglengden step size / learning rate"><dt>steglengden<span class="en">step size / learning rate</span></dt>
+<dd>Konstanten α i gradientoppdateringen. For liten: mange steg. For stor: man kan hoppe over optimum. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="sti path"><dt>sti<span class="en">path</span></dt>
+<dd>En sekvens av handlinger (og tilstandene de fører gjennom). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="stikonsistens path consistency"><dt>Stikonsistens<span class="en">path consistency</span></dt>
+<dd>{Xᵢ, Xⱼ} er stikonsistent med hensyn på Xₘ hvis hver konsistent tilordning {Xᵢ=a, Xⱼ=b} kan utvides med en verdi for Xₘ som oppfyller skrankene {Xᵢ,Xₘ} og {Xₘ,Xⱼ}. Ser på tripler av variabler. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="stikostnaden path cost, g(n)"><dt>stikostnaden<span class="en">path cost, g(n)</span></dt>
+<dd>Summen av handlingskostnadene langs stien. For en node n skrives den g(n). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="stochastic beam search stochastic beam search"><dt>stochastic beam search</dt>
+<dd>Variant av local beam search der de k etterfølgerne velges tilfeldig med sannsynlighet proporsjonal med verdien, i stedet for de k beste. Gir mer mangfold. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="stokastisk stochastic"><dt>Stokastisk<span class="en">stochastic</span></dt>
+<dd>En modell av omgivelsen er stokastisk hvis den eksplisitt bruker sannsynligheter for utfallene («25 % sjanse for regn»). <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="stokastisk hill climbing stochastic hill climbing"><dt>Stokastisk hill climbing<span class="en">stochastic hill climbing</span></dt>
+<dd>Velger tilfeldig blant forbedrende trekk, gjerne med sannsynlighet som øker med hvor bratt trekket er. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="stokastiske spill stochastic game"><dt>Stokastiske spill<span class="en">stochastic game</span></dt>
+<dd>Spill med et tilfeldig element, f.eks. terningkast (backgammon). Spilltreet må da inneholde sjansenoder. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="stoppord stop words"><dt>Stoppord<span class="en">stop words</span></dt>
+<dd>Svært vanlige funksjonsord (the, a, of, is …) som ofte fjernes før f.eks. informasjonsgjenfinning fordi de bærer lite innhold. Ikke alltid riktig å fjerne dem. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="strategi strategy (contingent plan)"><dt>strategi<span class="en">strategy (contingent plan)</span></dt>
+<dd>En betinget plan: et trekk for MAX i startstillingen, og et svar for hvert mulig mottrekk fra MIN, osv. Tilsvarer løsningen av et AND-OR-søk (modul 4). <br><b>Modul 12:</b> Spillteoriens navn på en policy: en regel for hva spilleren gjør. I et spill med ett trekk er en ren strategi bare én handling. <br><a href="m06-adversarialt-sok.html">Modul 6</a> · <a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="strategiprofil strategy profile"><dt>strategiprofil<span class="en">strategy profile</span></dt>
+<dd>Én strategi for hver spiller. Gir et (forventet) utbytte til hver spiller. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="streng dominans strong (strict) domination"><dt>streng dominans<span class="en">strong (strict) domination</span></dt>
+<dd>s gir strengt høyere utbytte enn s′ for hver eneste kombinasjon av de andre spillernes strategier. Forelesningen sier «strictly dominated», boka «strongly dominates». <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="strukturert representasjon structured representation"><dt>strukturert representasjon<span class="en">structured representation</span></dt>
+<dd>Tilstanden består av objekter, hver med egne attributter, og relasjoner mellom dem. Grunnlag for førsteordens logikk, relasjonsdatabaser og naturlig språk. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="substitusjon substitution / binding list"><dt>substitusjon<span class="en">substitution / binding list</span></dt>
+<dd>En mengde variabelbindinger, skrevet {x/John}. «Erstatt x med John.» Svaret fra ASKVARS, og sentralt i unifisering (modul 9). <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="substitusjon θ substitution (θ)"><dt>substitusjon θ<span class="en">substitution (θ)</span></dt>
+<dd>En mengde bindinger {v₁/t₁, v₂/t₂, …} som sier at variabel vᵢ skal byttes ut med termen tᵢ (en konstant, en variabel eller et funksjonsterm). <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="subsumpsjon subsumption"><dt>Subsumpsjon<span class="en">subsumption</span></dt>
+<dd>Fjern/unngå klausuler som er mer spesifikke enn (subsumeres av) en eksisterende klausul. Har vi P(x), trengs ikke P(A) eller P(A) ∨ Q(B). <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="subsumpsjonsgitter subsumption lattice"><dt>subsumpsjonsgitter<span class="en">subsumption lattice</span></dt>
+<dd>Gitter av alle spørringer som unifiserer med en setning, ordnet fra mest generell (bare variabler) til selve setningen. Barn fås fra forelder med én substitusjon. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="sunn (sound) sound / truth-preserving"><dt>Sunn (sound)<span class="en">sound / truth-preserving</span></dt>
+<dd>En inferensalgoritme er sunn (sound, truth-preserving) hvis den bare utleder setninger som faktisk følger: KB ⊢ᵢ α ⇒ KB ⊨ α. Den «finner ikke på nåler». <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="surely expanded nodes surely expanded nodes"><dt>surely expanded nodes</dt>
+<dd>Noder som nås via en vei der alle noder har f(n) &lt; C*. A* (med konsistent h) må ekspandere alle disse. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="svak dominans weak domination"><dt>svak dominans<span class="en">weak domination</span></dt>
+<dd>s er minst like god som s′ mot alle motstrategier, og strengt bedre mot minst én. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="syklisk løsning cyclic solution"><dt>syklisk løsning<span class="en">cyclic solution</span></dt>
+<dd>Betinget plan med en løkke («prøv igjen til det virker»). Er en løsning hvis hvert løv er et mål og et mål kan nås fra hvert punkt i planen. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="syklus cycle / loopy path"><dt>syklus<span class="en">cycle / loopy path</span></dt>
+<dd>En sti som går tilbake til en tilstand som allerede finnes lenger opp på samme sti (en forfar). Kalles også «loopy path». <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="syllogismer syllogism"><dt>syllogismer<span class="en">syllogism</span></dt>
+<dd>Argumentmønstre som alltid gir sanne konklusjoner fra sanne premisser, f.eks. «Sokrates er et menneske; alle mennesker er dødelige; altså er Sokrates dødelig». <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="syntaks syntax"><dt>Syntaks<span class="en">syntax</span></dt>
+<dd>Reglene for hvilke setninger som er velformede (lovlige) i språket. «x + y = 4» er velformet, «x4y+ =» er det ikke. <br><b>Modul 11:</b> Reglene for hvordan ord settes sammen til fraser og setninger (ordstilling, struktur). <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="syntaktisk sukker syntactic sugar"><dt>syntaktisk sukker<span class="en">syntactic sugar</span></dt>
+<dd>En forkortelse eller alternativ skrivemåte som ikke endrer semantikken, f.eks. infiks m + n for +(m, n), eller ∀x, y for ∀x ∀y. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="syntaktiske kategorier syntactic category"><dt>Syntaktiske kategorier<span class="en">syntactic category</span></dt>
+<dd>Kategorier for fraser og ord, som setning (S), substantivfrase (NP), verbfrase (VP), preposisjonsfrase (PP), og ordklasser som Noun og Verb. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="systematisk systematic"><dt>systematisk<span class="en">systematic</span></dt>
+<dd>Algoritmen utforsker uendelige tilstandsrom slik at alle tilstander med endelig avstand fra start til slutt blir nådd (f.eks. lag for lag). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="systematiske systematic search"><dt>systematiske<span class="en">systematic search</span></dt>
+<dd>Søk som holder styr på stier og hvilke alternativer som er utforsket (grense + reached-mengde), slik at hele rommet til slutt dekkes. Gir komplett­het, men koster mye minne. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="søk search"><dt>søk<span class="en">search</span></dt>
+<dd>Prosessen med å simulere (utforske) handlingssekvenser i en modell til man finner en som når et mål. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="søketre search tree"><dt>søketre<span class="en">search tree</span></dt>
+<dd>Treet av stier som algoritmen bygger fra starttilstanden. Hver node svarer til en tilstand; kantene er handlinger; roten er starttilstanden. Samme tilstand kan forekomme i mange noder. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="talegjenkjenning speech recognition"><dt>Talegjenkjenning<span class="en">speech recognition</span></dt>
+<dd>Å gjøre om lyd (tale) til tekst. Ordfeilrate ≈ 3–5 % i dag, omtrent som menneskelige transkribenter. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="tekst-til-tale text-to-speech (tts)"><dt>Tekst-til-tale<span class="en">text-to-speech (TTS)</span></dt>
+<dd>Det motsatte av talegjenkjenning: fra tekst til talt lyd. Må uttale ord riktig («record»), ha naturlige pauser og trykk, og kunne bruke ulike stemmer. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="temperaturen temperature"><dt>temperaturen<span class="en">temperature</span></dt>
+<dd>Parameter T i simulated annealing. Høy T: mange dårlige trekk aksepteres (utforskning). Lav T: nesten bare forbedringer (som hill climbing). <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="teorem theorem"><dt>Teorem<span class="en">theorem</span></dt>
+<dd>En setning som er entailet av aksiomene. Legger ikke til ny kunnskap logisk sett, men sparer beregning. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="teorembevising theorem proving"><dt>teorembevising<span class="en">theorem proving</span></dt>
+<dd>Å avgjøre entailment ved å bruke inferensregler direkte på setningene for å konstruere et bevis, uten å telle opp modeller. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="term term"><dt>term</dt>
+<dd>Et logisk uttrykk som refererer til et objekt: en konstant, en variabel, eller et funksjonssymbol brukt på termer. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="term frequency term frequency (tf)"><dt>term frequency<span class="en">term frequency (TF)</span></dt>
+<dd>Antall ganger et ord (term) forekommer i ett enkelt dokument. Brukes til å vekte søkeord i informasjonsgjenfinning. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="terminaltest terminal test"><dt>Terminaltest<span class="en">terminal test</span></dt>
+<dd>Sann når spillet er over. Tilstandene der den er sann kalles terminaltilstander (sluttilstander). <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="thrashing thrashing"><dt>thrashing</dt>
+<dd>Når et minnebegrenset søk bruker mesteparten av tiden på å regenerere noder det nettopp har glemt (jf. paging i operativsystemer). <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="tidlig målsjekk early goal test"><dt>Tidlig målsjekk<span class="en">early goal test</span></dt>
+<dd>Sjekk om en node er et mål idet den genereres (legges i frontier). Brukes i bokas BFS. Sparer arbeid, men er bare trygt når første funn garantert er best (lik kostnad per steg). <br><a href="m02-uinformert-sok.html">Modul 2</a> · <a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="tidskompleksitet time complexity"><dt>Tidskompleksitet<span class="en">time complexity</span></dt>
+<dd>Hvor lang tid søket tar, typisk målt i antall genererte/ekspanderte noder. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="tilfredsstiller satisfies (m ⊨ α)"><dt>tilfredsstiller<span class="en">satisfies (m ⊨ α)</span></dt>
+<dd>m tilfredsstiller α (m satisfies α, m er en modell av α) hvis α er sann i m. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="tilordning assignment"><dt>tilordning<span class="en">assignment</span></dt>
+<dd>En mengde {Xᵢ = vᵢ, Xⱼ = vⱼ, …} som gir verdier til noen eller alle variablene. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="tilstandsrom state space"><dt>Tilstandsrom<span class="en">state space</span></dt>
+<dd>Mengden av alle tilstander miljøet kan være i (f.eks. alle byene på Romania-kartet). <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="tilstandsromlandskapet state-space landscape"><dt>tilstandsromlandskapet<span class="en">state-space landscape</span></dt>
+<dd>Visualisering der hver tilstand er et punkt, og «høyden» er objektfunksjonen (eller kostnaden). Lokalt søk er å vandre i dette landskapet. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="tilstandsromsgraf state-space graph"><dt>tilstandsromsgraf<span class="en">state-space graph</span></dt>
+<dd>En graf der nodene er tilstander og de (rettede) kantene er handlinger. Romania-kartet er en slik graf; hver vei gir én handling i hver retning. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="tiltenkte tolkningen intended interpretation"><dt>tiltenkte tolkningen<span class="en">intended interpretation</span></dt>
+<dd>Den tolkningen vi som modellerer «mener». Logikken selv vet ikke hva som er tiltenkt – den ser alle tolkninger. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="tit for tat tit for tat"><dt>Tit for tat</dt>
+<dd>Nekt (samarbeid) i første runde, og gjør deretter det motstanderen gjorde i forrige runde. Tilgivende. Vant Axelrods turnering i 1980. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="tokenisering tokenization"><dt>tokenisering<span class="en">tokenization</span></dt>
+<dd>Å dele en tekst opp i enheter (tokens), typisk ord og tegn. Ikke trivielt: er «aren't» ett token eller to («are» + «n't»)? <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="tolkning interpretation"><dt>tolkning<span class="en">interpretation</span></dt>
+<dd>Avbildningen som sier hvilket objekt hvert konstantsymbol refererer til, hvilken relasjon hvert predikatsymbol står for, og hvilken funksjon hvert funksjonssymbol står for. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="tomme klausulen empty clause (□)"><dt>tomme klausulen<span class="en">empty clause (□)</span></dt>
+<dd>En disjunksjon med null literaler, skrevet □ eller {}. Ekvivalent med False. Oppstår bare ved å resolvere to motstridende enhetsklausuler, P og ¬P. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="tomme klausulen empty clause"><dt>tomme klausulen<span class="en">empty clause</span></dt>
+<dd>□ – klausulen uten literaler, som er usann i alle modeller. Å utlede den betyr at klausulmengden er uoppfyllbar. <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="top-down top-down parsing"><dt>Top-down<span class="en">top-down parsing</span></dt>
+<dd>Parsing som starter i startsymbolet S og ekspanderer med regler (X → Y …) til man når ordene. Ulempe: kan utforske mange utvidelser som aldri passer med de faktiske ordene. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="topologisk sortering topological sort"><dt>topologisk sortering<span class="en">topological sort</span></dt>
+<dd>En lineær ordning av nodene der hver node kommer etter forelderen sin (for et tre med valgt rot). Gir rekkefølgen TREE-CSP-SOLVER bruker. <br><a href="m05-csp.html">Modul 5</a> · <a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="totale total function"><dt>totale<span class="en">total function</span></dt>
+<dd>Definert for alle mulige input. LeftLeg(krona) må derfor også peke på et objekt, f.eks. et «usynlig» objekt. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="totale turing-testen total turing test"><dt>totale Turing-testen<span class="en">total Turing test</span></dt>
+<dd>Utvidelse der maskinen også må samhandle fysisk med objekter og mennesker. Krever i tillegg datasyn (computer vision), talegjenkjenning og robotikk. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="transformer transformer"><dt>transformer</dt>
+<dd>Nevral nettverksarkitektur basert på «attention» (oppmerksomhet), som lar hvert ord se på alle andre ord i konteksten. Grunnlaget for moderne språkmodeller som GPT. Kap. 25.4. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="transisjonsmodell transition model"><dt>Transisjonsmodell<span class="en">transition model</span></dt>
+<dd>Kunnskap om hvordan verden endrer seg: effekten av agentens egne handlinger og hvordan verden utvikler seg uavhengig av agenten. Gitt tilstand og handling → resulterende tilstand. <br><a href="m01-agenter.html">Modul 1</a> · <a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="transposisjonstabeller transposition table"><dt>Transposisjonstabeller<span class="en">transposition table</span></dt>
+<dd>Hashtabell som lagrer (cacher) verdien til stillinger man allerede har søkt, slik at samme stilling nådd via en annen trekkrekkefølge (en transposisjon) ikke søkes på nytt. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="tre-strukturert csp tree-structured csp"><dt>tre-strukturert CSP<span class="en">tree-structured CSP</span></dt>
+<dd>Et CSP der skrankegrafen er et tre: nøyaktig én sti mellom hvert par av variabler. Kan løses i O(nd²) tid, lineært i antall variabler, uten backtracking. <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="tree-like search tree-like search"><dt>tree-like search</dt>
+<dd>En søkealgoritme som ikke sjekker for redundante stier. Den behandler grafen som om den var et tre. Sparer minne, men kan utforske samme tilstand mange ganger og havne i uendelige løkker. <br><a href="m02-uinformert-sok.html">Modul 2</a> · <a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="trekantulikheten triangle inequality"><dt>trekantulikheten<span class="en">triangle inequality</span></dt>
+<dd>I en trekant er én side aldri lengre enn summen av de to andre. For heuristikker: h(n) ≤ c(n,n′) + h(n′). <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="trekkordningen move ordering"><dt>trekkordningen<span class="en">move ordering</span></dt>
+<dd>Rekkefølgen barna (trekkene) undersøkes i. Alfa-beta kutter mest når det beste trekket undersøkes først. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="tupler tuple"><dt>tupler<span class="en">tuple</span></dt>
+<dd>En ordnet samling objekter, skrevet ⟨a, b⟩. Rekkefølgen betyr noe: ⟨Richard, John⟩ ≠ ⟨John, Richard⟩. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="turing-testen turing test"><dt>Turing-testen<span class="en">Turing test</span></dt>
+<dd>En menneskelig utspørrer stiller skriftlige spørsmål. Maskinen består hvis utspørreren ikke kan avgjøre om svarene kommer fra et menneske eller en datamaskin. Tester atferd, ikke tanker. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="tvetydighet ambiguity"><dt>tvetydighet<span class="en">ambiguity</span></dt>
+<dd>En setning eller et ord kan ha flere mulige betydninger eller strukturer. «I saw the man with the telescope»: hvem har teleskopet? <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="type a-strategi type a strategy"><dt>Type A-strategi<span class="en">Type A strategy</span></dt>
+<dd>Shannons betegnelse: søk alle trekk til en fast dybde (bredt og grunt), og bruk en heuristisk evalueringsfunksjon i bunnen. Typisk for sjakkprogrammer med alfa-beta. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="type b-strategi type b strategy"><dt>Type B-strategi<span class="en">Type B strategy</span></dt>
+<dd>Shannons betegnelse: ignorer trekk som ser dårlige ut og følg lovende linjer så dypt som mulig (smalt, dypt). Eksempler: forward pruning, MCTS. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="uberegnelige støvsugerverdenen erratic vacuum world"><dt>uberegnelige støvsugerverdenen<span class="en">erratic vacuum world</span></dt>
+<dd>Variant der Suck på en skitten rute renser den og noen ganger også naborute, og Suck på en ren rute noen ganger legger igjen skitt. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="ucb1 ucb1"><dt>UCB1</dt>
+<dd>UCB1(n) = U(n)/N(n) + C·√(ln N(forelder(n)) / N(n)). Første ledd = exploitation (gjennomsnittlig nytte), andre ledd = exploration (stort for noder med få playouts). <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="uct uct (upper confidence bounds applied to trees)"><dt>UCT<span class="en">UCT (upper confidence bounds applied to trees)</span></dt>
+<dd>Upper Confidence bounds applied to Trees: MCTS med UCB1 som selection policy. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="uinformerte søk uninformed (blind) search"><dt>uinformerte søk<span class="en">uninformed (blind) search</span></dt>
+<dd>Søkealgoritmer som bare bruker problemdefinisjonen (handlinger, kostnader, måltest) – ingen heuristikk om hvor målet er. <br><a href="m10-eksamenstrening.html">Eksamenstrening</a></dd></div>
+<div class="g-item" data-s="ukjent ord out-of-vocabulary word (oov)"><dt>ukjent ord<span class="en">out-of-vocabulary word (OOV)</span></dt>
+<dd>Et ord som aldri forekom i treningskorpuset (out-of-vocabulary). Uten spesialbehandling får det sannsynlighet 0. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="underbegrenset underconstrained"><dt>underbegrenset<span class="en">underconstrained</span></dt>
+<dd>SAT/CSP-problem med relativt få klausuler (skranker) per variabel. Mange løsninger, lett å finne én. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="undergenerering undergeneration"><dt>Undergenerering<span class="en">undergeneration</span></dt>
+<dd>Grammatikken avviser setninger som er gyldig språk, f.eks. «I think the wumpus is smelly.» <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="unifikator unifier"><dt>unifikator<span class="en">unifier</span></dt>
+<dd>En substitusjon θ slik at SUBST(θ, p) = SUBST(θ, q). <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="unifisering unification"><dt>unifisering<span class="en">unification</span></dt>
+<dd>Prosessen å finne en substitusjon θ som gjør to logiske uttrykk identiske: SUBST(θ, p) = SUBST(θ, q). <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="uniform-cost search uniform-cost search (ucs) / dijkstra&#x27;s algorithm"><dt>Uniform-cost search<span class="en">uniform-cost search (UCS) / Dijkstra&#x27;s algorithm</span></dt>
+<dd>Best-first search med f(n) = g(n): ekspanderer alltid noden med lavest stikostnad. Sen målsjekk. Komplett og kostnadsoptimal når alle kostnader ≥ ε &gt; 0. Kalles Dijkstras algoritme i teoretisk informatikk. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="unike navn unique-names assumption"><dt>Unike navn<span class="en">unique-names assumption</span></dt>
+<dd>Hvert konstantsymbol refererer til et eget objekt. John ≠ Geoffrey trenger ikke sies. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="unit preference unit preference"><dt>unit preference</dt>
+<dd>Resolusjonsheuristikk: foretrekk resolusjoner der én av klausulene er en enhetsklausul. Resolventen blir kortere, og vi nærmer oss □ raskere. <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="unit resolution unit resolution"><dt>unit resolution</dt>
+<dd>Resolusjon der den ene klausulen er en enhetsklausul (ett literal): fra ℓ₁ ∨ … ∨ ℓₖ og m, der m er komplementær til ℓᵢ, utled klausulen uten ℓᵢ. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="universal instantiation universal instantiation (ui)"><dt>Universal Instantiation<span class="en">Universal Instantiation (UI)</span></dt>
+<dd>Fra ∀v α kan vi slutte SUBST({v/g}, α) for enhver grunnterm g (term uten variabler). Kan brukes mange ganger på samme setning. <br><a href="m09-fol-inferens.html">Modul 9</a></dd></div>
+<div class="g-item" data-s="unær skranke unary constraint"><dt>Unær skranke<span class="en">unary constraint</span></dt>
+<dd>Skranke på én variabel, f.eks. ⟨(SA), SA ≠ green⟩. Kan fjernes ved å krympe domenet på forhånd (nodekonsistens). <br><a href="m05-csp.html">Modul 5</a></dd></div>
+<div class="g-item" data-s="unære relasjoner property / unary relation"><dt>unære relasjoner<span class="en">property / unary relation</span></dt>
+<dd>Relasjon med ett argument, også kalt egenskap: Person, King, Crown. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="update update"><dt>Update</dt>
+<dd>b_o = UPDATE(b̂, o) = {s ∈ b̂ : PERCEPT(s) = o}. Behold bare tilstandene som er forenlige med observasjonen o. <br><a href="m04-lokalt-sok.html">Modul 4</a></dd></div>
+<div class="g-item" data-s="utbyttefunksjon payoff function"><dt>utbyttefunksjon<span class="en">payoff function</span></dt>
+<dd>Gir nytten (utbyttet) til hver spiller for hver kombinasjon av handlinger. For to spillere skrives den som en utbyttematrise. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="utbyttematrise payoff matrix"><dt>utbyttematrise<span class="en">payoff matrix</span></dt>
+<dd>Tabell med én rad per handling for P1 (radspilleren) og én kolonne per handling for P2 (kolonnespilleren). Hver celle viser utbyttet til begge spillerne, P1 først. <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="utforskning og utnyttelse exploration vs. exploitation"><dt>utforskning og utnyttelse<span class="en">exploration vs. exploitation</span></dt>
+<dd>Exploration: prøve noder med få playouts (usikker verdi). Exploitation: satse på noder som har gjort det bra så langt. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="utilitaristisk sosial velferd utilitarian social welfare"><dt>Utilitaristisk sosial velferd<span class="en">utilitarian social welfare</span></dt>
+<dd>Summen av alle spillernes utbytte i et utfall. Problemer: tar ikke hensyn til fordelingen, og forutsetter at nytte kan sammenlignes på en felles skala («utility monster»). <br><a href="m12-spillteori.html">Modul 12</a></dd></div>
+<div class="g-item" data-s="utsagnslogikk propositional logic"><dt>Utsagnslogikk<span class="en">propositional logic</span></dt>
+<dd>Den enkleste logikken: setninger bygges av utsagnssymboler (som er sanne eller usanne) og konnektivene ¬ ∧ ∨ ⇒ ⇔. Også kalt proposisjonslogikk. <br><a href="m07-utsagnslogikk.html">Modul 7</a> · <a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="utsagnssymboler proposition symbol / atomic sentence"><dt>Utsagnssymboler<span class="en">proposition symbol / atomic sentence</span></dt>
+<dd>Atomære setninger: ett symbol som står for et utsagn som er sant eller usant, f.eks. P, Rain, W₁,₃. Skrives med stor forbokstav. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="utvidet tolkning extended interpretation"><dt>utvidet tolkning<span class="en">extended interpretation</span></dt>
+<dd>Tolkningen fra modellen pluss en tilordning av kvantorvariabelen til et bestemt domeneelement, f.eks. x → King John. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="variabel variable"><dt>variabel<span class="en">variable</span></dt>
+<dd>Et symbol (liten forbokstav: x, y, s) som står for et uspesifisert objekt og bindes av en kvantor. <br><a href="m08-forsteordens-logikk.html">Modul 8</a></dd></div>
+<div class="g-item" data-s="vektet lineær funksjon weighted linear function"><dt>vektet lineær funksjon<span class="en">weighted linear function</span></dt>
+<dd>EVAL(s) = w₁f₁(s) + w₂f₂(s) + … + wₙfₙ(s): sum av egenskaper fᵢ ganget med vekter wᵢ. Antar at bidragene er uavhengige av hverandre. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="verdijusteringsproblemet value alignment problem"><dt>verdijusteringsproblemet<span class="en">value alignment problem</span></dt>
+<dd>Problemet med å sikre at målet vi gir maskinen stemmer overens med våre faktiske preferanser (jf. kong Midas). <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="virkelige problemer real-world problem"><dt>virkelige problemer<span class="en">real-world problem</span></dt>
+<dd>Problemer der folk faktisk bruker løsningene (ruteplanlegging, robotnavigasjon, VLSI-layout, monteringsrekkefølge). Formuleringen er ofte idiosynkratisk. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="viterbi viterbi algorithm"><dt>Viterbi<span class="en">Viterbi algorithm</span></dt>
+<dd>Dynamisk programmeringsalgoritme som finner den mest sannsynlige sekvensen av skjulte tilstander (her: tagger) i en HMM gitt observasjonene. Kap. 14.2.3. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="walksat walksat"><dt>WalkSAT</dt>
+<dd>Lokalt søk for SAT: start med tilfeldig modell; velg en usann klausul og snu ett av symbolene i den – tilfeldig (med sannsynlighet p) eller det som maksimerer antall sanne klausuler. Ikke komplett. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="weighted a* weighted a* search"><dt>weighted A*<span class="en">weighted A* search</span></dt>
+<dd>Best-first search med f(n) = g(n) + W·h(n), W &gt; 1. Raskere og mer målrettet enn A*, finner løsning med kostnad mellom C* og W·C*. <br><a href="m03-informert-sok.html">Modul 3</a></dd></div>
+<div class="g-item" data-s="wordnet wordnet"><dt>WordNet</dt>
+<dd>En håndlaget, maskinlesbar ordbok der ord er knyttet sammen med relasjoner som «er en» (kitten → young mammal → mammal → animal). Skiller ordklasser og betydninger. <br><a href="m11-nlp.html">Modul 11</a></dd></div>
+<div class="g-item" data-s="wumpus-verdenen wumpus world"><dt>wumpus-verdenen<span class="en">wumpus world</span></dt>
+<dd>En 4×4-hule med groper (pits), ett monster (wumpus) og gull. Agenten må resonnere seg frem til trygge ruter ut fra lukt (stench) og trekk (breeze). Standard testmiljø for logiske agenter. <br><a href="m07-utsagnslogikk.html">Modul 7</a></dd></div>
+<div class="g-item" data-s="ytelsesmål performance measure"><dt>ytelsesmål<span class="en">performance measure</span></dt>
+<dd>Et objektivt mål som evaluerer en gitt sekvens av omgivelsestilstander. Ligger hos designeren/brukeren, ikke nødvendigvis i agenten. <br><a href="m01-agenter.html">Modul 1</a></dd></div>
+<div class="g-item" data-s="åpen-sløyfe-system open-loop"><dt>åpen-sløyfe-system<span class="en">open-loop</span></dt>
+<dd>Agenten ignorerer persepsjonene mens den utfører planen. OK når modellen er korrekt og miljøet deterministisk. Motsatt: closed-loop, der agenten overvåker persepsjoner underveis. <br><a href="m02-uinformert-sok.html">Modul 2</a></dd></div>
+<div class="g-item" data-s="α alpha (α)"><dt>α<span class="en">alpha (α)</span></dt>
+<dd>Den høyeste verdien MAX er garantert så langt et sted på stien fra roten til den nåværende noden. «MAX får minst α.» Starter på −∞, økes bare i MAX-noder. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+<div class="g-item" data-s="β beta (β)"><dt>β<span class="en">beta (β)</span></dt>
+<dd>Den laveste verdien MIN er garantert så langt et sted på stien fra roten. «MAX får høyst β» (fordi MIN kan holde det nede). Starter på +∞, senkes bare i MIN-noder. <br><a href="m06-adversarialt-sok.html">Modul 6</a></dd></div>
+</dl>
+</div>
+<script src="assets/course.js"></script>
+<script>
+document.getElementById("q").addEventListener("input", e => {
+  const v = e.target.value.toLowerCase().trim();
+  document.querySelectorAll(".g-item").forEach(d => d.style.display = !v || d.dataset.s.includes(v) ? "" : "none");
+});
+</script>
+</body></html>

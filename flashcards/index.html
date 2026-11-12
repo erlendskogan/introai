@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TDT4136 · Flashcards</title>
+<style>
+:root {
+  --bg: #0e1014; --panel: #181c23; --panel2: #1e232b;
+  --ink: #e9eaee; --muted: #8b93a1; --faint: #5c6370; --line: #2a303a;
+  --good: #3ecf8e; --good-soft: rgba(62,207,142,.14);
+  --bad: #ff6b6b; --bad-soft: rgba(255,107,107,.14);
+  --unseen: #3a414d; --gold: #f5c451; --gold-soft: rgba(245,196,81,.14);
+  --shadow: 0 18px 50px rgba(0,0,0,.45); --radius: 18px;
+  --font: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --mono: "JetBrains Mono", "Fira Code", ui-monospace, Consolas, monospace;
+  --accent: #7aa2ff;
+}
+[data-theme="light"] {
+  --bg: #f4f2ee; --panel: #ffffff; --panel2: #f7f5f1;
+  --ink: #1d2027; --muted: #5f6672; --faint: #9aa0aa; --line: #e1ddd5;
+  --good: #16a06a; --good-soft: rgba(22,160,106,.12);
+  --bad: #d9473f; --bad-soft: rgba(217,71,63,.10);
+  --unseen: #d8d4cc; --gold: #b7860b; --gold-soft: rgba(183,134,11,.12);
+  --shadow: 0 14px 40px rgba(40,30,10,.12);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%), var(--bg);
+  background-attachment: fixed; color: var(--ink); font-family: var(--font);
+  font-size: 16px; line-height: 1.5; min-height: 100vh; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: var(--accent); }
+sub, sup { line-height: 0; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 28px 22px 80px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 26px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer; user-select: none; }
+.brand .logo { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-size: 15px; background: linear-gradient(135deg, #7aa2ff, #b48cff); color: #0e1014; font-weight: 800; }
+.brand small { color: var(--muted); font-weight: 500; }
+.top-actions { display: flex; gap: 8px; }
+.icon-btn { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; height: 38px; min-width: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; white-space: nowrap; }
+.icon-btn:hover { color: var(--ink); border-color: var(--faint); }
+
+.btn { border: 1px solid var(--line); background: var(--panel2); border-radius: 12px; padding: 11px 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: transform .08s, border-color .15s; }
+.btn:hover { border-color: var(--faint); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); border-color: transparent; color: #0d1117; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.gold { background: var(--gold-soft); border-color: color-mix(in srgb, var(--gold) 40%, transparent); color: var(--gold); }
+.btn.danger { color: var(--bad); }
+.btn.small { padding: 7px 12px; font-size: .88rem; border-radius: 10px; }
+.btn[disabled] { opacity: .45; cursor: default; }
+
+/* Hjem */
+.hero { display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 30px 32px; box-shadow: var(--shadow); }
+.hero h1 { margin: 0 0 6px; font-size: clamp(1.7rem, 3.4vw, 2.4rem); letter-spacing: -.02em; line-height: 1.15; }
+.hero .kicker { color: var(--muted); font-size: .82rem; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px; }
+.hero p { color: var(--muted); margin: 0 0 18px; max-width: 560px; }
+.stats { display: flex; gap: 22px; flex-wrap: wrap; margin-bottom: 20px; }
+.stat b { display: block; font-size: 1.5rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: .82rem; }
+.stat.good b { color: var(--good); } .stat.bad b { color: var(--bad); } .stat.unseen b { color: var(--muted); } .stat.gold b { color: var(--gold); }
+.cta { display: flex; gap: 10px; flex-wrap: wrap; }
+.ring { width: 170px; height: 170px; position: relative; }
+.ring svg { transform: rotate(-90deg); }
+.ring .lbl { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+.ring .lbl b { font-size: 2.2rem; display: block; line-height: 1; }
+.ring .lbl span { color: var(--muted); font-size: .8rem; }
+.notice { margin-top: 16px; padding: 10px 14px; border-radius: 12px; font-size: .88rem; background: var(--gold-soft); color: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.notice button { background: none; border: 1px solid currentColor; color: inherit; border-radius: 8px; padding: 4px 10px; font-size: .85rem; }
+
+h2.sec { font-size: 1.05rem; margin: 38px 0 14px; color: var(--muted); font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.deck { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 20px 18px; cursor: pointer; transition: transform .15s, border-color .15s, box-shadow .15s; overflow: hidden; }
+.deck::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--c); }
+.deck:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--c) 55%, var(--line)); box-shadow: var(--shadow); }
+.deck .num { font-size: .75rem; color: var(--c); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.deck h3 { margin: 6px 0 14px; font-size: 1.2rem; }
+.deck .meta { display: flex; justify-content: space-between; font-size: .82rem; color: var(--muted); margin-top: 8px; font-variant-numeric: tabular-nums; }
+.deck .meta b { color: var(--ink); }
+.deck.new { display: grid; place-items: center; color: var(--muted); border-style: dashed; min-height: 130px; font-weight: 600; }
+.deck.new::before { display: none; }
+.bar { display: flex; height: 8px; border-radius: 99px; overflow: hidden; background: var(--unseen); }
+.bar i { display: block; height: 100%; transition: width .4s; }
+.bar .g { background: var(--good); } .bar .r { background: var(--bad); }
+.legend { display: flex; gap: 14px; font-size: .8rem; color: var(--muted); }
+.legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 6px; background: var(--d); }
+.search, .inp, textarea.inp, select.inp { width: 100%; background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; color: var(--ink); font: inherit; outline: none; }
+.search { background: var(--panel); }
+.search:focus, .inp:focus { border-color: var(--accent); }
+textarea.inp { resize: vertical; min-height: 90px; line-height: 1.45; }
+.foot { margin-top: 50px; color: var(--faint); font-size: .82rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.foot button { background: none; border: none; color: var(--faint); text-decoration: underline; padding: 0; }
+.foot button:hover { color: var(--ink); }
+.foot button.red:hover { color: var(--bad); }
+kbd { font-family: var(--mono); font-size: .75rem; background: var(--panel2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 .4em; color: var(--muted); }
+.kbd-help { color: var(--faint); font-size: .8rem; }
+
+/* Deck-side */
+.deck-head { background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 26px 28px; position: relative; overflow: hidden; }
+.deck-head::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 5px; background: var(--c); }
+.deck-head .row1 { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.deck-head .num { color: var(--c); font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.deck-head h1 { margin: 4px 0 16px; font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -.02em; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 22px; }
+.opt-group label.t { display: block; font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--panel2); border-radius: 99px; padding: 6px 12px; font-size: .86rem; color: var(--muted); user-select: none; }
+.chip:hover { color: var(--ink); }
+.chip.on { background: color-mix(in srgb, var(--c, var(--accent)) 18%, var(--panel2)); border-color: color-mix(in srgb, var(--c, var(--accent)) 60%, transparent); color: var(--ink); }
+.chip .n { color: var(--faint); margin-left: 4px; }
+.toggles { display: flex; gap: 18px; flex-wrap: wrap; }
+.tog { display: inline-flex; align-items: center; gap: 9px; font-size: .9rem; color: var(--muted); cursor: pointer; user-select: none; }
+.tog input { display: none; }
+.tog .sw { width: 36px; height: 20px; border-radius: 99px; background: var(--unseen); position: relative; transition: background .2s; flex: none; }
+.tog .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .2s; }
+.tog input:checked + .sw { background: var(--c, var(--accent)); }
+.tog input:checked + .sw::after { transform: translateX(16px); }
+.start-row { display: flex; align-items: center; gap: 14px; margin-top: 22px; flex-wrap: wrap; }
+.start-row .cnt { color: var(--muted); font-size: .9rem; }
+
+.list { display: flex; flex-direction: column; gap: 6px; }
+.row { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.row > .rh { display: flex; align-items: center; gap: 12px; padding: 11px 14px; cursor: pointer; }
+.row .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--unseen); flex: none; }
+.row .dot.s1 { background: var(--good); } .row .dot.s0 { background: var(--bad); }
+.row .f { flex: 1; font-weight: 600; font-size: .95rem; min-width: 0; }
+.row .tp { color: var(--faint); font-size: .78rem; white-space: nowrap; }
+.row .rb { display: none; padding: 0 16px 14px 36px; color: var(--ink); }
+.row.open .rb { display: block; }
+.row .mini { display: flex; gap: 6px; }
+.row .mini button { border: 1px solid var(--line); background: var(--panel2); border-radius: 8px; min-width: 28px; height: 26px; font-size: .8rem; color: var(--muted); padding: 0 6px; }
+.row .mini button:hover { color: var(--ink); }
+.row .mini button.on1 { background: var(--good-soft); border-color: var(--good); color: var(--good); }
+.row .mini button.on0 { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.badge { display: inline-flex; align-items: center; font-size: .74rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--gold-soft); color: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent); white-space: nowrap; }
+.empty { color: var(--muted); text-align: center; padding: 34px 20px; border: 1px dashed var(--line); border-radius: 14px; }
+.empty b { color: var(--ink); }
+
+/* Øving */
+.study { max-width: 720px; margin: 0 auto; }
+.study-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.study-top .prog { flex: 1; }
+.study-top .bar { height: 6px; }
+.study-top .count { color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.scene { perspective: 1800px; }
+.flip { display: grid; transition: transform .55s cubic-bezier(.3,.7,.25,1); transform-style: preserve-3d; cursor: pointer; }
+.flip.flipped { transform: rotateY(180deg); }
+.face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 24px 30px 24px; min-height: 340px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+.face::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--c); }
+.face.back { transform: rotateY(180deg); }
+.face .fh { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 24px; }
+.face .tag { font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--c); font-weight: 700; }
+.face .mid { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 18px 0; }
+.face .term { font-size: clamp(1.5rem, 4.2vw, 2.3rem); font-weight: 750; letter-spacing: -.02em; line-height: 1.2; }
+.face .ans { font-size: clamp(1.1rem, 2.6vw, 1.35rem); line-height: 1.5; max-width: 560px; }
+.face .small-term { color: var(--muted); font-size: .95rem; margin-bottom: 14px; font-weight: 600; }
+.face .hint { text-align: center; color: var(--faint); font-size: .8rem; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+.actions .btn { justify-content: center; padding: 15px; font-size: 1rem; border-radius: 14px; }
+.actions .no { background: var(--bad-soft); border-color: color-mix(in srgb, var(--bad) 45%, transparent); color: var(--bad); }
+.actions .yes { background: var(--good-soft); border-color: color-mix(in srgb, var(--good) 45%, transparent); color: var(--good); }
+.actions .show { grid-column: 1 / -1; }
+.actions kbd { margin-left: 6px; }
+.nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; color: var(--faint); font-size: .82rem; gap: 10px; flex-wrap: wrap; }
+.nav-row button { background: none; border: none; color: var(--muted); padding: 4px 6px; border-radius: 6px; }
+.nav-row button:hover { color: var(--ink); background: var(--panel); }
+.nav-row .g { color: var(--good); } .nav-row .r { color: var(--bad); }
+.done { text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 44px 30px; box-shadow: var(--shadow); }
+.done .big { font-size: 3rem; }
+.done p { color: var(--muted); }
+.done .cta { justify-content: center; margin-top: 20px; }
+
+/* Modal */
+.overlay { position: fixed; inset: 0; background: rgba(5,7,10,.6); backdrop-filter: blur(3px); display: grid; place-items: start center; padding: 6vh 14px; z-index: 50; overflow-y: auto; }
+.modal { width: 100%; max-width: 620px; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); padding: 22px 24px 20px; }
+.modal h2 { margin: 0 0 4px; font-size: 1.25rem; }
+.modal .sub { color: var(--muted); font-size: .88rem; margin-bottom: 16px; }
+.tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+.field .help { font-size: .8rem; color: var(--faint); margin-top: 5px; display: flex; justify-content: space-between; gap: 10px; }
+.field .help .warn { color: var(--gold); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal .btns { display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap; margin-top: 6px; }
+.modal .btns .right { display: flex; gap: 8px; flex-wrap: wrap; }
+.preview { background: var(--panel2); border: 1px dashed var(--line); border-radius: 12px; padding: 10px 14px; font-size: .88rem; color: var(--muted); max-height: 180px; overflow: auto; }
+.preview .ok { color: var(--ink); }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 12px; font-weight: 600; font-size: .9rem; z-index: 60; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.show { opacity: 1; }
+.swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+.swatches button { width: 28px; height: 28px; border-radius: 8px; border: 2px solid transparent; background: var(--sc); }
+.swatches button.on { border-color: var(--ink); }
+
+@media (max-width: 720px) {
+  .wrap { padding: 16px 14px 60px; }
+  .hero { grid-template-columns: 1fr; padding: 22px; }
+  .ring { width: 130px; height: 130px; margin: 0 auto; order: -1; }
+  .ring svg { width: 130px; height: 130px; }
+  .opts, .grid2 { grid-template-columns: 1fr; }
+  .face { padding: 20px 18px; min-height: 300px; }
+  .row .tp, .kbd-help, .actions kbd, .brand small { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .flip { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand" id="home-link"><div class="logo">AI</div><div>TDT4136 Flashcards <small>· Intro KI</small></div></div>
+    <div class="top-actions">
+      <button class="icon-btn" id="add-btn" title="Nytt kort (N)">＋ Nytt kort</button>
+      <a class="icon-btn" href="../kurs/index.html" title="Til det interaktive kurset">📘 Kurs</a>
+      <button class="icon-btn" id="theme-btn" title="Bytt tema">☾ / ☀</button>
+    </div>
+  </div>
+  <main id="app"></main>
+</div>
+<div class="toast" id="toast"></div>
+<input type="file" id="import-file" accept=".json,application/json" hidden>
+
+<script>
+(function () {
+  "use strict";
+
+  // ================= Lagring =================
+  const KEY = "tdt4136fc:v2";
+  const COLORS = ["#7aa2ff", "#3ecf8e", "#f5a623", "#ff6b9d", "#b48cff", "#4fd1cb", "#ff8c5a", "#e5e07a"];
+  const DEFAULT_DECKS = [
+    ["Grunnlag og agenter", 0], ["Søk", 1], ["CSP", 2], ["Spill og spillteori", 3],
+    ["Logikk", 4], ["Kunnskapsrepresentasjon og planlegging", 5], ["NLP og etikk/filosofi", 6],
+  ];
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  let store;
+  try { store = JSON.parse(localStorage.getItem(KEY)); } catch (e) { store = null; }
+  if (!store) store = { decks: DEFAULT_DECKS.map(([name, ci]) => ({ id: uid(), name, color: COLORS[ci] })), cards: [], prog: {}, lastExport: 0, dirty: 0 };
+  store.settings = Object.assign({ theme: "dark", reverse: false, shuffle: true, filter: "notknown", examOnly: false, requeue: true }, store.settings || {});
+  const save = (contentChanged) => {
+    if (contentChanged) store.dirty = Date.now();
+    try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { toast("Klarte ikke å lagre! Eksporter en backup."); }
+  };
+  save();
+  const st = id => (store.prog[id] ? store.prog[id].s : null);
+  const setSt = (id, s) => { if (s === null) delete store.prog[id]; else store.prog[id] = { s, t: Date.now() }; save(); };
+  const deckById = id => store.decks.find(d => d.id === id);
+  const cardById = id => store.cards.find(c => c.id === id);
+  const cardsOf = deckId => store.cards.filter(c => c.deck === deckId);
+
+  // ================= Hjelpere =================
+  const $app = document.getElementById("app");
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+  // Enkel formatering: **fet**, x^{2} / x^2, x_{i} / x_i, linjeskift
+  const fmt = s => esc(s)
+    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+    .replace(/\^\{([^}]*)\}/g, "<sup>$1</sup>").replace(/\^([A-Za-z0-9]+)/g, "<sup>$1</sup>")
+    .replace(/_\{([^}]*)\}/g, "<sub>$1</sub>").replace(/([A-Za-z0-9])_([A-Za-z0-9]{1,2})\b/g, "$1<sub>$2</sub>")
+    .replace(/\n/g, "<br>");
+  const counts = cards => { let k = 0, n = 0; for (const c of cards) { const s = st(c.id); if (s === 1) k++; else if (s === 0) n++; } return { k, n, u: cards.length - k - n, t: cards.length }; };
+  const bar = c => `<div class="bar"><i class="g" style="width:${c.t ? c.k / c.t * 100 : 0}%"></i><i class="r" style="width:${c.t ? c.n / c.t * 100 : 0}%"></i></div>`;
+  const pct = c => c.t ? Math.round(c.k / c.t * 100) : 0;
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const sentences = s => (String(s).trim().match(/[^.!?]+([.!?]+|$)/g) || []).filter(x => x.trim()).length;
+  let toastT;
+  function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 1800); }
+
+  // ================= Tema / topp =================
+  const applyTheme = () => document.documentElement.setAttribute("data-theme", store.settings.theme);
+  applyTheme();
+  document.getElementById("theme-btn").onclick = () => { store.settings.theme = store.settings.theme === "dark" ? "light" : "dark"; save(); applyTheme(); };
+  document.getElementById("home-link").onclick = () => go("home");
+  document.getElementById("add-btn").onclick = () => openEditor(null, view === "deck" ? { deck: viewArg } : {});
+
+  // ================= Ruting =================
+  let view = "home", viewArg = null, session = null, modalOpen = false;
+  function go(v, arg) { view = v; viewArg = arg; render(); window.scrollTo(0, 0); }
+  function render() { if (view === "home") renderHome(); else if (view === "deck") renderDeck(viewArg); else if (view === "study") renderStudy(); }
+
+  // ================= Hjem =================
+  function renderHome() {
+    const ALL = store.cards;
+    const c = counts(ALL), ce = counts(ALL.filter(x => x.exam));
+    const R = 72, C = 2 * Math.PI * R, gLen = C * (c.t ? c.k / c.t : 0), rLen = C * (c.t ? c.n / c.t : 0);
+    const needBackup = store.cards.length && store.dirty > store.lastExport;
+    $app.innerHTML = `
+      <section class="hero">
+        <div>
+          <div class="kicker">NTNU · TDT4136 Introduksjon til kunstig intelligens</div>
+          <h1>${ALL.length ? "Kort for kort." : "Lag dine egne flashcards."}</h1>
+          <p>${ALL.length ? `${c.t} kort i ${store.decks.length} deck.` : "Ingen kort ennå."} Ett begrep på forsiden, maks to konkrete setninger på baksiden. Trykk <b>＋ Nytt kort</b> eller <kbd>N</kbd> for å legge til.</p>
+          <div class="stats">
+            <div class="stat good"><b>${c.k}</b><span>kan</span></div>
+            <div class="stat bad"><b>${c.n}</b><span>kan ikke</span></div>
+            <div class="stat unseen"><b>${c.u}</b><span>ikke sett</span></div>
+            <div class="stat gold"><b>${ce.k}/${ce.t}</b><span>eksamenskort kan</span></div>
+          </div>
+          <div class="cta">
+            <button class="btn primary" id="q-all" ${c.n + c.u ? "" : "disabled"}>▶ Øv på alt jeg ikke kan (${c.n + c.u})</button>
+            <button class="btn" id="q-bad" ${c.n ? "" : "disabled"}>↻ Bare «kan ikke» (${c.n})</button>
+            <button class="btn gold" id="q-ex" ${ce.n + ce.u ? "" : "disabled"}>★ Eksamenskort (${ce.n + ce.u})</button>
+          </div>
+          ${needBackup ? `<div class="notice"><span>⚠ Kortene lagres bare i denne nettleseren. Du har endringer som ikke er sikkerhetskopiert.</span><button id="exp2">Eksporter backup</button></div>` : ""}
+        </div>
+        <div class="ring">
+          <svg width="170" height="170" viewBox="0 0 170 170">
+            <circle cx="85" cy="85" r="${R}" fill="none" stroke="var(--unseen)" stroke-width="13"/>
+            <circle cx="85" cy="85" r="${R}" fill="none" stroke="var(--bad)" stroke-width="13" stroke-dasharray="${rLen} ${C}" stroke-dashoffset="${-gLen}"/>
+            <circle cx="85" cy="85" r="${R}" fill="none" stroke="var(--good)" stroke-width="13" stroke-dasharray="${gLen} ${C}"/>
+          </svg>
+          <div class="lbl"><div><b>${pct(c)}%</b><span>kan</span></div></div>
+        </div>
+      </section>
+
+      <h2 class="sec"><span>Deck</span>
+        <span class="legend"><span style="--d:var(--good)">kan</span><span style="--d:var(--bad)">kan ikke</span><span style="--d:var(--unseen)">ikke sett</span></span>
+      </h2>
+      <div class="decks">
+        ${store.decks.map((d, i) => { const k = counts(cardsOf(d.id)); return `
+          <div class="deck" data-deck="${d.id}" style="--c:${d.color}" tabindex="0">
+            <div class="num">Deck ${i + 1}</div>
+            <h3>${esc(d.name)}</h3>
+            ${bar(k)}
+            <div class="meta"><span><b>${pct(k)} %</b> kan</span><span>${k.t} kort</span></div>
+          </div>`; }).join("")}
+        <div class="deck new" id="new-deck" tabindex="0">＋ Nytt deck</div>
+      </div>
+
+      <h2 class="sec"><span>Søk i kortene</span></h2>
+      <input class="search" id="search" placeholder="Søk i forside, bakside og tema …" autocomplete="off">
+      <div class="list" id="search-res" style="margin-top:10px"></div>
+
+      <div class="foot">
+        <span class="kbd-help"><kbd>N</kbd> nytt kort · <kbd>Mellomrom</kbd> snu · <kbd>1</kbd> kan ikke · <kbd>2</kbd> kan · <kbd>E</kbd> rediger · <kbd>←</kbd> angre · <kbd>Esc</kbd> tilbake</span>
+        <span><button id="exp">Eksporter backup</button> · <button id="imp">Importer</button> · <button id="reset" class="red">Nullstill fremgang</button></span>
+      </div>`;
+    document.getElementById("q-all").onclick = () => startSession(ALL, { filter: "notknown" });
+    document.getElementById("q-bad").onclick = () => startSession(ALL, { filter: "bad" });
+    document.getElementById("q-ex").onclick = () => startSession(ALL, { filter: "notknown", examOnly: true });
+    $app.querySelectorAll(".deck[data-deck]").forEach(el => {
+      el.onclick = () => go("deck", el.dataset.deck);
+      el.onkeydown = e => { if (e.key === "Enter") go("deck", el.dataset.deck); };
+    });
+    document.getElementById("new-deck").onclick = () => openDeckEditor(null);
+    document.getElementById("exp").onclick = exportData;
+    const e2 = document.getElementById("exp2"); if (e2) e2.onclick = exportData;
+    document.getElementById("imp").onclick = () => document.getElementById("import-file").click();
+    document.getElementById("reset").onclick = () => {
+      if (!confirm("Nullstille kan / kan ikke for alle kort? Selve kortene beholdes.")) return;
+      store.prog = {}; save(); render();
+    };
+    const inp = document.getElementById("search"), res = document.getElementById("search-res");
+    inp.oninput = () => {
+      const q = inp.value.trim().toLowerCase();
+      if (q.length < 2) { res.innerHTML = ""; return; }
+      const hits = store.cards.map(c => {
+        const f = c.front.toLowerCase();
+        const score = f.startsWith(q) ? 3 : f.includes(q) ? 2 : (c.back + " " + (c.topic || "")).toLowerCase().includes(q) ? 1 : 0;
+        return [score, c];
+      }).filter(x => x[0]).sort((a, b) => b[0] - a[0]).slice(0, 40).map(x => x[1]);
+      res.innerHTML = hits.length ? hits.map(c => rowHTML(c, true)).join("") : `<div class="empty">Ingen treff.</div>`;
+      bindRows(res);
+    };
+  }
+
+  // ================= Kortrad =================
+  function rowHTML(c, showDeck) {
+    const s = st(c.id), d = deckById(c.deck) || { name: "?", color: "#888" };
+    return `<div class="row" data-id="${c.id}" data-sd="${showDeck ? 1 : ""}" style="--c:${d.color}">
+      <div class="rh">
+        <span class="dot ${s === 1 ? "s1" : s === 0 ? "s0" : ""}"></span>
+        <span class="f">${fmt(c.front)}</span>
+        ${c.exam ? `<span class="badge">★</span>` : ""}
+        <span class="tp">${showDeck ? esc(d.name) + (c.topic ? " · " : "") : ""}${esc(c.topic || "")}</span>
+        <span class="mini">
+          <button data-a="0" class="${s === 0 ? "on0" : ""}" title="Kan ikke">✕</button>
+          <button data-a="1" class="${s === 1 ? "on1" : ""}" title="Kan">✓</button>
+          <button data-a="edit" title="Rediger">✎</button>
+        </span>
+      </div>
+      <div class="rb">${fmt(c.back)}</div>
+    </div>`;
+  }
+  function bindRows(root) { root.querySelectorAll(".row").forEach(bindRow); }
+  function bindRow(row) {
+    row.querySelector(".rh").onclick = e => {
+      const b = e.target.closest("button");
+      if (!b) { row.classList.toggle("open"); return; }
+      const id = row.dataset.id;
+      if (b.dataset.a === "edit") { openEditor(id); return; }
+      const s = +b.dataset.a;
+      setSt(id, st(id) === s ? null : s);
+      const tmp = document.createElement("div"); tmp.innerHTML = rowHTML(cardById(id), !!row.dataset.sd);
+      const fresh = tmp.firstElementChild;
+      if (row.classList.contains("open")) fresh.classList.add("open");
+      row.replaceWith(fresh); bindRow(fresh);
+      if (view === "deck") updateDeckStats();
+    };
+  }
+
+  // ================= Deck-side =================
+  let deckSel = null, updateDeckStats = () => {};
+  function renderDeck(id) {
+    const d = deckById(id);
+    if (!d) return go("home");
+    const s = store.settings;
+    const cards = cardsOf(id);
+    const topicOf = c => c.topic || "Uten tema";
+    const topics = [...new Set(cards.map(topicOf))];
+    if (!deckSel || deckSel.deck !== id) deckSel = { deck: id, off: new Set() };
+    const isOn = t => !deckSel.off.has(t);
+    $app.innerHTML = `
+      <div style="--c:${d.color}">
+        <section class="deck-head">
+          <div class="row1">
+            <div><div class="num">Deck ${store.decks.indexOf(d) + 1}</div><h1>${esc(d.name)}</h1></div>
+            <div class="cta">
+              <button class="btn small primary" id="add-here">＋ Nytt kort</button>
+              <button class="btn small" id="bulk-here">⇣ Lim inn mange</button>
+              <button class="btn small" id="edit-deck">✎ Deck</button>
+            </div>
+          </div>
+          <div id="deck-bar"></div>
+          ${cards.length ? `
+          <div class="opts">
+            <div class="opt-group">
+              <label class="t">Hvilke kort</label>
+              <div class="seg" id="f-seg">
+                ${[["notknown", "Ikke kan ennå"], ["bad", "Bare «kan ikke»"], ["unseen", "Ikke sett"], ["all", "Alle"]].map(([v, l]) => `<button class="chip ${s.filter === v ? "on" : ""}" data-v="${v}">${l}</button>`).join("")}
+              </div>
+            </div>
+            <div class="opt-group">
+              <label class="t">Innstillinger</label>
+              <div class="toggles">
+                <label class="tog"><input type="checkbox" id="o-ex" ${s.examOnly ? "checked" : ""}><span class="sw"></span>★ Bare eksamenskort</label>
+                <label class="tog"><input type="checkbox" id="o-sh" ${s.shuffle ? "checked" : ""}><span class="sw"></span>Stokk</label>
+                <label class="tog"><input type="checkbox" id="o-rev" ${s.reverse ? "checked" : ""}><span class="sw"></span>Omvendt (bakside først)</label>
+                <label class="tog"><input type="checkbox" id="o-rq" ${s.requeue ? "checked" : ""}><span class="sw"></span>Gjenta «kan ikke» i økta</label>
+              </div>
+            </div>
+          </div>
+          ${topics.length > 1 ? `<div class="opt-group" style="margin-top:18px">
+            <label class="t">Temaer</label>
+            <div class="seg" id="t-seg">${topics.map(t => `<button class="chip ${isOn(t) ? "on" : ""}" data-t="${esc(t)}">${esc(t)}<span class="n">${cards.filter(c => topicOf(c) === t).length}</span></button>`).join("")}</div>
+          </div>` : ""}
+          <div class="start-row">
+            <button class="btn primary" id="start">▶ Start økt</button>
+            <span class="cnt" id="sel-cnt"></span>
+          </div>` : ""}
+        </section>
+
+        <h2 class="sec"><span>Kort i decket (${cards.length})</span>${cards.length ? `<span class="kbd-help">Klikk for å se baksiden · ✎ for å redigere</span>` : ""}</h2>
+        ${cards.length ? `<div class="list" id="deck-list">${cards.map(c => rowHTML(c, false)).join("")}</div>`
+          : `<div class="empty">Ingen kort i dette decket ennå.<br><br><b>＋ Nytt kort</b> for ett og ett, eller <b>⇣ Lim inn mange</b> for å legge inn mange på én gang.</div>`}
+      </div>`;
+    const selected = () => filterCards(cards.filter(c => isOn(topicOf(c))), s.filter, s.examOnly);
+    const upd = () => {
+      const el = document.getElementById("sel-cnt"); if (!el) return;
+      const n = selected().length; el.textContent = `${n} kort i økta`; document.getElementById("start").disabled = !n;
+    };
+    updateDeckStats = () => {
+      const k = counts(cards);
+      document.getElementById("deck-bar").innerHTML = cards.length ? `${bar(k)}<div style="display:flex;justify-content:space-between;color:var(--muted);font-size:.85rem;margin-top:8px;flex-wrap:wrap;gap:6px"><span><b style="color:var(--ink)">${pct(k)} %</b> kan</span><span><span style="color:var(--good)">${k.k} kan</span> · <span style="color:var(--bad)">${k.n} kan ikke</span> · ${k.u} ikke sett</span></div>` : "";
+      upd();
+    };
+    updateDeckStats();
+    document.getElementById("add-here").onclick = () => openEditor(null, { deck: id });
+    document.getElementById("bulk-here").onclick = () => openEditor(null, { deck: id, bulk: true });
+    document.getElementById("edit-deck").onclick = () => openDeckEditor(id);
+    if (!cards.length) return;
+    $app.querySelectorAll("#f-seg .chip").forEach(b => b.onclick = () => { s.filter = b.dataset.v; save(); $app.querySelectorAll("#f-seg .chip").forEach(x => x.classList.toggle("on", x === b)); upd(); });
+    $app.querySelectorAll("#t-seg .chip").forEach(b => b.onclick = () => { const t = b.dataset.t; deckSel.off.has(t) ? deckSel.off.delete(t) : deckSel.off.add(t); b.classList.toggle("on"); upd(); });
+    const bindTog = (elId, key) => document.getElementById(elId).onchange = e => { s[key] = e.target.checked; save(); upd(); };
+    bindTog("o-ex", "examOnly"); bindTog("o-sh", "shuffle"); bindTog("o-rev", "reverse"); bindTog("o-rq", "requeue");
+    document.getElementById("start").onclick = () => startSession(cards.filter(c => isOn(topicOf(c))), { filter: s.filter, examOnly: s.examOnly, from: id });
+    bindRows(document.getElementById("deck-list"));
+  }
+
+  function filterCards(cards, filter, examOnly) {
+    return cards.filter(c => {
+      if (examOnly && !c.exam) return false;
+      const s = st(c.id);
+      if (filter === "notknown") return s !== 1;
+      if (filter === "bad") return s === 0;
+      if (filter === "unseen") return s === null;
+      return true;
+    });
+  }
+
+  // ================= Økt =================
+  function startSession(cards, opt) {
+    const q = filterCards(cards, opt.filter, opt.examOnly);
+    if (!q.length) { toast("Ingen kort matcher utvalget 🎉"); return; }
+    if (store.settings.shuffle) shuffle(q);
+    session = { queue: q.map(c => c.id), pos: 0, flipped: false, good: 0, bad: 0, total: q.length, history: [], from: opt.from || null, seen: new Set() };
+    go("study");
+  }
+  function renderStudy() {
+    const S = session;
+    if (!S) return go("home");
+    while (S.pos < S.queue.length && !cardById(S.queue[S.pos])) S.queue.splice(S.pos, 1); // slettet underveis
+    if (S.pos >= S.queue.length) return renderDone();
+    const c = cardById(S.queue[S.pos]), d = deckById(c.deck) || { name: "", color: "#888" };
+    const rev = store.settings.reverse, s = st(c.id);
+    const statusTxt = s === 1 ? `<span style="color:var(--good)">✓ kan</span>` : s === 0 ? `<span style="color:var(--bad)">✕ kan ikke</span>` : "ikke sett før";
+    const tag = `<span class="tag">${esc(d.name)}${c.topic ? " · " + esc(c.topic) : ""}</span>${c.exam ? `<span class="badge">★ Eksamen</span>` : ""}`;
+    const frontSide = rev ? `<div class="ans">${fmt(c.back)}</div>` : `<div class="term">${fmt(c.front)}</div>`;
+    const backSide = rev ? `<div class="term">${fmt(c.front)}</div>` : `<div class="small-term">${fmt(c.front)}</div><div class="ans">${fmt(c.back)}</div>`;
+    $app.innerHTML = `
+      <div class="study" style="--c:${d.color}">
+        <div class="study-top">
+          <button class="icon-btn" id="exit" title="Avslutt (Esc)">✕</button>
+          <div class="prog"><div class="bar"><i class="g" style="width:${S.good / S.total * 100}%"></i><i class="r" style="width:${Math.min(S.bad, S.total - S.good) / S.total * 100}%"></i></div></div>
+          <div class="count">${Math.min(S.seen.size + 1, S.total)} / ${S.total}</div>
+        </div>
+        <div class="scene">
+          <div class="flip ${S.flipped ? "flipped" : ""}" id="flip">
+            <div class="face front"><div class="fh">${tag}</div><div class="mid">${frontSide}</div><div class="hint">Klikk eller mellomrom for å snu · ${statusTxt}</div></div>
+            <div class="face back"><div class="fh">${tag}</div><div class="mid">${backSide}</div></div>
+          </div>
+        </div>
+        <div class="actions" id="actions"></div>
+        <div class="nav-row">
+          <button id="prev" ${S.history.length ? "" : "disabled"}>← Angre</button>
+          <span><span class="g">✓ ${S.good}</span> &nbsp; <span class="r">✕ ${S.bad}</span></span>
+          <span><button id="edit-c">✎ Rediger</button><button id="skip">Hopp over →</button></span>
+        </div>
+      </div>`;
+    const actions = () => {
+      document.getElementById("actions").innerHTML = S.flipped
+        ? `<button class="btn no" id="b-no">✕ Kan ikke<kbd>1</kbd></button><button class="btn yes" id="b-yes">✓ Kan<kbd>2</kbd></button>`
+        : `<button class="btn show" id="b-show">Vis svar<kbd>Mellomrom</kbd></button>`;
+      const g = id => document.getElementById(id);
+      if (g("b-show")) g("b-show").onclick = flip;
+      if (g("b-yes")) g("b-yes").onclick = () => mark(1);
+      if (g("b-no")) g("b-no").onclick = () => mark(0);
+    };
+    function flip() { S.flipped = !S.flipped; document.getElementById("flip").classList.toggle("flipped", S.flipped); actions(); }
+    S._flip = flip;
+    actions();
+    document.getElementById("flip").onclick = flip;
+    document.getElementById("exit").onclick = exitStudy;
+    document.getElementById("prev").onclick = prev;
+    document.getElementById("skip").onclick = skip;
+    document.getElementById("edit-c").onclick = () => openEditor(c.id);
+  }
+  function mark(s) {
+    const S = session; if (!S || S.pos >= S.queue.length) return;
+    if (!S.flipped) { S._flip(); return; }
+    const id = S.queue[S.pos];
+    S.history.push({ pos: S.pos, id, prev: st(id), queueLen: S.queue.length, good: S.good, bad: S.bad, seen: new Set(S.seen) });
+    setSt(id, s); S.seen.add(id);
+    if (s === 1) S.good++; else S.bad++;
+    if (s === 0 && store.settings.requeue) S.queue.splice(Math.min(S.queue.length, S.pos + 7), 0, id);
+    S.pos++; S.flipped = false; renderStudy();
+  }
+  function skip() {
+    const S = session; if (!S) return;
+    S.history.push({ pos: S.pos, id: S.queue[S.pos], queueLen: S.queue.length, good: S.good, bad: S.bad, seen: new Set(S.seen), skip: true });
+    S.queue.push(S.queue.splice(S.pos, 1)[0]); S.flipped = false; renderStudy();
+  }
+  function prev() {
+    const S = session; const h = S && S.history.pop(); if (!h) return;
+    if (h.skip) { S.queue.pop(); S.queue.splice(h.pos, 0, h.id); }
+    else { setSt(h.id, h.prev); S.queue.length = h.queueLen; }
+    S.pos = h.pos; S.good = h.good; S.bad = h.bad; S.seen = h.seen; S.flipped = true; renderStudy();
+  }
+  function exitStudy() { const from = session && session.from; session = null; from ? go("deck", from) : go("home"); }
+  function renderDone() {
+    const S = session, uniq = [...new Set(S.queue)].filter(cardById), stillBad = uniq.filter(id => st(id) === 0);
+    $app.innerHTML = `<div class="study"><div class="done">
+      <div class="big">${stillBad.length ? "💪" : "🎉"}</div><h2>Økta er ferdig</h2>
+      <p><span style="color:var(--good)">✓ ${S.good} kan</span> · <span style="color:var(--bad)">✕ ${S.bad} kan ikke</span> · ${uniq.length} kort</p>
+      <div class="cta">${stillBad.length ? `<button class="btn primary" id="again">↻ Øv på de ${stillBad.length} jeg ikke kan</button>` : ""}<button class="btn" id="back">Tilbake</button></div>
+    </div></div>`;
+    const a = document.getElementById("again");
+    if (a) a.onclick = () => startSession(stillBad.map(cardById), { filter: "all", from: S.from });
+    document.getElementById("back").onclick = exitStudy;
+  }
+
+  // ================= Kort-editor =================
+  let overlayEl = null;
+  function closeModal() { if (overlayEl) overlayEl.remove(); overlayEl = null; modalOpen = false; }
+  function showModal(html) {
+    closeModal();
+    overlayEl = document.createElement("div"); overlayEl.className = "overlay";
+    overlayEl.innerHTML = `<div class="modal">${html}</div>`;
+    overlayEl.addEventListener("mousedown", e => { if (e.target === overlayEl) closeModal(); });
+    document.body.appendChild(overlayEl); modalOpen = true;
+    return overlayEl;
+  }
+  const deckOptions = sel => store.decks.map(d => `<option value="${d.id}" ${d.id === sel ? "selected" : ""}>${esc(d.name)}</option>`).join("");
+  const topicList = deckId => [...new Set(cardsOf(deckId).map(c => c.topic).filter(Boolean))];
+  let lastDeck = null, lastTopic = "";
+
+  function openEditor(cardId, opts = {}) {
+    const c = cardId ? cardById(cardId) : null;
+    const deck = c ? c.deck : opts.deck || lastDeck || (store.decks[0] && store.decks[0].id);
+    if (!deck) { toast("Lag et deck først"); return; }
+    const topic = c ? c.topic || "" : (deck === lastDeck ? lastTopic : "");
+    let bulk = !c && !!opts.bulk;
+    const el = showModal(`
+      <h2>${c ? "Rediger kort" : "Nytt kort"}</h2>
+      <div class="sub">${c ? "" : "Ett begrep på forsiden. Maks to konkrete setninger på baksiden."}</div>
+      ${c ? "" : `<div class="tabs"><button class="chip ${bulk ? "" : "on"}" data-tab="one">Ett kort</button><button class="chip ${bulk ? "on" : ""}" data-tab="bulk">Lim inn mange</button></div>`}
+      <div class="grid2">
+        <div class="field"><label>Deck</label><select class="inp" id="e-deck">${deckOptions(deck)}</select></div>
+        <div class="field"><label>Tema (valgfritt)</label><input class="inp" id="e-topic" list="e-topics" value="${esc(topic)}" placeholder="f.eks. Uinformert søk"><datalist id="e-topics"></datalist></div>
+      </div>
+      <div id="one-pane" ${bulk ? "hidden" : ""}>
+        <div class="field"><label>Forside</label><input class="inp" id="e-front" value="${esc(c ? c.front : "")}" placeholder="f.eks. Iterative deepening search (IDS) – tidskompleksitet" autocomplete="off"></div>
+        <div class="field"><label>Bakside</label><textarea class="inp" id="e-back" placeholder="f.eks. O(b^d).">${esc(c ? c.back : "")}</textarea>
+          <div class="help"><span>Formatering: **fet**, b^d → b<sup>d</sup>, x_i → x<sub>i</sub>, linjeskift beholdes</span><span id="e-count"></span></div></div>
+        <label class="tog" style="margin-bottom:16px"><input type="checkbox" id="e-exam" ${c && c.exam ? "checked" : ""}><span class="sw"></span>★ Eksamenskort</label>
+      </div>
+      <div id="bulk-pane" ${bulk ? "" : "hidden"}>
+        <div class="field"><label>Én linje per kort: forside | bakside</label>
+          <textarea class="inp" id="e-bulk" style="min-height:180px;font-family:var(--mono);font-size:.88rem" placeholder="BFS – fullstendig? | Ja, hvis b er endelig.\nBFS – tidskompleksitet | O(b^d).\nDFS – datastruktur | LIFO-stakk."></textarea>
+          <div class="help"><span>Skilletegn: <code>|</code> eller tab (fungerer når du limer inn fra Excel / Sheets). Tema over gjelder alle.</span></div></div>
+        <div class="field"><div class="preview" id="e-prev">Forhåndsvisning kommer her.</div></div>
+      </div>
+      <div class="btns">
+        <div>${c ? `<button class="btn small danger" id="e-del">🗑 Slett</button>` : ""}</div>
+        <div class="right">
+          <button class="btn small" id="e-cancel">Avbryt <kbd>Esc</kbd></button>
+          ${c ? "" : `<button class="btn small" id="e-save-close">Lagre og lukk</button>`}
+          <button class="btn small primary" id="e-save">${c ? "Lagre" : "Lagre og nytt"} <kbd>Ctrl+Enter</kbd></button>
+        </div>
+      </div>`);
+    const $ = id => el.querySelector("#" + id);
+    const fillTopics = () => { $("e-topics").innerHTML = topicList($("e-deck").value).map(t => `<option value="${esc(t)}">`).join(""); };
+    fillTopics();
+    $("e-deck").onchange = fillTopics;
+    const countUpd = () => {
+      const v = $("e-back").value, n = sentences(v);
+      $("e-count").innerHTML = v.trim() ? (n > 2 ? `<span class="warn">${n} setninger – maks 2?</span>` : `${n} setning${n === 1 ? "" : "er"}`) : "";
+    };
+    $("e-back").oninput = countUpd; countUpd();
+    const parseBulk = () => $("e-bulk").value.split("\n").map(l => l.trim()).filter(Boolean).map(l => {
+      const sep = l.includes("\t") ? "\t" : "|";
+      const i = l.indexOf(sep);
+      return i < 0 ? { front: l, back: "" } : { front: l.slice(0, i).trim(), back: l.slice(i + 1).replace(/\t/g, " ").trim() };
+    });
+    const prevUpd = () => {
+      const rows = parseBulk();
+      $("e-prev").innerHTML = rows.length ? rows.map(r => r.front && r.back ? `<div class="ok">✓ <b>${esc(r.front)}</b> → ${esc(r.back)}</div>` : `<div style="color:var(--bad)">✕ mangler ${r.front ? "bakside" : "forside"}: ${esc(r.front || r.back)}</div>`).join("") : "Forhåndsvisning kommer her.";
+    };
+    $("e-bulk").oninput = prevUpd;
+    el.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => {
+      bulk = b.dataset.tab === "bulk";
+      el.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x === b));
+      $("one-pane").hidden = bulk; $("bulk-pane").hidden = !bulk;
+      (bulk ? $("e-bulk") : $("e-front")).focus();
+    });
+    const doSave = (keepOpen) => {
+      const deckId = $("e-deck").value, tp = $("e-topic").value.trim();
+      if (bulk) {
+        const rows = parseBulk().filter(r => r.front && r.back);
+        if (!rows.length) { toast("Ingen gyldige linjer"); return; }
+        for (const r of rows) store.cards.push({ id: uid(), deck: deckId, topic: tp, front: r.front, back: r.back, exam: false, created: Date.now() });
+        save(true); lastDeck = deckId; lastTopic = tp;
+        toast(`${rows.length} kort lagt til`); closeModal(); go("deck", deckId); return;
+      }
+      const front = $("e-front").value.trim(), back = $("e-back").value.trim();
+      if (!front || !back) { toast("Fyll inn både forside og bakside"); (front ? $("e-back") : $("e-front")).focus(); return; }
+      if (c) { Object.assign(c, { deck: deckId, topic: tp, front, back, exam: $("e-exam").checked }); }
+      else store.cards.push({ id: uid(), deck: deckId, topic: tp, front, back, exam: $("e-exam").checked, created: Date.now() });
+      save(true); lastDeck = deckId; lastTopic = tp;
+      if (keepOpen && !c) {
+        toast("Lagret ✓"); $("e-front").value = ""; $("e-back").value = ""; $("e-exam").checked = false; countUpd(); fillTopics(); $("e-front").focus();
+        if (view !== "study") render();
+        return;
+      }
+      toast("Lagret ✓"); closeModal(); render();
+    };
+    $("e-save").onclick = () => doSave(true);
+    if ($("e-save-close")) $("e-save-close").onclick = () => doSave(false);
+    $("e-cancel").onclick = closeModal;
+    if ($("e-del")) $("e-del").onclick = () => {
+      if (!confirm("Slette kortet?")) return;
+      store.cards = store.cards.filter(x => x.id !== c.id); delete store.prog[c.id]; save(true);
+      closeModal(); toast("Slettet"); render();
+    };
+    el.addEventListener("keydown", e => {
+      if (e.key === "Escape") { e.preventDefault(); closeModal(); }
+      else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); doSave(true); }
+      else if (e.key === "Enter" && e.target.id === "e-front") { e.preventDefault(); $("e-back").focus(); }
+    });
+    setTimeout(() => (bulk ? $("e-bulk") : $("e-front")).focus(), 30);
+  }
+
+  // ================= Deck-editor =================
+  function openDeckEditor(deckId) {
+    const d = deckId ? deckById(deckId) : null;
+    let color = d ? d.color : COLORS[store.decks.length % COLORS.length];
+    const n = d ? cardsOf(d.id).length : 0;
+    const el = showModal(`
+      <h2>${d ? "Rediger deck" : "Nytt deck"}</h2><div class="sub"></div>
+      <div class="field"><label>Navn</label><input class="inp" id="d-name" value="${esc(d ? d.name : "")}" placeholder="f.eks. Søk"></div>
+      <div class="field"><label>Farge</label><div class="swatches">${COLORS.map(cl => `<button style="--sc:${cl}" data-c="${cl}" class="${cl === color ? "on" : ""}"></button>`).join("")}</div></div>
+      ${d ? `<div class="field"><label>Rekkefølge</label><div class="cta"><button class="btn small" id="d-up">↑ Flytt opp</button><button class="btn small" id="d-down">↓ Flytt ned</button></div></div>` : ""}
+      <div class="btns">
+        <div>${d ? `<button class="btn small danger" id="d-del">🗑 Slett deck${n ? ` (${n} kort)` : ""}</button>` : ""}</div>
+        <div class="right"><button class="btn small" id="d-cancel">Avbryt</button><button class="btn small primary" id="d-save">Lagre</button></div>
+      </div>`);
+    const $ = id => el.querySelector("#" + id);
+    el.querySelectorAll("[data-c]").forEach(b => b.onclick = () => { color = b.dataset.c; el.querySelectorAll("[data-c]").forEach(x => x.classList.toggle("on", x === b)); });
+    const doSave = () => {
+      const name = $("d-name").value.trim(); if (!name) { $("d-name").focus(); return; }
+      if (d) Object.assign(d, { name, color }); else store.decks.push({ id: uid(), name, color });
+      save(true); closeModal(); render();
+    };
+    $("d-save").onclick = doSave; $("d-cancel").onclick = closeModal;
+    $("d-name").onkeydown = e => { if (e.key === "Enter") doSave(); if (e.key === "Escape") closeModal(); };
+    const move = dir => { const i = store.decks.indexOf(d), j = i + dir; if (j < 0 || j >= store.decks.length) return; [store.decks[i], store.decks[j]] = [store.decks[j], store.decks[i]]; save(true); toast(`Flyttet til plass ${j + 1}`); };
+    if (d) { $("d-up").onclick = () => move(-1); $("d-down").onclick = () => move(1); }
+    if ($("d-del")) $("d-del").onclick = () => {
+      if (!confirm(`Slette decket «${d.name}»${n ? ` og alle ${n} kort i det` : ""}?`)) return;
+      for (const c of cardsOf(d.id)) delete store.prog[c.id];
+      store.cards = store.cards.filter(c => c.deck !== d.id); store.decks = store.decks.filter(x => x !== d);
+      save(true); closeModal(); go("home");
+    };
+    setTimeout(() => $("d-name").focus(), 30);
+  }
+
+  // ================= Eksport / import =================
+  function exportData() {
+    const data = { app: "tdt4136-flashcards", version: 2, exported: new Date().toISOString(), decks: store.decks, cards: store.cards, prog: store.prog };
+    const blob = new Blob([JSON.stringify(data, null, 1)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = `flashcards-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    store.lastExport = Date.now(); save(); toast("Backup lastet ned"); if (view === "home") render();
+  }
+  document.getElementById("import-file").onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+    let data;
+    try { data = JSON.parse(await f.text()); } catch (err) { toast("Ugyldig fil"); return; }
+    if (!Array.isArray(data.cards) || !Array.isArray(data.decks)) { toast("Fant ingen kort i fila"); return; }
+    const replace = confirm(`Fila har ${data.decks.length} deck og ${data.cards.length} kort.\n\nOK = erstatt alt du har nå med fila.\nAvbryt = slå sammen (kort med samme id oppdateres).`);
+    if (replace) { store.decks = data.decks; store.cards = data.cards; store.prog = data.prog || {}; }
+    else {
+      for (const d of data.decks) { const ex = deckById(d.id); ex ? Object.assign(ex, d) : store.decks.push(d); }
+      for (const c of data.cards) { const ex = cardById(c.id); ex ? Object.assign(ex, c) : store.cards.push(c); }
+      Object.assign(store.prog, data.prog || {});
+    }
+    store.lastExport = Date.now(); save(); toast(`Importerte ${data.cards.length} kort`); go("home");
+  };
+
+  // ================= Tastatur =================
+  document.addEventListener("keydown", e => {
+    if (modalOpen) return;
+    const tag = e.target.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    if (e.key.toLowerCase() === "n" && !e.ctrlKey && !e.metaKey) { e.preventDefault(); openEditor(null, view === "deck" ? { deck: viewArg } : {}); return; }
+    if (view !== "study" || !session) { if (e.key === "Escape" && view === "deck") go("home"); return; }
+    const S = session;
+    if (S.pos >= S.queue.length) { if (e.key === "Escape" || e.key === "Enter") exitStudy(); return; }
+    if (e.key === " " || e.key === "Enter" || e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); S._flip(); }
+    else if (e.key === "1" || e.key.toLowerCase() === "j") { e.preventDefault(); mark(0); }
+    else if (e.key === "2" || e.key.toLowerCase() === "k") { e.preventDefault(); mark(1); }
+    else if (e.key.toLowerCase() === "e") { e.preventDefault(); openEditor(S.queue[S.pos]); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); skip(); }
+    else if (e.key === "Escape") exitStudy();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

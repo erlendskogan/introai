@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TDT4136 · Interaktivt kurs i Introduksjon til KI</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .hero { font-family: var(--font); }
+  .hero p { font-family: var(--serif); font-size: 1.1rem; max-width: 760px; }
+  .howto { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .8rem; margin: 1.5rem 0 2rem; }
+  .howto div { font-family: var(--font); font-size: .88rem; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: .8rem 1rem; }
+  .howto b { display: block; margin-bottom: .2rem; }
+  .total { font-family: var(--font); font-size: .9rem; color: var(--muted); margin-top: .4rem; }
+  .card.exam-card { border-color: var(--teal); }
+  .later { font-family: var(--font); font-size: .9rem; color: var(--muted); }
+  .reset { margin-top: 3rem; }
+</style>
+</head>
+<body>
+<div class="home-wrap">
+  <div class="hero">
+    <div class="kicker">NTNU · TDT4136 Introduksjon til kunstig intelligens · Høst 2026</div>
+    <h1>Fra null til eksamensklar</h1>
+    <p>Et interaktivt kurs som dekker alt pensum forelest så langt (forelesning 1–10, læreboka kap. 1–9, 17.2 og 24).
+      Kurset antar at du ikke kan noe fra før. Hvert fagbegrep blir forklart i margen første gang det dukker opp.
+      Til slutt skal du kunne løse de tidligere eksamensoppgavene på egen hånd.</p>
+    <div class="total" id="total"></div>
+  </div>
+
+  <div class="howto">
+    <div><b>📖 Les aktivt</b>Stiplede, understrekede ord er fagbegreper. Forklaringen står i margen til høyre. Klikk på ordet for å utheve den.</div>
+    <div><b>✍️ Svar før du ser</b>Gjør quizene og regneoppgavene, og skriv refleksjonene selv før du åpner forslaget. Det er der læringen skjer.</div>
+    <div><b>📝 Bruk papir</b>Eksamen er penn og papir. Løs eksamensoppgavene skriftlig før du åpner løsningsforslaget.</div>
+    <div><b>✅ Følg fremdriften</b>Marker seksjoner som fullført. Fremdriften lagres i nettleseren og vises her.</div>
+  </div>
+
+  <h2 style="border:none;margin-top:1rem">Moduler</h2>
+  <div class="cards" id="cards"></div>
+
+  <p><a href="alt.html"><b>→ Hele kurset på én side</b></a> (bla gjennom alle modulene uten å klikke deg rundt)</p>
+  <p><a href="ordliste.html">→ Samlet ordliste over alle fagbegreper</a></p>
+  <p><a href="../flashcards/index.html">→ Flashcards (lag egne kort, kan / kan ikke-fremgang)</a></p>
+
+  <h3>Kommer senere i semesteret (ikke dekket ennå)</h3>
+  <p class="later">Planlegging (kap. 11), kunnskapsrepresentasjon (kap. 10) og filosofi og etikk (kap. 28). Disse har også vært på eksamen, men er ikke forelest ennå.</p>
+
+  <div class="reset"><button class="secondary" id="reset">Nullstill all fremdrift</button></div>
+</div>
+<script src="assets/course.js"></script>
+<script>
+  (function () {
+    const cards = document.getElementById("cards");
+    let sum = 0;
+    for (const m of window.COURSE_MODULES) {
+      const pct = window.CourseStore.get(m.id + ":pct", 0);
+      sum += pct;
+      const a = document.createElement("a");
+      a.href = m.file;
+      a.className = "card" + (m.id === "m10" ? " exam-card" : "");
+      a.innerHTML = `<div class="num">${m.id === "m10" ? "AVSLUTNING" : "MODUL " + parseInt(m.id.slice(1))} · ${m.ch}</div>
+        <h3>${m.title}</h3><p>${m.desc}</p>
+        <div class="card-progress"><div style="width:${pct}%"></div></div>`;
+      cards.append(a);
+    }
+    document.getElementById("total").textContent =
+      `Total fremdrift: ${Math.round(sum / window.COURSE_MODULES.length)} %`;
+    document.getElementById("reset").onclick = () => {
+      if (!confirm("Slette all lagret fremdrift, svar og refleksjoner?")) return;
+      Object.keys(localStorage).filter(k => k.startsWith("tdt4136:")).forEach(k => localStorage.removeItem(k));
+      location.reload();
+    };
+  })();
+</script>
+</body>
+</html>

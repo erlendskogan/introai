@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modul 12 — Spillteori · TDT4136</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  /* Modulspesifikk CSS (m12) */
+  .p1 { color: var(--accent); }
+  .p2 { color: var(--bad); }
+  table.pm { width: auto; margin: .8rem auto; border-collapse: collapse; font-family: var(--font); }
+  table.pm th { background: transparent; border: none; font-weight: 600; padding: .25rem .6rem; font-size: .9rem; }
+  table.pm th.p1, table.pm th.p2 { font-weight: 700; }
+  table.pm td { border: 1.5px solid var(--line); min-width: 5.4rem; text-align: center; padding: .45rem .6rem; font-size: .95rem; background: var(--paper); }
+  table.pm td .br { text-decoration: underline; text-decoration-thickness: 2px; font-weight: 700; }
+  table.pm td.ne { background: var(--good-soft); border-color: var(--good); }
+  table.pm td.gone { opacity: .25; }
+  table.pm td.hl { background: var(--warn-soft); }
+  .pm-cap { text-align: center; font-size: .82rem; color: var(--muted); margin-top: -.4rem; }
+  .gt-row { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; margin: .45rem 0; }
+  .gt-row label { font-size: .85rem; color: var(--muted); display: inline-flex; gap: .3rem; align-items: center; }
+  .gt-in td { padding: .3rem .4rem; }
+  .gt-in input { width: 3.6rem; text-align: center; font-family: var(--mono); }
+  .gt-in input.p1 { border-color: var(--accent); }
+  .gt-in input.p2 { border-color: var(--bad); }
+  .gt-res { font-size: .9rem; }
+  .gt-res h4 { margin: .8rem 0 .3rem; font-size: .95rem; }
+  .gt-res ul { margin: .2rem 0; }
+  .plots { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
+  .plots figure { margin: .3rem 0; }
+  svg.plot { width: 300px; height: auto; }
+  svg.plot .axis { stroke: var(--muted); stroke-width: 1; }
+  svg.plot .grid { stroke: var(--line); stroke-width: 1; }
+  svg.plot .l1 { stroke: var(--accent); stroke-width: 2.5; fill: none; }
+  svg.plot .l2 { stroke: var(--accent); stroke-width: 2.5; fill: none; stroke-dasharray: 6 4; }
+  svg.plot .r1 { stroke: var(--bad); stroke-width: 2.5; fill: none; }
+  svg.plot .r2 { stroke: var(--bad); stroke-width: 2.5; fill: none; stroke-dasharray: 6 4; }
+  svg.plot .dot { fill: var(--good); stroke: var(--paper); stroke-width: 1.5; }
+  svg.plot text { font-size: 10px; fill: var(--muted); }
+  .seq { font-family: var(--mono); font-size: .8rem; overflow-x: auto; }
+  .seq table td, .seq table th { padding: .15rem .35rem; text-align: center; }
+  .seq td.T { background: var(--bad-soft); }
+  .seq td.R { background: var(--good-soft); }
+  .gt-status { font-size: .9rem; margin: .4rem 0; min-height: 1.3em; }
+  .iesds-log { font-size: .85rem; }
+  .iesds-log div.cur { font-weight: 700; background: var(--accent-soft); }
+  input[type=range] { width: 12rem; }
+</style>
+</head>
+<body data-module="m12">
+<div class="layout">
+  <nav class="toc"></nav>
+  <main>
+    <div class="kicker">Modul 12 · Kap. 17.2.1–17.2.3 (forelesning 10)</div>
+    <h1>Spillteori</h1>
+    <p class="lead">Hva gjør en rasjonell agent når utfallet avhenger av hva <em>andre</em> rasjonelle agenter velger samtidig? Du lærer å lese utbyttematriser, finne dominante strategier og Nash-likevekter, regne ut blandede strategier, vurdere utfall med Pareto-optimalitet og sosial velferd, og analysere gjentatte spill (bakoverinduksjon, diskonteringsfaktor, grim trigger og tit for tat). Til eksamen er dette nesten alltid regneoppgaver på en liten matrise.</p>
+
+    <div class="box key">
+      <span class="box-title">Læringsmål</span>
+      <ul>
+        <li>Forklare hva spillteori er, hvorfor flere agenter krever strategisk resonnering, og hvordan spillteori skiller seg fra adversarialt søk (modul 6).</li>
+        <li>Lese en utbyttematrise (normalform), og bruke begrepene ren/blandet strategi, strategiprofil og nullsumspill.</li>
+        <li>Finne <strong>strengt og svakt dominerte strategier</strong>, dominant strategi-likevekt, og utføre <strong>iterert eliminering av strengt dominerte strategier</strong> steg for steg.</li>
+        <li>Finne alle <strong>Nash-likevekter i rene strategier</strong> med beste-respons-metoden, og forklare hvorfor et spill kan ha null, én eller flere slike.</li>
+        <li>Regne ut <strong>blandet Nash-likevekt</strong> i 2×2-spill med indifferensprinsippet (π<sub>1</sub>, π<sub>2</sub>), og forklare hvorfor noen spill ikke har en.</li>
+        <li>Avgjøre hvilke utfall som er <strong>Pareto-optimale</strong> og som maksimerer utilitaristisk/egalitær sosial velferd, og forklare «dilemmaet» i fangens dilemma.</li>
+        <li>Analysere <strong>gjentatte spill</strong>: bakoverinduksjon (endelig, kjent antall runder), diskonteringsfaktor δ, grim trigger (vise δ ≥ 1/5) og tit for tat.</li>
+      </ul>
+    </div>
+
+    <div class="box exam">
+      <span class="box-title">Hvorfor dette er viktig til eksamen</span>
+      <p>Spillteori har vært med i seks av de ni eksamenssettene, med 2–10 poeng:</p>
+      <ul>
+        <li><strong>2025 Q4 (5 p):</strong> hvor mange Nash-likevekter har et 2×2-spill (rene <em>og</em> blandede)?</li>
+        <li><strong>2024 Q12 (4 p):</strong> blandet Nash-likevekt i hjortejakt (stag hunt): π<sub>1</sub> = ? og π<sub>2</sub> = ?</li>
+        <li><strong>2024 Q13:</strong> gjentatt spill over to runder: optimale strategier i hver runde (bakoverinduksjon).</li>
+        <li><strong>2023 5.1 (10 p):</strong> KI-kappløpet USA/Kina: strategisk resonnering, dominerte strategier, iterert eliminering, Nash-likevekt, sosial velferd.</li>
+        <li><strong>2019 Oppg. 5 (10 p):</strong> dominerte strategier, Nash-likevekt, Pareto-optimale utfall, hvorfor maks sosial velferd ⇒ Pareto-optimal.</li>
+        <li><strong>2018 P7 (10 p):</strong> sett opp utbyttematrisen for vanning av risåkre, og avgjør når en strengt dominant strategi-likevekt finnes. <strong>2017:</strong> flervalg om strengt dominant likevekt i en 4×4-matrise.</li>
+      </ul>
+      <p>Pensum er bokas avsnitt 17.2.1–17.2.3 (støttemateriell) og forelesning 10. Forelesningen bruker notasjonen π<sub>p</sub> og U<sub>p</sub>(π<sub>1</sub>, π<sub>2</sub>), og den samme notasjonen går igjen i 2024- og 2025-eksamenene.</p>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>1. Hva er spillteori?</h2>
+    <p>Forelesningen definerer <span class="term" data-en="game theory">spillteori<span class="def">Systematisk studie av strategisk samhandling mellom rasjonelle individer: situasjoner der utfallet for hver aktør avhenger av hva de andre velger.</span></span> som <em>systematisk studie av strategisk samhandling mellom rasjonelle individer</em>. Et <span class="term" data-en="rational individual / rational agent">rasjonelt individ<span class="def">Har veldefinerte mål og velger den beste tilgjengelige strategien for å oppnå dem (jf. rasjonell agent i modul 1).</span></span> har veldefinerte mål og velger den beste tilgjengelige strategien for å nå dem, akkurat som den rasjonelle agenten i modul 1.</p>
+    <p>Spillteori brukes i økonomi, næringsliv, prosjektledelse, statsvitenskap, forsvar, biologi, informatikk og logikk, epidemiologi, filosofi og KI/maskinlæring. Forelesningen nevner tre forbehold: i praksis er spillere ikke alltid rasjonelle, det kan være vanskelig å definere nyttefunksjonen (verdien ved slutten av spillet), og spill er generelt en forenkling av virkeligheten.</p>
+
+    <h3>Hvorfor holder det ikke med vanlig nyttemaksimering?</h3>
+    <p>I modul 1–6 valgte agenten handlingen med høyest (forventet) nytte. Nå avhenger nytten av handlingen min av hva <em>du</em> velger, og ditt valg avhenger av hva du tror <em>jeg</em> velger. Jeg må altså resonnere om ditt resonnement om mitt resonnement. Boka: «decision making in multiagent settings is quite different in character to decision making in single-agent settings, because the players need to take each other's reasoning into account.» Spillteori gir <span class="term" data-en="solution concept">løsningsbegreper<span class="def">Presise definisjoner av hva det vil si å spille «rasjonelt» i et spill, f.eks. dominant strategi-likevekt, Nash-likevekt og maximin. Det finnes ikke ett perfekt løsningsbegrep.</span></span> som gjør dette presist: dominant strategi-likevekt, Nash-likevekt, maximin-likevekt.</p>
+
+    <table>
+      <tr><th></th><th>Adversarialt søk (modul 6)</th><th>Spillteori (denne modulen)</th></tr>
+      <tr><td>Trekk</td><td>Turbasert: spillerne trekker etter hverandre og ser motstanderens trekk</td><td>Samtidige trekk: ingen vet hva de andre velger (normalformspill)</td></tr>
+      <tr><td>Utbytte</td><td>Nullsum: det én vinner, taper den andre</td><td>Generelt: også vinn-vinn og tap-tap (fangens dilemma)</td></tr>
+      <tr><td>Løsning</td><td>Minimax-verdi, alfa-beta</td><td>Dominans, Nash-likevekt, blandede strategier</td></tr>
+    </table>
+    <p>Dette er <span class="term" data-en="non-cooperative game theory">ikke-kooperativ spillteori<span class="def">Spillteori der spillerne velger hver for seg og ikke kan inngå bindende avtaler. Kap. 17.2.</span></span>: spillerne kan ikke inngå bindende avtaler med hverandre.</p>
+
+    <div class="box exam">
+      <span class="box-title">Modellsvar på 2023 5.1.1 (1 p): «Explain in 3–5 sentences why this decision requires strategical reasoning»</span>
+      <p>Verdien av hver handling for USA avhenger av hva Kina velger, og omvendt: å akselerere er mye verdt hvis den andre holder igjen, men mindre hvis begge akselererer. Ingen av landene kan derfor velge den beste handlingen isolert. Hvert land må vurdere hva det andre landet sannsynligvis gjør, og hva det andre landet tror om dem. Det er nettopp denne gjensidige avhengigheten mellom rasjonelle aktører som gjør at situasjonen krever strategisk resonnering (spillteori). Sensor ser etter at du forklarer at <strong>nytten av en handling avhenger av de andres handlinger</strong>.</p>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>2. Normalformspill og utbyttematrisen</h2>
+    <p>Et <span class="term" data-en="normal form game">normalformspill<span class="def">Spill der alle spillerne velger handling samtidig (eller uten å vite hva de andre har valgt). Definert av spillere, handlinger og en utbyttefunksjon.</span></span> er et spill der alle velger samtidig (eller i hvert fall uten å kjenne de andres valg). Det har tre komponenter:</p>
+    <ol>
+      <li><strong>Spillere</strong> (agenter) som tar beslutninger. Oftest to: P1 og P2.</li>
+      <li><strong>Handlinger</strong> hver spiller kan velge (ikke nødvendigvis de samme for begge).</li>
+      <li>En <span class="term" data-en="payoff function">utbyttefunksjon<span class="def">Gir nytten (utbyttet) til hver spiller for hver kombinasjon av handlinger. For to spillere skrives den som en utbyttematrise.</span></span> som gir nytten til hver spiller for hver kombinasjon av handlinger. For to spillere skrives den som en <span class="term" data-en="payoff matrix">utbyttematrise<span class="def">Tabell med én rad per handling for P1 (radspilleren) og én kolonne per handling for P2 (kolonnespilleren). Hver celle viser utbyttet til begge spillerne, P1 først.</span></span>.</li>
+    </ol>
+    <p>P1 er <strong>radspilleren</strong> og velger rad; P2 er <strong>kolonnespilleren</strong> og velger kolonne. Hver celle viser utbyttet til begge, og konvensjonen er alltid <strong>P1 først</strong>.</p>
+    <table class="pm">
+      <tr><th></th><th></th><th colspan="2" class="p2">P2</th></tr>
+      <tr><th></th><th></th><th class="p2">Testify</th><th class="p2">Refuse</th></tr>
+      <tr><th rowspan="2" class="p1">P1</th><th class="p1">Testify</th><td><span class="p1">−5</span>, <span class="p2">−5</span></td><td><span class="p1">0</span>, <span class="p2">−10</span></td></tr>
+      <tr><th class="p1">Refuse</th><td><span class="p1">−10</span>, <span class="p2">0</span></td><td><span class="p1">−1</span>, <span class="p2">−1</span></td></tr>
+    </table>
+    <p class="pm-cap">Fangens dilemma (forelesningen og boka). Utbytte = −(år i fengsel). Blå = P1, rød = P2.</p>
+    <div class="box warning">
+      <span class="box-title">Les notasjonen riktig – den varierer mellom eksamener</span>
+      <ul>
+        <li><strong>Forelesningen:</strong> P1 (blå) nede til venstre i cellen, P2 (rød) oppe til høyre.</li>
+        <li><strong>2025:</strong> «P1: 1, P2: 1». <strong>2024:</strong> «5,5», «0,2» (P1 først). <strong>2023:</strong> «6/6», «8/4» (US/China, radspiller først). <strong>2019:</strong> «8, 0» (agent1, agent2).</li>
+        <li><strong>Boka:</strong> «A = −10, B = 0» – her står spillerne navngitt i hver celle, og Bo er radspiller.</li>
+      </ul>
+      <p>Les alltid eksempelsetningen i oppgaven («if P1 chooses Hare and P2 chooses Stag, P1 will receive utility 2 …») og sjekk at du har forstått hvem som er hvem <em>før</em> du regner.</p>
+    </div>
+
+    <h3>Strategier</h3>
+    <p>En <span class="term" data-en="strategy">strategi<span class="def">Spillteoriens navn på en policy: en regel for hva spilleren gjør. I et spill med ett trekk er en ren strategi bare én handling.</span></span> er spillteoriens ord for en policy. En <span class="term" data-en="pure strategy">ren strategi<span class="def">Deterministisk strategi: velger én bestemt handling (med sannsynlighet 1).</span></span> velger én bestemt handling. En <span class="term" data-en="mixed strategy">blandet strategi<span class="def">Randomisert strategi som velger handlinger etter en sannsynlighetsfordeling, skrevet [p: a; (1 − p): b].</span></span> trekker handlingen tilfeldig etter en sannsynlighetsfordeling, i boka skrevet [p: a; (1 − p): b]. En <span class="term" data-en="strategy profile">strategiprofil<span class="def">Én strategi for hver spiller. Gir et (forventet) utbytte til hver spiller.</span></span> er én strategi for hver spiller.</p>
+    <div class="box key">
+      <span class="box-title">Forelesningens notasjon (brukes på eksamen 2024 og 2025)</span>
+      <ul>
+        <li>π<sub>p</sub>(s, a): sannsynligheten for at spiller p ∈ {1, 2} velger handling a i tilstand s. I alt unntatt gjentatte spill er tilstanden tom og utelates.</li>
+        <li>Med to handlinger per spiller er <strong>π<sub>p</sub> = sannsynligheten for den <em>første</em> handlingen</strong>, og 1 − π<sub>p</sub> sannsynligheten for den andre. π<sub>p</sub> ∈ {0, 1} er en ren strategi; 0 &lt; π<sub>p</sub> &lt; 1 er en blandet.</li>
+        <li>U<sub>p</sub>(π<sub>1</sub>, π<sub>2</sub>): forventet nytte for spiller p gitt begge strategiene.</li>
+      </ul>
+    </div>
+    <p>Forventet nytte regnes som i et sannsynlighetstre: P1 velger første handling med π<sub>1</sub>, P2 velger første handling med π<sub>2</sub>. For forelesningens eksempel med P1-utbyttene 1, 2 / 3, 4 (Up/Down × Left/Right):</p>
+    <div class="formula">U<sub>1</sub> = π<sub>1</sub>(1·π<sub>2</sub> + 2(1 − π<sub>2</sub>)) + (1 − π<sub>1</sub>)(3·π<sub>2</sub> + 4(1 − π<sub>2</sub>))</div>
+    <div class="check" data-answer="2.5" data-mode="number" data-tol="0.001">
+      <p class="q">Regn U<sub>1</sub> for π<sub>1</sub> = 0,5 og π<sub>2</sub> = 0,5 med formelen over.</p>
+      <div class="explain">Up-grenen: 1 · 0,5 + 2 · 0,5 = 1,5. Down-grenen: 3 · 0,5 + 4 · 0,5 = 3,5. U<sub>1</sub> = 0,5 · 1,5 + 0,5 · 3,5 = <strong>2,5</strong>. (P1 burde forresten alltid velge Down her: 3 &gt; 1 og 4 &gt; 2.)</div>
+    </div>
+
+    <p>Et <span class="term" data-en="zero-sum game">nullsumspill<span class="def">Spill der utbyttene i hver celle summerer til 0 (eller en konstant): det den ene vinner, taper den andre. To-fingers Morra og stein-saks-papir er nullsum; fangens dilemma er det ikke.</span></span> har utbytter som summerer til 0 (eller en konstant) i hver celle. To-fingers Morra er nullsum; fangens dilemma og «kjønnenes kamp» er det ikke.</p>
+
+    <!-- ===================================================== -->
+    <h2>3. Dominante strategier og iterert eliminering</h2>
+    <p>Sett deg i P1s sted i fangens dilemma:</p>
+    <ul>
+      <li>Hvis P2 vitner (testify): jeg får −5 om jeg vitner, −10 om jeg nekter. Vitne er best.</li>
+      <li>Hvis P2 nekter (refuse): jeg får 0 om jeg vitner, −1 om jeg nekter. Vitne er best her også.</li>
+      <li>Uansett hva P2 gjør, er det bedre for meg å vitne.</li>
+    </ul>
+    <p>Å vitne er en <span class="term" data-en="dominant strategy">dominant strategi<span class="def">En strategi som dominerer alle andre strategier for spilleren: den er best uansett hva de andre gjør.</span></span>. Presise definisjoner (boka):</p>
+    <ul>
+      <li>Strategi s <span class="term" data-en="strong (strict) domination" data-title="streng dominans">dominerer s′ strengt<span class="def">s gir strengt høyere utbytte enn s′ for hver eneste kombinasjon av de andre spillernes strategier. Forelesningen sier «strictly dominated», boka «strongly dominates».</span></span> (strongly/strictly) hvis s gir <strong>strengt bedre</strong> utbytte enn s′ for <em>hver</em> mulig strategi hos motspilleren.</li>
+      <li>s <span class="term" data-en="weak domination" data-title="svak dominans">dominerer s′ svakt<span class="def">s er minst like god som s′ mot alle motstrategier, og strengt bedre mot minst én.</span></span> hvis s er strengt bedre mot minst én motstrategi og ikke dårligere mot noen.</li>
+      <li>En <strong>dominant strategi</strong> dominerer alle de andre strategiene til spilleren.</li>
+    </ul>
+    <p>Når <em>alle</em> spillerne har en dominant strategi og velger den, kalles utfallet en <span class="term" data-en="dominant strategy equilibrium">dominant strategi-likevekt<span class="def">Utfallet når alle spillerne spiller en dominant strategi. Et svært sterkt løsningsbegrep, men finnes sjelden. Er alltid også en Nash-likevekt.</span></span>. I fangens dilemma er (Testify, Testify) en dominant strategi-likevekt. Eksamenene 2017 og 2018 kaller det «strongly dominant strategy equilibrium». De fleste spill har verken dominante strategier eller dominant strategi-likevekt.</p>
+
+    <div class="box intuition">
+      <span class="box-title">Hvorfor heter det et dilemma?</span>
+      <p>Begge vitner og får 5 år hver. Hadde begge nektet, ville de fått bare 1 år hver – bedre for <em>begge</em>. Men å nekte er aldri rasjonelt for den enkelte, uansett hva den andre gjør, og de kan ikke inngå en bindende avtale. Et svært sterkt løsningsbegrep gir altså et utfall som er dårlig for alle (mer om dette i seksjon 6). Utveier: gjør spillet kooperativt (bindende avtaler), gjør det gjentatt (seksjon 7), eller gi spillerne moralske verdier – men da har de andre nyttefunksjoner og spiller et annet spill.</p>
+    </div>
+
+    <h3>Iterert eliminering av strengt dominerte strategier</h3>
+    <p>En rasjonell spiller velger aldri en strengt dominert strategi. Den kan derfor strykes fra matrisen. Da kan <em>andre</em> strategier bli dominert i den mindre matrisen, og vi gjentar. Dette er <span class="term" data-en="iterated elimination of strictly dominated strategies (IESDS)">iterert eliminering av strengt dominerte strategier<span class="def">Gjentatt fjerning av strategier som er strengt dominert (i den gjenværende matrisen), for begge spillerne, til ingen flere kan fjernes. Fjerner aldri en Nash-likevekt. Rekkefølgen spiller ingen rolle for strengt dominerte strategier.</span></span>. Rekkefølgen spiller ingen rolle, og metoden fjerner aldri en Nash-likevekt.</p>
+    <div class="box algo">
+      <span class="box-title">Oppskrift</span>
+<pre>gjenta:
+   finnes en rad r og en annen rad r' slik at P1-utbyttet i r' er STRENGT større
+   enn i r i HVER gjenværende kolonne?   → stryk r  (skriv: «r er strengt dominert av r'»)
+   finnes en kolonne c og en annen c' slik at P2-utbyttet i c' er STRENGT større
+   enn i c i HVER gjenværende rad?        → stryk c
+til ingenting kan strykes.  Står det igjen én celle, er det løsningen.</pre>
+    </div>
+    <div class="widget" id="iesds-widget">
+      <p style="margin-top:0"><strong>Iterert eliminering steg for steg.</strong> Forelesningens eksempel (lysark 3): «What will P1 and P2 do?» Prøv selv på papir først, og trykk så «Neste eliminering».</p>
+      <div class="gt-row"><label>Spill: <select id="ie-preset"><option value="lecture">Forelesningen (3×3)</option><option value="agi">Eksamen 2023: KI-kappløpet</option></select></label><button id="ie-step">Neste eliminering</button><button class="secondary" id="ie-reset">Start på nytt</button></div>
+      <div id="ie-table"></div>
+      <div class="iesds-log" id="ie-log"></div>
+    </div>
+    <div class="quiz" data-answer="c">
+      <p class="q">I forelesningens 3×3-spill: hvilken strategi kan strykes <em>først</em>?</p>
+      <ul class="opts">
+        <li data-why="Down gir P1 8 i Right-kolonnen, mer enn Middle (6), så Down er ikke strengt dominert av Middle før Right er strøket.">Down for P1</li>
+        <li data-why="Left gir P2 9 når P1 spiller Down – mer enn noe annet i den raden.">Left for P2</li>
+        <li>Right for P2</li>
+        <li data-why="Up gir P1 13 i Left-kolonnen, det høyeste i hele matrisen.">Up for P1</li>
+      </ul>
+      <div class="feedback">For P2 gir Middle 4 &gt; 3, 3 &gt; 2 og 8 &gt; −1 sammenlignet med Right. Right er altså strengt dominert av Middle. Deretter blir Down dominert for P1, så Left for P2, og til slutt står (Middle, Middle) igjen med utbytte (3, 3).</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>4. Nash-likevekt i rene strategier</h2>
+    <p>Dominant strategi-likevekt finnes sjelden. Et svakere, men mye mer anvendelig løsningsbegrep er <span class="term" data-en="Nash equilibrium">Nash-likevekt<span class="def">En strategiprofil der ingen spiller kan få høyere utbytte ved å endre sin egen strategi alene, gitt at de andre holder fast ved sine. Alle spiller beste respons til hverandre.</span></span> (John Nash, doktorgrad 1950, nobelpris 1994):</p>
+    <div class="box key">
+      <span class="box-title">Definisjon</span>
+      <p>En strategiprofil er en Nash-likevekt hvis <strong>ingen spiller kan få høyere utbytte ved å endre bare sin egen strategi</strong>, gitt at de andre holder fast ved sine. Hver spiller spiller altså en <span class="term" data-en="best response">beste respons<span class="def">Den (eller de) strategien(e) som gir høyest utbytte for en spiller gitt de andres strategier.</span></span> til de andre. Forelesningen, for rene strategier:</p>
+      <div class="formula">∀π ∈ {0, 1}: U<sub>1</sub>(π<sub>1</sub>*, π<sub>2</sub>*) ≥ U<sub>1</sub>(π, π<sub>2</sub>*) &nbsp;&nbsp; og &nbsp;&nbsp; ∀π ∈ {0, 1}: U<sub>2</sub>(π<sub>1</sub>*, π<sub>2</sub>*) ≥ U<sub>2</sub>(π<sub>1</sub>*, π)</div>
+      <p>«Ingen har insentiv til å endre strategi så lenge den andre ikke endrer sin.»</p>
+    </div>
+    <p>En Nash-likevekt er et <em>stabilt</em> punkt, men bare lokalt: et spill kan ha flere. Siden en dominant strategi er beste respons til alt, er enhver dominant strategi-likevekt også en Nash-likevekt (ikke omvendt).</p>
+
+    <div class="box algo">
+      <span class="box-title">Beste-respons-metoden (understrekingsmetoden) – slik gjør du det på eksamen</span>
+<pre>1. For hver KOLONNE (P2s valg): finn P1s høyeste utbytte i kolonnen → STREK UNDER det (alle ved likhet).
+2. For hver RAD (P1s valg): finn P2s høyeste utbytte i raden → STREK UNDER det.
+3. Celler der BEGGE tallene er understreket, er Nash-likevekter i rene strategier.</pre>
+    </div>
+    <p>Fangens dilemma: i Testify-kolonnen er P1s beste −5 (Testify), i Refuse-kolonnen 0 (Testify); i Testify-raden er P2s beste −5 (Testify), i Refuse-raden 0 (Testify). Bare (Testify, Testify) har to understrekinger, så det er den eneste Nash-likevekten.</p>
+
+    <h3>Flere likevekter: kjønnenes kamp og koordinering</h3>
+    <table class="pm">
+      <tr><th></th><th></th><th colspan="2" class="p2">P2</th></tr>
+      <tr><th></th><th></th><th class="p2">movie</th><th class="p2">opera</th></tr>
+      <tr><th rowspan="2" class="p1">P1</th><th class="p1">movie</th><td class="ne"><span class="p1 br">2</span>, <span class="p2 br">1</span></td><td><span class="p1">0</span>, <span class="p2">0</span></td></tr>
+      <tr><th class="p1">opera</th><td><span class="p1">0</span>, <span class="p2">0</span></td><td class="ne"><span class="p1 br">1</span>, <span class="p2 br">2</span></td></tr>
+    </table>
+    <p class="pm-cap">«Battle of the Sexes» (forelesningen): to pure Nash-likevekter, (movie, movie) og (opera, opera). Ikke nullsum.</p>
+    <p>Begge vil helst være sammen, men P1 foretrekker film og P2 opera. Det gir to likevekter i rene strategier. Boka har et lignende <span class="term" data-en="coordination problem">koordineringsproblem<span class="def">Spill med flere Nash-likevekter der spillerne tjener på å velge samme likevekt, men må velge hver for seg uten å kunne avtale noe.</span></span> med (t, l) = (10, 10) og (b, r) = (1, 1): begge er Nash-likevekter, men (t, l) er et opplagt <span class="term" data-en="focal point">fokuspunkt<span class="def">Et utfall som av en eller annen grunn peker seg ut som det «opplagte» å koordinere på, f.eks. fordi det gir begge mye høyere utbytte.</span></span> fordi det er mye bedre for begge.</p>
+
+    <h3>Ingen likevekt i rene strategier: Morra og matching pennies</h3>
+    <table class="pm">
+      <tr><th></th><th></th><th colspan="2" class="p2">P2</th></tr>
+      <tr><th></th><th></th><th class="p2">1</th><th class="p2">2</th></tr>
+      <tr><th rowspan="2" class="p1">P1</th><th class="p1">1</th><td><span class="p1 br">2</span>, <span class="p2">−2</span></td><td><span class="p1">−3</span>, <span class="p2 br">3</span></td></tr>
+      <tr><th class="p1">2</th><td><span class="p1">−3</span>, <span class="p2 br">3</span></td><td><span class="p1 br">4</span>, <span class="p2">−4</span></td></tr>
+    </table>
+    <p class="pm-cap">To-fingers Morra (forelesningen). Hver spiller viser 1 eller 2 fingre. Er summen f partall, får P1 f kroner fra P2; er den oddetall, får P2 f fra P1. Nullsum.</p>
+    <p>Ingen celle har to understrekinger: i hver celle angrer en av spillerne. Samme for <span class="term" data-en="matching pennies">matching pennies<span class="def">Begge velger kron eller mynt samtidig. Like valg: P1 vinner 1; ulike: P2 vinner 1. Ingen Nash-likevekt i rene strategier; blandet likevekt 50/50.</span></span> og stein-saks-papir. Da må spillerne <em>randomisere</em> (seksjon 5).</p>
+    <div class="box key">
+      <span class="box-title">Nash' teorem</span>
+      <p>Ethvert spill med endelig mange spillere og endelig mange handlinger har <strong>minst én Nash-likevekt</strong> – men den kan kreve blandede strategier. Derfor er Nash-likevekt et så viktig løsningsbegrep: dominant strategi-likevekt finnes ikke alltid, men en Nash-likevekt finnes alltid hvis vi tillater blandede strategier.</p>
+    </div>
+
+    <div class="widget" id="nash-widget">
+      <p style="margin-top:0"><strong>Matriseanalysator for 2×2-spill.</strong> Velg et forhåndsdefinert spill eller skriv inn egne tall (blå = P1, rød = P2). Analysatoren streker under beste responser, finner rene og blandede Nash-likevekter, dominans, Pareto-optimale utfall og sosial velferd, og plotter indifferenslinjene som i forelesningen.</p>
+      <div class="gt-row"><label>Spill: <select id="nw-preset"></select></label></div>
+      <table class="gt-in" id="nw-in"></table>
+      <div class="gt-res" id="nw-out"></div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>5. Blandede strategier</h2>
+    <h3>5.1 Morra: å utnytte en motstander, og hvordan unngå å bli utnyttet</h3>
+    <p>Anta at P2 i Morra velger 1 og 2 med 50 % sannsynlighet hver. Da får P1</p>
+    <ul>
+      <li>ved å velge 1: 0,5 · 2 + 0,5 · (−3) = −0,5,</li>
+      <li>ved å velge 2: 0,5 · (−3) + 0,5 · 4 = +0,5.</li>
+    </ul>
+    <p>P1 <strong>utnytter</strong> P2 ved å velge 2 oftere enn 1. Hvordan kan P2 spille slik at P1 <em>ikke</em> kan utnytte det? Ved å velge π<sub>2</sub> slik at P1 får <strong>like mye</strong> uansett hva P1 gjør. Da er P1 <em>indifferent</em>, og ingen ren eller blandet strategi gir P1 mer:</p>
+    <div class="formula"><span class="p1">2</span>π<sub>2</sub> <span class="p1">− 3</span>(1 − π<sub>2</sub>) = <span class="p1">−3</span>π<sub>2</sub> + <span class="p1">4</span>(1 − π<sub>2</sub>) &nbsp;⇒&nbsp; 5π<sub>2</sub> − 3 = 4 − 7π<sub>2</sub> &nbsp;⇒&nbsp; π<sub>2</sub> = 7/12</div>
+    <p>Venstresiden er P1s forventede nytte ved å velge 1, høyresiden ved å velge 2. Grafisk er π<sub>2</sub> der linjene for P1s to handlinger krysser hverandre (velg «Morra» i analysatoren over). Tilsvarende gjør P1 P2 indifferent med P2s utbytter:</p>
+    <div class="formula"><span class="p2">−2</span>π<sub>1</sub> + <span class="p2">3</span>(1 − π<sub>1</sub>) = <span class="p2">3</span>π<sub>1</sub> <span class="p2">− 4</span>(1 − π<sub>1</sub>) &nbsp;⇒&nbsp; π<sub>1</sub> = 7/12</div>
+    <p>Den blandede Nash-likevekten er <strong>π<sub>1</sub> = π<sub>2</sub> = 7/12</strong>: begge viser én finger med sannsynlighet 7/12. Spillets verdi er U<sub>1</sub> = −1/12 og U<sub>2</sub> = +1/12, så det er bedre å være P2 (O i boka). At svarene er like for begge, er en tilfeldighet: det skyldes at U<sub>1</sub>(1, 2) = U<sub>1</sub>(2, 1) = −3.</p>
+
+    <div class="box warning">
+      <span class="box-title">Den vanligste feilen: feil spillers utbytter</span>
+      <p><strong>π<sub>2</sub> regnes ut fra P1s utbytter</strong> (P2 velger π<sub>2</sub> for å gjøre P1 indifferent), og <strong>π<sub>1</sub> fra P2s utbytter</strong>. Det føles bakvendt, men det er poenget: din egen blanding bestemmes av at motstanderen ikke skal kunne utnytte deg. Forelesningen: «Mixed strategy for P2 is given by the intersection of P1's expected utilities for actions 1 and 2.»</p>
+    </div>
+
+    <div class="box key">
+      <span class="box-title">Definisjon av blandet Nash-likevekt (forelesningen, to spillere, to handlinger)</span>
+      <div class="formula">∀π ∈ [0, 1]: U<sub>1</sub>(π<sub>1</sub>*, π<sub>2</sub>*) = U<sub>1</sub>(π, π<sub>2</sub>*) &nbsp;&nbsp; og &nbsp;&nbsp; ∀π ∈ [0, 1]: U<sub>2</sub>(π<sub>1</sub>*, π<sub>2</sub>*) = U<sub>2</sub>(π<sub>1</sub>*, π)</div>
+      <p>Med likhetstegn: i en blandet likevekt er hver spiller <strong>indifferent</strong> mellom sine handlinger, gitt motspillerens blanding (<span class="term" data-en="indifference principle">indifferensprinsippet<span class="def">I en blandet Nash-likevekt gir alle handlingene en spiller blander mellom, samme forventede nytte, gitt motspillerens blanding. Ellers ville spilleren bare valgt den beste.</span></span>). Boka: «each component strategy in an equilibrium mixed strategy has the same expected utility».</p>
+    </div>
+
+    <div class="box algo">
+      <span class="box-title">Oppskrift: blandet Nash-likevekt i et 2×2-spill</span>
+<pre>Matrise:            P2: første (π2)      P2: andre (1−π2)
+  P1 første (π1)       (a , e)              (b , f)
+  P1 andre (1−π1)      (c , g)              (d , h)
+
+1. P1 indifferent:  a·π2 + b·(1−π2) = c·π2 + d·(1−π2)   →  π2 = (d − b) / (a − b − c + d)
+2. P2 indifferent:  e·π1 + g·(1−π1) = f·π1 + h·(1−π1)   →  π1 = (h − g) / (e − f − g + h)
+3. Ligger begge strengt mellom 0 og 1?  Ja → blandet likevekt.  Nei → ingen (fullt) blandet likevekt.
+4. Kontroller: sett inn π1, π2 og sjekk at begge sider av hver likning blir like.</pre>
+    </div>
+
+    <h3>5.2 Kjønnenes kamp: tre likevekter</h3>
+    <p>La π<sub>1</sub> = P(P1 velger movie) og π<sub>2</sub> = P(P2 velger movie). P2 gjør P1 indifferent: <span class="p1">2</span>π<sub>2</sub> + <span class="p1">0</span>(1 − π<sub>2</sub>) = <span class="p1">0</span>π<sub>2</sub> + <span class="p1">1</span>(1 − π<sub>2</sub>) ⇒ <strong>π<sub>2</sub> = 1/3</strong>. P1 gjør P2 indifferent: <span class="p2">1</span>π<sub>1</sub> + <span class="p2">0</span>(1 − π<sub>1</sub>) = <span class="p2">0</span>π<sub>1</sub> + <span class="p2">2</span>(1 − π<sub>1</sub>) ⇒ <strong>π<sub>1</sub> = 2/3</strong>.</p>
+    <p>Hver spiller går altså oftest til <em>sitt eget</em> favorittsted. Den blandede likevekten gir begge forventet nytte 2/3 – dårligere enn begge de rene likevektene (der den ene får 2 og den andre 1), fordi de ofte havner på hvert sitt sted. Spillet har dermed <strong>tre</strong> Nash-likevekter: to rene og én blandet.</p>
+    <div class="check" data-answer="0.6667" data-mode="number" data-tol="0.001">
+      <p class="q">Hva er P1s forventede nytte U<sub>1</sub> i den blandede likevekten i kjønnenes kamp (π<sub>1</sub> = 2/3, π<sub>2</sub> = 1/3)? (4 desimaler)</p>
+      <div class="explain">Siden P1 er indifferent, kan vi regne nytten av én av P1s rene handlinger: movie gir 2 · 1/3 + 0 · 2/3 = 2/3; opera gir 0 · 1/3 + 1 · 2/3 = 2/3. U<sub>1</sub> = <strong>2/3 ≈ 0,6667</strong>.</div>
+    </div>
+
+    <h3>5.3 Fangens dilemma: ingen blandet likevekt</h3>
+    <p>Hvorfor har ikke fangens dilemma en blandet likevekt? P1 indifferent krever −5π<sub>2</sub> + 0(1 − π<sub>2</sub>) = −10π<sub>2</sub> − 1(1 − π<sub>2</sub>) ⇒ −5π<sub>2</sub> = −9π<sub>2</sub> − 1 ⇒ π<sub>2</sub> = −1/4, som ikke er en sannsynlighet. Forelesningen: «No solutions.» Grafisk ligger Testify-linjen alltid over Refuse-linjen; de krysser aldri. Det er det samme som at Testify dominerer strengt: <strong>en spiller med en strengt dominant strategi blander aldri</strong>.</p>
+    <div class="box warning">
+      <span class="box-title">Tolke løsningen av indifferenslikningen</span>
+      <ul>
+        <li><strong>0 &lt; π &lt; 1 for begge:</strong> blandet likevekt.</li>
+        <li><strong>π &lt; 0 eller π &gt; 1:</strong> linjene krysser ikke i [0, 1] → én handling er alltid best (dominans) → ingen blandet likevekt.</li>
+        <li><strong>π = 0 eller π = 1:</strong> «indifferens» skjer bare i et rent punkt → ingen <em>ekte</em> blandet likevekt, men sjekk de rene likevektene nøye (2025-oppgaven).</li>
+        <li><strong>Nevner = 0:</strong> spilleren er enten alltid indifferent (linjene ligger oppå hverandre) eller aldri.</li>
+      </ul>
+    </div>
+
+    <h3>5.4 Nullsumspill: maximin (von Neumann)</h3>
+    <p>For nullsumspill med to spillere er den blandede Nash-likevekten det samme som bokas <span class="term" data-en="maximin equilibrium">maximin-likevekt<span class="def">I nullsumspill: strategien som maksimerer det minste utbyttet spilleren kan bli presset ned til. von Neumann (1928): ethvert endelig to-spiller nullsumspill har en maximin-likevekt i blandede strategier, og den er en Nash-likevekt.</span></span>. Bokas resonnement for Morra (E = P1, O = P2):</p>
+    <ul>
+      <li>Hvis E må avsløre sin (rene) strategi først, kan O svare optimalt: minimax-verdien er −3, så spillets sanne verdi U ≥ −3.</li>
+      <li>Hvis O må avsløre først, er verdien +2, så U ≤ +2. Altså −3 ≤ U ≤ 2.</li>
+      <li>Med blandede strategier: E velger [p: one; (1 − p): two] først. O velger rent svar; mot «one» får E 5p − 3, mot «two» 4 − 7p. O velger den laveste linjen, så E velger p der linjene krysser: 5p − 3 = 4 − 7p ⇒ <strong>p = 7/12</strong>, verdi −1/12. Når O må avsløre først, gir samme regning q = 7/12 og −1/12.</li>
+      <li>Nedre og øvre grense møtes: verdien er nøyaktig −1/12.</li>
+    </ul>
+    <p>von Neumann: ethvert endelig to-spiller nullsumspill har en maximin-likevekt i blandede strategier. En spiller som bruker den, har to garantier: ingen annen strategi gjør det bedre mot en motstander som spiller godt, og strategien taper ingenting på å bli avslørt. (Kobling til modul 6: minimax for turbaserte spill er det samme prinsippet, «velg det beste, gitt at motstanderen svarer best mulig».)</p>
+    <div class="reflect">
+      <p class="q">Boka sier at en rasjonell Morra-spiller like gjerne kan bestemme seg for å alltid vise én finger – forventet utbytte blir fortsatt −1/12 – <em>men bare hvis motstanderen ikke vet det</em>. Hvorfor?</p>
+      <details><summary>Vis et forslag</summary><p>Når motstanderen spiller sin likevektsblanding (7/12), er E indifferent: begge rene handlinger gir −1/12, så det spiller ingen rolle hva E faktisk gjør. Men hvis O <em>vet</em> at E alltid viser én finger, er ikke O lenger bundet til likevektsblandingen: O velger da alltid «two» og vinner 3 hver gang. Det er derfor man randomiserer: ikke fordi tilfeldighet i seg selv gir mer, men fordi det gjør deg uforutsigbar (jf. Kriegspiel og poker i modul 6).</p></details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>6. Sosial velferd og Pareto-optimalitet</h2>
+    <p>Hittil har vi sett spillet fra spillernes side. Tenk deg i stedet en velvillig, allvitende instans som kan <em>velge utfallet</em> for alle. Hvilket utfall er best for «samfunnet»? Det er spørsmålet om <span class="term" data-en="social welfare">sosial velferd<span class="def">Mål på hvor godt et utfall er for alle spillerne samlet, sett utenfra (ikke fra én spillers side). Vanlige mål: Pareto-optimalitet, utilitaristisk og egalitær velferd.</span></span>.</p>
+    <ul>
+      <li><strong>Pareto-optimalitet</strong> (minst kontroversielt): ikke kast bort nytte. Et utfall er <span class="term" data-en="Pareto optimal">Pareto-optimalt<span class="def">Det finnes ikke noe annet utfall som gjør minst én spiller bedre stilt uten å gjøre noen dårligere stilt. Et utfall som ikke er Pareto-optimalt, er Pareto-dominert.</span></span> hvis det ikke finnes noe annet utfall som gjør én spiller bedre stilt uten å gjøre noen andre dårligere stilt. Et utfall som ikke er Pareto-optimalt, er <span class="term" data-en="Pareto dominated">Pareto-dominert<span class="def">Det finnes et annet utfall der alle har det minst like bra og minst én har det strengt bedre.</span></span>.</li>
+      <li><span class="term" data-en="utilitarian social welfare">Utilitaristisk sosial velferd<span class="def">Summen av alle spillernes utbytte i et utfall. Problemer: tar ikke hensyn til fordelingen, og forutsetter at nytte kan sammenlignes på en felles skala («utility monster»).</span></span>: <strong>summen</strong> av utbyttene. To problemer: den ser bort fra fordelingen (kan gi svært skjeve utfall), og den forutsetter en felles skala for nytte (bokas «utility monster» som påstår å elske kjeks tusen ganger mer enn alle andre).</li>
+      <li><span class="term" data-en="egalitarian social welfare">Egalitær sosial velferd<span class="def">Fokuserer på fordelingen, f.eks. ved å maksimere utbyttet til den som har det dårligst (maximin), eller med Gini-koeffisienten.</span></span>: ta hensyn til fordelingen, f.eks. maksimer utbyttet til den som har det <strong>dårligst</strong> (maximin), eller bruk Gini-koeffisienten. Problem: kan ofre mye total velferd for små fordelingsgevinster.</li>
+    </ul>
+    <div class="box algo">
+      <span class="box-title">Slik finner du Pareto-optimale celler</span>
+<pre>For hver celle (u1, u2): finnes en annen celle (v1, v2) med v1 ≥ u1 OG v2 ≥ u2,
+og minst én av dem strengt større?   Ja → Pareto-dominert.   Nei → Pareto-optimal.
+Tips: cellen med høyest u1 og cellen med høyest u2 er (nesten) alltid Pareto-optimale.</pre>
+    </div>
+    <p><strong>Fangens dilemma:</strong> (Testify, Testify) = (−5, −5) er dominant strategi-likevekt og eneste Nash-likevekt, men det er <em>det eneste</em> utfallet som ikke er Pareto-optimalt: (Refuse, Refuse) = (−1, −1) er bedre for begge. (Refuse, Refuse) maksimerer både utilitaristisk (sum −2) og egalitær (verste −1) velferd. Dilemmaet: et svært sterkt løsningsbegrep gir et utfall som feiler på alle samfunnsmålene, og spillerne har ingen vei til et bedre utfall.</p>
+
+    <div class="box key">
+      <span class="box-title">Bevis (2019): utfall som maksimerer sosial velferd er Pareto-optimale</span>
+      <p>Anta at utfallet o maksimerer summen av utbyttene, men ikke er Pareto-optimalt. Da finnes et utfall o′ der alle har minst like mye som i o, og minst én har strengt mer. Men da er summen i o′ strengt større enn i o – en motsigelse med at o maksimerte summen. Altså er o Pareto-optimalt. (Det omvendte gjelder ikke: et Pareto-optimalt utfall trenger ikke maksimere summen.)</p>
+    </div>
+    <div class="check" data-answer="Maintain/Maintain" data-mode="text" data-alt="MM|Maintain,Maintain|(Maintain,Maintain)|Maintain Maintain|maintain-maintain">
+      <p class="q">(Eksamen 2023) I KI-kappløpet under: hvilket utfall maksimerer utilitaristisk sosial velferd? Skriv f.eks. «Accelerate/Hinder».</p>
+      <table class="pm">
+        <tr><th></th><th></th><th colspan="3" class="p2">China</th></tr>
+        <tr><th></th><th></th><th class="p2">Accelerate</th><th class="p2">Maintain</th><th class="p2">Hinder</th></tr>
+        <tr><th rowspan="3" class="p1">US</th><th class="p1">Accelerate</th><td>6 / 6</td><td>8 / 4</td><td>9 / 2</td></tr>
+        <tr><th class="p1">Maintain</th><td>4 / 8</td><td>7 / 7</td><td>10 / 2</td></tr>
+        <tr><th class="p1">Hinder</th><td>2 / 9</td><td>2 / 10</td><td>5 / 5</td></tr>
+      </table>
+      <div class="explain">Summene: AA 12, AM 12, AH 11, MA 12, <strong>MM 14</strong>, MH 12, HA 11, HM 12, HH 10. <strong>Maintain/Maintain</strong> (14) maksimerer summen og er dermed Pareto-optimalt. Men Nash-likevekten er Accelerate/Accelerate (12), som er Pareto-dominert av MM (7 &gt; 6 for begge). Det er samme struktur som fangens dilemma.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>7. Gjentatte spill</h2>
+    <p>Et <span class="term" data-en="repeated game (iterated game)">gjentatt spill<span class="def">Spill der spillerne spiller samme enkeltrundespill (stage game) mange ganger. En strategi angir et valg i hver runde for hver mulig historie av tidligere valg.</span></span> (iterated game) er et spill der spillerne spiller samme <span class="term" data-en="stage game">enkeltrundespill<span class="def">Spillet som spilles i hver runde av et gjentatt spill, f.eks. ett fangens dilemma.</span></span> (stage game) mange ganger. En strategi angir nå et valg i hver runde for hver mulig <em>historie</em> av tidligere valg: π<sub>p</sub>(s<sub>t</sub>), der tilstanden s<sub>t</sub> = ((a<sub>1,0</sub>, a<sub>2,0</sub>), …, (a<sub>1,t−1</sub>, a<sub>2,t−1</sub>)) inneholder alle tidligere handlinger.</p>
+
+    <h3>7.1 Fast, endelig og kjent antall runder: bakoverinduksjon</h3>
+    <p>Spillerne skal spille 10 runder fangens dilemma. Hva gjør de?</p>
+    <div class="stepper" data-label="Steg">
+      <div class="step"><p><strong>Runde 10 (siste):</strong> ingenting skjer etterpå, så runden er et vanlig enkeltspill. Testify er dominant → begge <strong>vitner</strong>.</p></div>
+      <div class="step"><p><strong>Runde 9:</strong> utfallet av runde 10 er allerede gitt (begge vitner uansett), så runde 9 kan ikke påvirke fremtiden. Den er også et enkeltspill → begge <strong>vitner</strong>.</p></div>
+      <div class="step"><p><strong>…</strong> Samme argument for runde 8, 7, …</p></div>
+      <div class="step"><p><strong>Runde 1:</strong> begge <strong>vitner</strong>. Totalt −50 hver (boka med 100 runder: 500 år i fengsel hver).</p><p>Dette resonnementet kalles <span class="term" data-en="backward induction">bakoverinduksjon<span class="def">Løs et spill med kjent, endelig antall runder bakfra: finn optimalt spill i siste runde, bruk det til å finne optimalt spill i nest siste, osv. I gjentatt fangens dilemma gir det «vitne» i alle runder.</span></span> og er grunnleggende i spillteori.</p></div>
+    </div>
+    <div class="box warning">
+      <span class="box-title">Alle tre betingelsene må holde</span>
+      <p>Bakoverinduksjon krever at antall runder er <strong>fast, endelig og kjent for begge</strong>. Fjerner vi én av dem, faller argumentet, og samarbeid kan bli rasjonelt (7.2–7.3).</p>
+    </div>
+
+    <h3>7.2 Uendelig mange runder: diskonteringsfaktor</h3>
+    <p>Med uendelig mange runder kan vi ikke bare summere utbyttene: Σ<sub>t=0</sub><sup>∞</sup> U<sub>p</sub>(π<sub>1</sub>(s<sub>t</sub>), π<sub>2</sub>(s<sub>t</sub>)) divergerer til −∞ både for «alltid vitne» og for «alltid nekte», så vi kan ikke sammenligne dem. Forelesningen bruker en <span class="term" data-en="discount factor">diskonteringsfaktor<span class="def">δ ∈ (0, 1). Utbytte i runde t vektes med δ^t, så summen Σ δ^t U blir endelig. Liten δ: bare de første rundene betyr noe (utålmodig spiller). Stor δ: fremtiden betyr mye.</span></span> δ ∈ (0, 1):</p>
+    <div class="formula">Σ<sub>t=0</sub><sup>∞</sup> δ<sup>t</sup> U<sub>p</sub>(π<sub>1</sub>(s<sub>t</sub>), π<sub>2</sub>(s<sub>t</sub>)) &nbsp;&nbsp;&nbsp; (geometrisk rekke: Σ<sub>t=0</sub><sup>∞</sup> δ<sup>t</sup> = 1/(1 − δ), &nbsp; Σ<sub>t=1</sub><sup>∞</sup> δ<sup>t</sup> = δ/(1 − δ))</div>
+    <p>En liten δ betyr at bare de første rundene teller (utålmodig spiller); en δ nær 1 betyr at fremtiden betyr nesten like mye som nåtiden. (Boka bruker i stedet <span class="term" data-en="limit of means">gjennomsnittet i grensen<span class="def">Bokas mål på utbyttet i uendelig gjentatte spill: lim (1/T) Σ U_t når T → ∞. Konvergerer når strategiene er endelige tilstandsmaskiner.</span></span>, lim<sub>T→∞</sub> (1/T) Σ U<sub>t</sub>, men forelesningen og eksamen bruker δ.)</p>
+
+    <h3>7.3 Strategier for gjentatt fangens dilemma</h3>
+    <p>Kod <strong>1 = testify (vitne)</strong> og <strong>0 = refuse (nekte)</strong>, som i forelesningen. Boka tegner strategiene som endelige tilstandsmaskiner:</p>
+    <table>
+      <tr><th>Strategi</th><th>Regel</th></tr>
+      <tr><td>Hawk / alltid vitne</td><td>Vitner i hver runde.</td></tr>
+      <tr><td>Dove / alltid nekte</td><td>Nekter i hver runde.</td></tr>
+      <tr><td><span class="term" data-en="grim trigger">Grim trigger<span class="def">Samarbeid (nekt) helt til motstanderen har vitnet én gang; deretter vitne for alltid. Uforsonlig straff.</span></span></td><td>π<sub>1</sub>(s<sub>t</sub>) = 1 hvis t &gt; 0 og Σ<sub>i=0</sub><sup>t−1</sup> a<sub>2,i</sub> &gt; 0, ellers 0. Nekt helt til motstanderen har vitnet én gang – deretter vitne <strong>for alltid</strong>. Ingen vei tilbake.</td></tr>
+      <tr><td><span class="term" data-en="tit for tat">Tit for tat<span class="def">Nekt (samarbeid) i første runde, og gjør deretter det motstanderen gjorde i forrige runde. Tilgivende. Vant Axelrods turnering i 1980.</span></span></td><td>π<sub>1</sub>(s<sub>t</sub>) = 0 hvis t = 0, ellers a<sub>2,t−1</sub>. Nekt i første runde, kopier deretter det motstanderen gjorde i forrige runde. <strong>Tilgivende:</strong> går tilbake til å nekte så snart motstanderen gjør det.</td></tr>
+    </table>
+
+    <h3>7.4 Grim trigger er en Nash-likevekt når δ ≥ 1/5</h3>
+    <p>Anta at begge spiller grim trigger. Har P1 noe å tjene på å avvike (vitne) i første runde?</p>
+    <ul>
+      <li><strong>Følge grim:</strong> begge nekter for alltid, −1 hver runde: Σ<sub>t=0</sub><sup>∞</sup> δ<sup>t</sup>·(−1) = −1/(1 − δ).</li>
+      <li><strong>Avvike:</strong> P1 vitner, P2 nekter i runde 0 → P1 får 0. Deretter vitner P2 (grim) for alltid, og P1s beste svar er å vitne også → −5 i hver runde fra t = 1: 0 + Σ<sub>t=1</sub><sup>∞</sup> δ<sup>t</sup>·(−5) = −5δ/(1 − δ) = 5 − 5/(1 − δ).</li>
+    </ul>
+    <div class="formula">Σ<sub>t=0</sub><sup>∞</sup> δ<sup>t</sup> U<sub>1</sub>(0, 0) ≥ δ<sup>0</sup> U<sub>1</sub>(1, 0) + Σ<sub>t=1</sub><sup>∞</sup> δ<sup>t</sup> U<sub>1</sub>(1, 1)<br>
+    −1/(1 − δ) ≥ 5 − 5/(1 − δ) &nbsp;⇔&nbsp; −1 ≥ −5δ &nbsp;⇔&nbsp; <strong>δ ≥ 1/5</strong></div>
+    <p>Hvis begge følger grim trigger med δ ≥ 1/5, er de i en Nash-likevekt der de <strong>samarbeider i hver runde</strong> – et utfall som er umulig i enkeltspillet. Grunnen er den gjensidige trusselen om evig straff. Generelt, med R = utbytte ved gjensidig samarbeid, T = fristelsen (vitne mot en som nekter) og P = gjensidig straff (begge vitner):</p>
+    <div class="formula">R/(1 − δ) ≥ T + δP/(1 − δ) &nbsp;⇔&nbsp; δ ≥ (T − R)/(T − P) &nbsp;&nbsp;&nbsp; (her: (0 − (−1))/(0 − (−5)) = 1/5)</div>
+    <div class="check" data-answer="0.5" data-mode="number" data-tol="0.001">
+      <p class="q">I et annet fangens dilemma gir gjensidig samarbeid 3 hver, gjensidig avhopp 1 hver, og den som hopper av mot en samarbeidende får 5 (den andre 0). Hva er minste δ som gjør grim trigger mot grim trigger til en Nash-likevekt?</p>
+      <div class="explain">Samarbeid: 3/(1 − δ). Avvik: 5 + δ · 1/(1 − δ). 3/(1 − δ) ≥ 5 + δ/(1 − δ) ⇔ 3 ≥ 5(1 − δ) + δ = 5 − 4δ ⇔ δ ≥ <strong>1/2</strong>. Med formelen: (T − R)/(T − P) = (5 − 3)/(5 − 1) = 1/2.</div>
+    </div>
+    <div class="widget" id="grim-widget">
+      <p style="margin-top:0"><strong>Grim trigger-kalkulator.</strong> Endre δ og utbyttene og se når samarbeid lønner seg.</p>
+      <div class="gt-row">
+        <label>R (begge nekter) <input type="number" id="gr-R" value="-1" step="1" style="width:4rem"></label>
+        <label>T (vitne mot nekt) <input type="number" id="gr-T" value="0" step="1" style="width:4rem"></label>
+        <label>P (begge vitner) <input type="number" id="gr-P" value="-5" step="1" style="width:4rem"></label>
+      </div>
+      <div class="gt-row"><label>δ = <input type="range" id="gr-d" min="0.01" max="0.99" step="0.01" value="0.5"> <span id="gr-dv">0,50</span></label></div>
+      <div class="gt-status" id="gr-out"></div>
+    </div>
+    <p>Boka utdyper: både (Hawk, Hawk) og (Grim, Grim) er Nash-likevekter i uendelig gjentatt fangens dilemma, men (Dove, Dove) er det ikke (begge vil bytte til Hawk). Nash-likevekter i enkeltrundespillet består som likevekter i det gjentatte spillet. Dette er et eksempel på <span class="term" data-en="Nash folk theorems">Nash' folketeoremer<span class="def">Resultater som sier at ethvert utfall der alle spillerne får minst sin sikkerhetsverdi (det de kan garantere seg selv), kan opprettholdes som en Nash-likevekt i et uendelig gjentatt spill – typisk med grim-strategier som trussel.</span></span>: ethvert utfall der hver spiller får minst sin sikkerhetsverdi, kan opprettholdes som en likevekt i et uendelig gjentatt spill. Trusselen virker bare hvis motspilleren tror at du faktisk har valgt (eller kan ha valgt) grim.</p>
+
+    <h3>7.5 Ukjent antall runder: strategikonkurranse</h3>
+    <p>Når ingen vet hvor mange runder det blir, kan man ikke bruke bakoverinduksjon. Det finnes da ingen enkelt «optimal» strategi; det avhenger av hvem du møter. Forelesningen lot strategiene spille mot hverandre: <strong>grim trigger</strong> og <strong>tit for tat</strong> fikk høyest sum (minst negativ), deretter alltid vitne, alltid nekte, og tilfeldig sist. Med tilfeldig plasserte agenter som bare spiller mot naboene sine, varierer resultatene mye.</p>
+    <p>I <strong>Axelrods turnering</strong> (1980) sendte kjente spillteoretikere inn strategier for gjentatt fangens dilemma, og programmene spilte mot hverandre og seg selv. Vinneren var <strong>tit for tat</strong>: den starter vennlig, straffer avhopp med én gang, tilgir med én gang, og er lett for motstanderen å forstå. Boka nevner også at agenter som ikke kan telle antall gjenværende runder (endelige tilstandsmaskiner med færre tilstander enn runder), ikke kan gjøre bakoverinduksjon, og derfor kan ende i samarbeid: «ignorance is bliss».</p>
+    <div class="widget" id="ipd-widget">
+      <p style="margin-top:0"><strong>Gjentatt fangens dilemma.</strong> Velg strategi for hver spiller, antall runder og δ. Grønt = nekte (samarbeid), rødt = vitne.</p>
+      <div class="gt-row">
+        <label>P1 <select id="ipd-s1"></select></label>
+        <label>P2 <select id="ipd-s2"></select></label>
+        <label>Runder <input type="number" id="ipd-n" value="10" min="1" max="60" style="width:4rem"></label>
+        <label>δ <input type="number" id="ipd-d" value="0.9" min="0.01" max="0.99" step="0.05" style="width:4.5rem"></label>
+        <button id="ipd-go">Spill</button>
+      </div>
+      <div class="seq" id="ipd-out"></div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>8. Eksamensoppgaver</h2>
+    <p>Her er alle spillteorioppgavene fra eksamenene 2015–2025, med oppgaveteksten på engelsk slik den sto. Løs dem på papir før du åpner løsningsforslaget. Du kan kontrollere 2×2-oppgavene med analysatoren i seksjon 4.</p>
+    <div class="box exam">
+      <span class="box-title">Fast oppskrift for en spillteorioppgave</span>
+      <ol>
+        <li>Les eksempelsetningen: hvem er radspiller, og hvilket tall tilhører hvem? Hva betyr π<sub>1</sub> og π<sub>2</sub> (sannsynlighet for <em>hvilken</em> handling)?</li>
+        <li><strong>Dominans:</strong> sammenlign rad mot rad (P1-tall) og kolonne mot kolonne (P2-tall). Si «strengt» eller «svakt», og vis tallene.</li>
+        <li><strong>Rene Nash-likevekter:</strong> strek under beste responser; celler med to streker er likevekter. Vis begrunnelsen.</li>
+        <li><strong>Blandet likevekt:</strong> π<sub>2</sub> fra P1s indifferens, π<sub>1</sub> fra P2s. Sjekk at 0 &lt; π &lt; 1.</li>
+        <li><strong>Pareto / sosial velferd:</strong> list cellene, regn summer, vis hvilke celler som dominerer hvilke.</li>
+        <li><strong>Gjentatt:</strong> kjent antall runder → bakoverinduksjon; uendelig → δ og grim/tit for tat.</li>
+      </ol>
+    </div>
+
+    <div class="exercise" data-title="8.1 Game Theory" data-meta="Eksamen 2025 · Q4 · 5 p">
+      <p><em>Let the payoff matrix of a game be as follows:</em></p>
+      <table class="pm">
+        <tr><th></th><th></th><th colspan="2" class="p2">P2</th></tr>
+        <tr><th></th><th></th><th class="p2">Left</th><th class="p2">Right</th></tr>
+        <tr><th rowspan="2" class="p1">P1</th><th class="p1">Up</th><td>P1: 1, P2: 1</td><td>P1: 0, P2: 0</td></tr>
+        <tr><th class="p1">Down</th><td>P1: 0, P2: 0</td><td>P1: 0, P2: 0</td></tr>
+      </table>
+      <p><em>For example, if player P1 chooses Up and P2 chooses Left, both P1 and P2 will receive utility 1. Let π<sub>1</sub> be the probability that P1 chooses Up, and π<sub>2</sub> be the probability that P2 chooses Left. How many Nash equilibria are there in this game?</em></p>
+      <div class="quiz" data-answer="e">
+        <p class="q">Select one alternative:</p>
+        <ul class="opts">
+          <li data-why="(Up, Left) er åpenbart en likevekt: begge får 1, og ved å avvike får man 0.">No Nash equilibrium</li>
+          <li data-why="Det finnes ingen kontinuerlig familie av likevekter her; sjekk indifferenslikningene.">More than four Nash equilibria</li>
+          <li data-why="(Up, Right) og (Down, Left) er ikke likevekter: f.eks. i (Up, Right) kan P2 bytte til Left og få 1 i stedet for 0.">Four Nash equilibria: π₁=1, π₂=1 and π₁=1, π₂=0 and π₁=0, π₂=1 and π₁=0, π₂=0</li>
+          <li data-why="Ikke glem (Down, Right): ingen av spillerne tjener på å avvike alene derfra.">One Nash equilibrium: π₁=1, π₂=1</li>
+          <li>Two Nash equilibria: π₁=1, π₂=1 and π₁=0, π₂=0</li>
+        </ul>
+        <div class="feedback">Se løsningsforslaget under for begrunnelsen.</div>
+      </div>
+      <details class="hint"><summary>Hint</summary><p>Sjekk alle fire cellene med beste-respons-metoden – husk at likhet (≥) også teller som beste respons. Sjekk deretter om indifferenslikningene gir en blandet likevekt med 0 &lt; π &lt; 1.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><strong>To Nash-likevekter:</strong></p>
+        <ul>
+          <li><strong>Alltid Up og Left: π<sub>1</sub> = 1, π<sub>2</sub> = 1</strong>, fordi ∀π<sub>1</sub> ∈ [0, 1]: U<sub>1</sub>(1, 1) ≥ U<sub>1</sub>(π<sub>1</sub>, 1) og ∀π<sub>2</sub>: U<sub>2</sub>(1, 1) ≥ U<sub>2</sub>(1, π<sub>2</sub>). Begge får 1; avvik gir 0.</li>
+          <li><strong>Alltid Down og Right: π<sub>1</sub> = 0, π<sub>2</sub> = 0</strong>, fordi ∀π<sub>1</sub>: U<sub>1</sub>(0, 0) = U<sub>1</sub>(π<sub>1</sub>, 0) og ∀π<sub>2</sub>: U<sub>2</sub>(0, 0) = U<sub>2</sub>(0, π<sub>2</sub>). Når P2 spiller Right, får P1 0 uansett, så P1 kan ikke tjene på å avvike (og omvendt). En svak likevekt, men en likevekt.</li>
+        </ul>
+        <p>(Up, Right) er ikke en likevekt: P2 kan bytte til Left og få 1. Tilsvarende for (Down, Left). <strong>Blandet:</strong> P1 er indifferent når 1 · π<sub>2</sub> + 0 = 0 · π<sub>2</sub> + 0, altså bare når π<sub>2</sub> = 0, og P2 er indifferent bare når π<sub>1</sub> = 0. Det gir bare punktet (0, 0) som vi allerede har, så det finnes ingen ekte blandet likevekt. Svar: <strong>to Nash-likevekter</strong>.</p>
+        <p>Legg merke til at Down og Right er <em>svakt dominert</em>, men (Down, Right) er likevel en Nash-likevekt. Iterert eliminering av <em>strengt</em> dominerte strategier ville ikke fjernet noe her.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="8.2 Mixed strategy (stag hunt)" data-meta="Eksamen 2024 · Q12 · 4 p">
+      <p><em>Stag hunt is a game that represents the conflict between safety and cooperation. Two hunters have to decide separately which animal to hunt. There are three animals in total: a stag and two hares. Hunting the stag requires two hunters, while hunting a hare is much easier and thus a sole hunter can catch both of the hares. If both hunters hunt the hares, they will get one hare each. Let the payoff matrix of the stag hunt game be as follows:</em></p>
+      <table class="pm">
+        <tr><th></th><th></th><th colspan="2" class="p2">P2</th></tr>
+        <tr><th></th><th></th><th class="p2">Stag</th><th class="p2">Hare</th></tr>
+        <tr><th rowspan="2" class="p1">P1</th><th class="p1">Stag</th><td>5,5</td><td>0,2</td></tr>
+        <tr><th class="p1">Hare</th><td>2,0</td><td>1,1</td></tr>
+      </table>
+      <p><em>For example, if P1 chooses Hare and P2 chooses Stag, P1 will receive utility 2 and P2 will receive utility 0. Let π<sub>1</sub> be the probability that P1 chooses Stag, and π<sub>2</sub> be the probability that P2 chooses Stag. What is the mixed strategy Nash equilibrium? π<sub>1</sub> = ? π<sub>2</sub> = ?</em></p>
+      <div class="check" data-answer="0.25" data-mode="number" data-tol="0.001">
+        <p class="q">π<sub>2</sub> = ? (desimaltall)</p>
+        <div class="explain">Se løsningsforslaget under.</div>
+      </div>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><strong>π<sub>2</sub> fra P1s indifferens</strong> (P1s utbytter): Stag: 5π<sub>2</sub> + 0(1 − π<sub>2</sub>); Hare: 2π<sub>2</sub> + 1(1 − π<sub>2</sub>).<br>5π<sub>2</sub> = π<sub>2</sub> + 1 ⇒ <strong>π<sub>2</sub> = 1/4</strong>.</p>
+        <p><strong>π<sub>1</sub> fra P2s indifferens</strong> (P2s utbytter): Stag: 5π<sub>1</sub> + 0(1 − π<sub>1</sub>); Hare: 2π<sub>1</sub> + 1(1 − π<sub>1</sub>) ⇒ <strong>π<sub>1</sub> = 1/4</strong> (spillet er symmetrisk).</p>
+        <p>Kontroll: med π<sub>2</sub> = 1/4 gir Stag 5/4 og Hare 2/4 + 3/4 = 5/4. ✓ Spillet har i tillegg to rene likevekter, (Stag, Stag) og (Hare, Hare). (Løsningsforslaget skriver «mixed strategy for P1» om likningen med P1s utbytter, men tallet blir det samme fordi spillet er symmetrisk. I et usymmetrisk spill må du passe på hvilken spillers utbytter som gir hvilken π.)</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="8.3 Iterated game" data-meta="Eksamen 2024 · Q13">
+      <table class="pm">
+        <tr><th></th><th></th><th colspan="2" class="p2">P2</th></tr>
+        <tr><th></th><th></th><th class="p2">Left</th><th class="p2">Right</th></tr>
+        <tr><th rowspan="2" class="p1">P1</th><th class="p1">Up</th><td>2,2</td><td>0,3</td></tr>
+        <tr><th class="p1">Down</th><td>3,0</td><td>1,1</td></tr>
+      </table>
+      <p><em>For example, if P1 chooses Down and P2 chooses Left, P1 will receive utility 3 and P2 will receive utility 0. Let π<sub>1</sub> be the probability that P1 chooses Up, and π<sub>2</sub> be the probability that P2 chooses Left. The game is going to be played for two rounds. What are the optimal strategies at the different rounds? First round: π<sub>1</sub> = ?, π<sub>2</sub> = ?. Second round: π<sub>1</sub> = ?, π<sub>2</sub> = ?</em></p>
+      <details class="hint"><summary>Hint</summary><p>Kjenner du igjen strukturen? Hva er dominant i enkeltspillet, og hva sier bakoverinduksjon om to runder med kjent lengde?</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p>Dette er et fangens dilemma: Down dominerer Up strengt for P1 (3 &gt; 2 og 1 &gt; 0), og Right dominerer Left strengt for P2 (3 &gt; 2 og 1 &gt; 0). Den rene Nash-likevekten er <strong>π<sub>1</sub> = 0 og π<sub>2</sub> = 0</strong> (Down, Right), fordi det gir høyest nytte for hver spiller uansett hva den andre velger. Det er optimalt om ett spill spilles.</p>
+        <p><strong>Andre runde:</strong> å spille den er det samme som å spille ett enkelt spill, fordi tidligere runder ikke påvirker denne siste runden → π<sub>1</sub> = 0, π<sub>2</sub> = 0.</p>
+        <p><strong>Første runde:</strong> når spillerne vet hva som skjer i andre runde, er første runde også det samme som ett enkelt spill → π<sub>1</sub> = 0, π<sub>2</sub> = 0. (Bakoverinduksjon.)</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="8.4 Game Theory: the AI acceleration game" data-meta="Eksamen 2023 · 5.1 · 10 p">
+      <p><em>Recent developments towards Artificial General Intelligence (AGI) and its potential benefits and risks made it an important issue on a national level. Countries are trying to decide whether to accelerate, maintain or hinder the development of AGI. Consider two countries, US and China, that need to decide whether to accelerate, maintain or hinder the development of AGI.</em></p>
+      <table class="pm">
+        <tr><th></th><th></th><th colspan="3" class="p2">China</th></tr>
+        <tr><th></th><th></th><th class="p2">Accelerate</th><th class="p2">Maintain</th><th class="p2">Hinder</th></tr>
+        <tr><th rowspan="3" class="p1">US</th><th class="p1">Accelerate</th><td>6 / 6</td><td>8 / 4</td><td>9 / 2</td></tr>
+        <tr><th class="p1">Maintain</th><td>4 / 8</td><td>7 / 7</td><td>10 / 2</td></tr>
+        <tr><th class="p1">Hinder</th><td>2 / 9</td><td>2 / 10</td><td>5 / 5</td></tr>
+      </table>
+      <ol>
+        <li><em>Explain in 3–5 sentences why this decision requires strategical reasoning. (1%)</em></li>
+        <li><em>Does this game have a weakly or strongly dominant strategy? If it exists, explain how you found it. If not, explain why not. (2%)</em></li>
+        <li><em>Apply iterated elimination of strictly dominated actions to find a game solution, showing each step of the process.</em></li>
+        <li><em>Does this game have a Nash equilibrium? If it exists, explain how you found it. Otherwise, explain why it does not exist. (3%)</em></li>
+        <li><em>Which strategy maximizes social welfare? Explain how you found it.</em></li>
+      </ol>
+      <details class="hint"><summary>Hint</summary><p>2) Et dominant valg må være best i <em>alle</em> kolonner. Se på US: Accelerate er best mot Accelerate og Maintain, men hva er best mot Hinder? 3) Bruk widgeten i seksjon 3 (velg «Eksamen 2023»).</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><strong>1)</strong> Se modellsvaret i seksjon 1: verdien av hver handling for ett land avhenger av hva det andre landet gjør, så hvert land må resonnere om hva det andre vil gjøre og hva det andre tror om dem.</p>
+        <p><strong>2)</strong> Nei. For US er Accelerate best mot Accelerate (6) og Maintain (8), men mot Hinder er Maintain best (10 &gt; 9). Ingen strategi er best i alle scenarioer, verken strengt eller svakt. Spillet er symmetrisk, så det samme gjelder Kina.</p>
+        <p><strong>3)</strong> Iterert eliminering:</p>
+        <ol>
+          <li>Hinder er strengt dominert (f.eks. av Accelerate: 6 &gt; 2, 8 &gt; 2, 9 &gt; 5) for US. Det samme gjelder Kina. Fjern rad 3 og kolonne 3.</li>
+          <li>I den gjenværende 2×2-matrisen (6/6, 8/4 | 4/8, 7/7) er Maintain strengt dominert av Accelerate for begge (6 &gt; 4, 8 &gt; 7). Fjern rad 2 og kolonne 2.</li>
+          <li>Løsningen er <strong>Accelerate/Accelerate</strong>.</li>
+        </ol>
+        <p><strong>4)</strong> Ja. For hver strategi hos kolonnespilleren markerer vi radspillerens beste svar (Accelerate mot Accelerate: 6; Accelerate mot Maintain: 8; Maintain mot Hinder: 10), og så det samme med rollene byttet. Eneste celle der begge er markert, er <strong>Accelerate/Accelerate</strong> → Nash-likevekt.</p>
+        <p><strong>5)</strong> Utilitaristisk sosial velferd er summen: AA 12, AM 12, AH 11, MA 12, <strong>MM 14</strong>, MH 12, HA 11, HM 12, HH 10. <strong>Maintain/Maintain</strong> maksimerer summen (og er Pareto-optimalt; den egalitære minste-verdien 7 er også størst der). Poenget: likevekten (AA, 12) er dårligere for begge enn MM – en variant av fangens dilemma.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="8.5 Game Theory" data-meta="Eksamen 2019 · Oppgave 5 · 10 p (likt per spørsmål)">
+      <p><em>Consider the game for which the payoff matrix is shown in the following figure.</em></p>
+      <table class="pm">
+        <tr><th></th><th></th><th colspan="2" class="p2">agent2</th></tr>
+        <tr><th></th><th></th><th class="p2">G</th><th class="p2">NG</th></tr>
+        <tr><th rowspan="2" class="p1">agent1</th><th class="p1">H</th><td>8, 0</td><td>3, 1</td></tr>
+        <tr><th class="p1">NH</th><td>4, 4</td><td>2, 3</td></tr>
+      </table>
+      <ol>
+        <li><em>Identify any dominated strategy. Explain your answer.</em></li>
+        <li><em>Find the Nash equilibrium. What are the equilibrium payoffs, i.e., values for each agent?</em></li>
+        <li><em>Are there any pareto optimal joint actions? If any exists, what are they?</em></li>
+        <li><em>Explain (in general, not for this particular problem) why a social welfare maximizing joint action profile is also pareto optimal.</em></li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><strong>1)</strong> Ingen av agent2s strategier er dominert: u<sub>2</sub>(H, G) = 0 &lt; 1 = u<sub>2</sub>(H, NG), men u<sub>2</sub>(NH, G) = 4 &gt; 3 = u<sub>2</sub>(NH, NG). <strong>H dominerer NH strengt for agent1</strong>: u<sub>1</sub>(H, G) = 8 &gt; 4 = u<sub>1</sub>(NH, G) og u<sub>1</sub>(H, NG) = 3 &gt; 2 = u<sub>1</sub>(NH, NG). NH er altså strengt dominert.</p>
+        <p><strong>2)</strong> Agent1 spiller H. Gitt H er agent2s beste svar NG (1 &gt; 0). Nash-likevekten er <strong>(H, NG)</strong> med utbytte <strong>(3, 1)</strong>.</p>
+        <p><strong>3)</strong> <strong>(H, G)</strong> og <strong>(NH, G)</strong> er Pareto-optimale. (H, G) = (8, 0): ingen annen celle gir agent1 minst 8. (NH, G) = (4, 4): ingen annen celle gir agent2 minst 4. (H, NG) = (3, 1) og (NH, NG) = (2, 3) er begge Pareto-dominert av (4, 4). Legg merke til at likevekten ikke er Pareto-optimal.</p>
+        <p><strong>4)</strong> Et utfall som maksimerer sosial velferd, har størst sum av utbyttene. Hvis det ikke var Pareto-optimalt, fantes et annet utfall der minst én agent har det bedre og ingen dårligere – og det utfallet ville hatt større sum, en motsigelse. Altså er det ikke mulig å øke noens nytte uten å redusere en annens.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="8.6 Game theory: watering rice farms" data-meta="Eksamen 2018 · Problem 7 · 10 p (5-5)">
+      <p><em>This problem is about watering rice farms in Sumatra. Two farms are located in the riverside, upstream and downstream farms. Water is not sufficient – meaning if both farmers water their rice crops at the same time the upward one gets enough water but the downstream one is not watered sufficiently. However, if they don't water their crops at the same time, both farms will suffer from a pest problem. The game is about the timing of watering. Assume two possible times for watering, A and B. Let x represent the utility loss for the farmer who gets reduced water and let y represent the loss in utility due to pests. Assume that when there is no crop loss due to lack of water or a pest problem, then the payoff is equal to 1.</em></p>
+      <ol>
+        <li><em>Draw the payoff matrix using A and B as actions. Use x and y to define the payoffs for the upward and downward farms.</em></li>
+        <li><em>Under which conditions does a strongly dominant strategy equilibrium arise?</em></li>
+      </ol>
+      <details class="hint"><summary>Hint</summary><p>Samme tid (A, A eller B, B): oppstrøms får fullt vann (1), nedstrøms mister x. Ulik tid: begge får skadedyr og mister y. For en dominant strategi må f.eks. A være best for oppstrøms <em>både</em> når nedstrøms velger A og når den velger B.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><strong>1)</strong> Rader = oppstrøms gård, kolonner = nedstrøms gård (oppstrøms først):</p>
+        <table class="pm">
+          <tr><th></th><th class="p2">A</th><th class="p2">B</th></tr>
+          <tr><th class="p1">A</th><td>1, 1 − x</td><td>1 − y, 1 − y</td></tr>
+          <tr><th class="p1">B</th><td>1 − y, 1 − y</td><td>1, 1 − x</td></tr>
+        </table>
+        <p><strong>2)</strong> <strong>Det finnes ingen strengt dominant strategi-likevekt</strong>, uansett verdier av x og y (anta x, y &gt; 0). For oppstrøms gården er A best når nedstrøms velger A (1 &gt; 1 − y), men B er best når nedstrøms velger B (1 &gt; 1 − y). Oppstrøms har altså aldri en dominant strategi, og da kan ingen celle være en dominant strategi-likevekt. Løsningsforslaget argumenterer via nedstrøms gård: (A, A) krever at A er strengt beste svar for kolonnespilleren mot A, dvs. x &lt; y, men for at A skal være dominant må den også være best mot B, som krever y &lt; x – umulig samtidig. Samme for (B, B). (A, B) og (B, A) kan ikke være likevekter fordi begge kunne fått mer ved å bytte.</p>
+        <p>Sensorveiledningen: å forklare hva strengt dominant betyr (med formel) uten å bruke det på dette spillet ga 1 poeng. En feil matrise med samme struktur, men riktig del 2, ga full uttelling på del 2. (Bonus: (A, A) og (B, B) er Nash-likevekter når x ≤ y.)</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="8.7 Strongly dominant equilibrium" data-meta="Eksamen 2017 · flervalg">
+      <p><em>Two agents participate in a game which is defined as follows: Agents {Agent-i, Agent-j}. Actions: {0, 100, 200, 300} – these actions can be thought as giving bid in an auction for example. The payoff matrix is shown below (Agent-i first).</em></p>
+      <table class="pm">
+        <tr><th></th><th></th><th colspan="4" class="p2">Agent j</th></tr>
+        <tr><th></th><th></th><th class="p2">0</th><th class="p2">100</th><th class="p2">200</th><th class="p2">300</th></tr>
+        <tr><th rowspan="4" class="p1">Agent i</th><th class="p1">0</th><td>300,0</td><td>200,0</td><td>0,100</td><td>0,0</td></tr>
+        <tr><th class="p1">100</th><td>200,0</td><td>200,0</td><td>200,100</td><td>0,300</td></tr>
+        <tr><th class="p1">200</th><td>0,0</td><td>0,200</td><td>0,0</td><td>0,0</td></tr>
+        <tr><th class="p1">300</th><td>−100,0</td><td>−100,0</td><td>−100,0</td><td>−100,0</td></tr>
+      </table>
+      <div class="quiz" data-answer="e">
+        <p class="q"><em>Which of the options below is the strongly dominant equilibrium in this game? (action of agent-i, action of agent-j)</em></p>
+        <ul class="opts">
+          <li data-why="Agent i har ingen strengt dominant strategi: 0 er best mot j = 0, men 100 er best mot j = 200.">(0, 100)</li>
+          <li data-why="I rad 200 får agent i 0 overalt – det slås av rad 100 i nesten alle kolonner.">(200, 200)</li>
+          <li data-why="Å by 300 gir agent i −100 uansett; det er strengt dominert, ikke dominant.">(300, 0)</li>
+          <li data-why="Å by 300 gir agent i −100 uansett.">(300, 100)</li>
+          <li>None of the above</li>
+        </ul>
+        <div class="feedback">Ingen av agentene har en strengt dominant strategi, så det finnes ingen strengt dominant likevekt. For agent i: rad 0 = (300, 200, 0, 0) og rad 100 = (200, 200, 200, 0) – ingen av dem er strengt bedre enn den andre i alle kolonner. For agent j avhenger beste svar av raden (200 mot rad 0, 300 mot rad 100, 100 mot rad 200). Bonus: den eneste rene Nash-likevekten er (100, 300).</div>
+      </div>
+    </div>
+
+    <h3>Nye øvingsoppgaver</h3>
+    <div class="exercise" data-title="8.8 Alle likevekter i et 2×2-spill" data-meta="Øving i eksamensstil · ca. 6 p">
+      <table class="pm">
+        <tr><th></th><th></th><th colspan="2" class="p2">P2</th></tr>
+        <tr><th></th><th></th><th class="p2">Left</th><th class="p2">Right</th></tr>
+        <tr><th rowspan="2" class="p1">P1</th><th class="p1">Up</th><td>3, 1</td><td>0, 2</td></tr>
+        <tr><th class="p1">Down</th><td>1, 3</td><td>2, 0</td></tr>
+      </table>
+      <p>π<sub>1</sub> = P(P1 velger Up), π<sub>2</sub> = P(P2 velger Left). a) Har noen av spillerne en dominant strategi? b) Finn alle Nash-likevekter i rene strategier. c) Finn den blandede Nash-likevekten og begge spillernes forventede nytte. d) Hvilke utfall er Pareto-optimale?</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><strong>a)</strong> Nei. P1: Up er best mot Left (3 &gt; 1), Down mot Right (2 &gt; 0). P2: Right er best mot Up (2 &gt; 1), Left mot Down (3 &gt; 0).</p>
+        <p><strong>b)</strong> Understreking: P1 best i Left-kolonnen: Up (3); i Right-kolonnen: Down (2). P2 best i Up-raden: Right (2); i Down-raden: Left (3). Ingen celle har to streker → <strong>ingen ren Nash-likevekt</strong>.</p>
+        <p><strong>c)</strong> π<sub>2</sub> fra P1: 3π<sub>2</sub> + 0(1 − π<sub>2</sub>) = 1π<sub>2</sub> + 2(1 − π<sub>2</sub>) ⇒ 3π<sub>2</sub> = 2 − π<sub>2</sub> ⇒ <strong>π<sub>2</sub> = 1/2</strong>. π<sub>1</sub> fra P2: 1π<sub>1</sub> + 3(1 − π<sub>1</sub>) = 2π<sub>1</sub> + 0(1 − π<sub>1</sub>) ⇒ 3 − 2π<sub>1</sub> = 2π<sub>1</sub> ⇒ <strong>π<sub>1</sub> = 3/4</strong>. U<sub>1</sub> = 3 · 1/2 = <strong>3/2</strong>; U<sub>2</sub> = 2 · 3/4 = <strong>3/2</strong>. (Nash' teorem lover minst én likevekt; her er den blandet.)</p>
+        <p><strong>d)</strong> (Down, Right) = (2, 0) er Pareto-dominert av (Up, Left) = (3, 1), og (Up, Right) = (0, 2) er Pareto-dominert av (Down, Left) = (1, 3). Ingen celle slår (3, 1) eller (1, 3) for begge. Pareto-optimale: <strong>(Up, Left)</strong> og <strong>(Down, Left)</strong>.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="8.9 Gjentatt spill med diskontering" data-meta="Øving i eksamensstil · ca. 4 p">
+      <p>To firmaer setter pris hver måned. Hvis begge holder høy pris, tjener hver 10. Hvis én dumper prisen mens den andre holder høy, tjener dumperen 15 og den andre 0. Hvis begge dumper, tjener hver 4. a) Hva er Nash-likevekten i ett enkelt spill? b) Hva skjer om de vet at de skal spille nøyaktig 12 måneder? c) Spillet fortsetter i det uendelige med diskonteringsfaktor δ. For hvilke δ er (grim trigger, grim trigger) en Nash-likevekt?</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><strong>a)</strong> Å dumpe er strengt dominant (15 &gt; 10 og 4 &gt; 0) → (dump, dump) med (4, 4). Et fangens dilemma.</p>
+        <p><strong>b)</strong> Bakoverinduksjon: i måned 12 dumper begge; da kan måned 11 ikke påvirke fremtiden, så begge dumper der også, … → begge dumper alle 12 månedene.</p>
+        <p><strong>c)</strong> Samarbeid: 10/(1 − δ). Avvik: 15 + 4δ/(1 − δ). 10/(1 − δ) ≥ 15 + 4δ/(1 − δ) ⇔ 10 ≥ 15(1 − δ) + 4δ = 15 − 11δ ⇔ <strong>δ ≥ 5/11 ≈ 0,45</strong>. Formelen (T − R)/(T − P) = (15 − 10)/(15 − 4) = 5/11.</p>
+      </details>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Iterert eliminering, dominant strategi-likevekt og Nash-likevekt: forklar med egne ord hvordan de tre henger sammen. Hvilken er sterkest, og hvilken finnes alltid?</p>
+      <details><summary>Vis et forslag</summary><p>En dominant strategi-likevekt er sterkest: hver spiller har én strategi som er best uansett hva de andre gjør. Den finnes sjelden. Iterert eliminering av strengt dominerte strategier er svakere: den krever bare at spillerne aldri spiller noe strengt dominert, og at de vet at de andre er rasjonelle (og vet at de vet …). Hvis den ender i én celle, er den cellen den eneste Nash-likevekten. Nash-likevekt er svakest: bare at ingen tjener på å avvike alene. Den finnes alltid når blandede strategier er tillatt (Nash' teorem), men kan være flere. Kjeden: dominant strategi-likevekt ⇒ overlever iterert eliminering ⇒ Nash-likevekt.</p></details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>9. Oppsummering / jukselapp</h2>
+    <table>
+      <tr><th>Begrep</th><th>Definisjon / test</th></tr>
+      <tr><td>Normalformspill</td><td>Spillere, handlinger, utbyttefunksjon (matrise). P1 = rad, P2 = kolonne, P1-utbytte først. Samtidige trekk.</td></tr>
+      <tr><td>Ren / blandet strategi</td><td>Én handling / sannsynlighetsfordeling. π<sub>p</sub> = P(første handling), 1 − π<sub>p</sub> = P(andre).</td></tr>
+      <tr><td>Streng / svak dominans</td><td>Strengt bedre mot <em>alle</em> motstrategier / ≥ mot alle og &gt; mot minst én.</td></tr>
+      <tr><td>Dominant strategi-likevekt</td><td>Alle spiller en dominant strategi. Sterk, men sjelden. Alltid også Nash.</td></tr>
+      <tr><td>Iterert eliminering</td><td>Stryk strengt dominerte rader/kolonner gjentatte ganger. Fjerner aldri en Nash-likevekt.</td></tr>
+      <tr><td>Nash-likevekt</td><td>Ingen tjener på å avvike alene. Ren: understrek beste responser, celler med to streker. Finnes alltid med blandede strategier (Nash).</td></tr>
+      <tr><td>Blandet likevekt (2×2)</td><td>π<sub>2</sub> fra P1s indifferens: aπ<sub>2</sub> + b(1 − π<sub>2</sub>) = cπ<sub>2</sub> + d(1 − π<sub>2</sub>). π<sub>1</sub> fra P2s indifferens. Krever 0 &lt; π &lt; 1.</td></tr>
+      <tr><td>Nullsum</td><td>Utbytter summerer til 0 (konstant). Blandet Nash = maximin (von Neumann). Morra: π = 7/12, verdi −1/12 for P1.</td></tr>
+      <tr><td>Pareto-optimal</td><td>Ingen annen celle gjør noen bedre uten å gjøre noen dårligere.</td></tr>
+      <tr><td>Sosial velferd</td><td>Utilitaristisk = sum; egalitær = maks av minste utbytte (maximin), Gini. Maks sum ⇒ Pareto-optimal.</td></tr>
+      <tr><td>Gjentatt, kjent antall runder</td><td>Bakoverinduksjon: spill likevekten i enkeltspillet i hver runde (krever fast, endelig, kjent).</td></tr>
+      <tr><td>Uendelig / ukjent antall</td><td>Σ δ<sup>t</sup>U. Grim trigger: δ ≥ (T − R)/(T − P) = 1/5 i forelesningen. Tit for tat: start samarbeid, kopier forrige trekk (vant Axelrod 1980).</td></tr>
+    </table>
+    <div class="box key">
+      <span class="box-title">Standardspillene</span>
+<pre style="margin:0">Fangens dilemma   (T,T)=(−5,−5) (T,R)=(0,−10) (R,T)=(−10,0) (R,R)=(−1,−1)
+                  Testify strengt dominant; eneste NE (T,T); ingen blandet; (T,T) eneste ikke-Pareto-optimale
+Kjønnenes kamp    (m,m)=(2,1) (o,o)=(1,2), ellers 0
+                  To rene NE + blandet π1 = 2/3, π2 = 1/3 (P(movie)); U = 2/3 hver
+Morra             (1,1)=(2,−2) (1,2)=(−3,3) (2,1)=(−3,3) (2,2)=(4,−4)
+                  Ingen ren NE; blandet π1 = π2 = 7/12; verdi −1/12 for P1
+Hjortejakt (2024) (S,S)=(5,5) (S,H)=(0,2) (H,S)=(2,0) (H,H)=(1,1)
+                  To rene NE + blandet π1 = π2 = 1/4 (P(Stag))</pre>
+    </div>
+    <div class="box warning">
+      <span class="box-title">De fem vanligste feilene</span>
+      <ol>
+        <li>Bruker egne utbytter for å finne egen π (π<sub>2</sub> kommer fra P1s utbytter!).</li>
+        <li>Blander hvilken handling π står for (les definisjonen i oppgaven: «probability that P1 chooses Stag»).</li>
+        <li>Glemmer svake likevekter med likhet, som (Down, Right) i 2025.</li>
+        <li>Stryker <em>svakt</em> dominerte strategier i iterert eliminering (bare strengt dominerte).</li>
+        <li>Sier at Nash-likevekten er «best for alle» – i fangens dilemma er den Pareto-dominert.</li>
+      </ol>
+    </div>
+    <p><strong>Begreper å kunne forklare:</strong> spillteori, rasjonelt individ, løsningsbegrep, ikke-kooperativ, normalformspill, utbyttematrise, radspiller/kolonnespiller, ren og blandet strategi, strategiprofil, nullsum, streng/svak dominans, dominant strategi(-likevekt), iterert eliminering, beste respons, Nash-likevekt, Nash' teorem, koordineringsproblem, fokuspunkt, indifferensprinsippet, maximin, sosial velferd, Pareto-optimal/-dominert, utilitaristisk og egalitær velferd, gjentatt spill, enkeltrundespill, bakoverinduksjon, diskonteringsfaktor, grim trigger, tit for tat, folketeoremer, Axelrods turnering.</p>
+  </main>
+  <aside class="margin"></aside>
+</div>
+<script src="assets/course.js"></script>
+<script>
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const num = x => (Math.round(x * 1000) / 1000).toString().replace("-", "−").replace(".", ",");
+  function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; }
+  function frac(n, d) {
+    if (Number.isInteger(n) && Number.isInteger(d) && d !== 0) {
+      if (d < 0) { n = -n; d = -d; }
+      const g = gcd(n, d); n /= g; d /= g;
+      return d === 1 ? num(n) : `${num(n)}/${d}`;
+    }
+    return num(n / d);
+  }
+
+  /* ================= 2×2-analysator ================= */
+  // [ [a,e], [b,f] ], [ [c,g], [d,h] ]  (P1, P2) – rader: P1, kolonner: P2
+  const PRESETS = {
+    pd:   { name: "Fangens dilemma", r: ["Testify", "Refuse"], c: ["Testify", "Refuse"], m: [[[-5, -5], [0, -10]], [[-10, 0], [-1, -1]]] },
+    bos:  { name: "Kjønnenes kamp (Battle of the Sexes)", r: ["movie", "opera"], c: ["movie", "opera"], m: [[[2, 1], [0, 0]], [[0, 0], [1, 2]]] },
+    morra:{ name: "To-fingers Morra", r: ["1", "2"], c: ["1", "2"], m: [[[2, -2], [-3, 3]], [[-3, 3], [4, -4]]] },
+    mp:   { name: "Matching pennies", r: ["heads", "tails"], c: ["heads", "tails"], m: [[[1, -1], [-1, 1]], [[-1, 1], [1, -1]]] },
+    stag: { name: "Hjortejakt (eksamen 2024 Q12)", r: ["Stag", "Hare"], c: ["Stag", "Hare"], m: [[[5, 5], [0, 2]], [[2, 0], [1, 1]]] },
+    e25:  { name: "Eksamen 2025 Q4", r: ["Up", "Down"], c: ["Left", "Right"], m: [[[1, 1], [0, 0]], [[0, 0], [0, 0]]] },
+    e19:  { name: "Eksamen 2019 Oppg. 5", r: ["H", "NH"], c: ["G", "NG"], m: [[[8, 0], [3, 1]], [[4, 4], [2, 3]]] },
+    e24:  { name: "Eksamen 2024 Q13", r: ["Up", "Down"], c: ["Left", "Right"], m: [[[2, 2], [0, 3]], [[3, 0], [1, 1]]] },
+    coord:{ name: "Koordineringsspill (boka)", r: ["t", "b"], c: ["l", "r"], m: [[[10, 10], [0, 0]], [[0, 0], [1, 1]]] },
+    ex88: { name: "Øving 8.8", r: ["Up", "Down"], c: ["Left", "Right"], m: [[[3, 1], [0, 2]], [[1, 3], [2, 0]]] }
+  };
+  let G = JSON.parse(JSON.stringify(PRESETS.morra));
+  const sel = $("nw-preset");
+  for (const [k, p] of Object.entries(PRESETS)) { const o = document.createElement("option"); o.value = k; o.textContent = p.name; sel.append(o); }
+  sel.value = "morra";
+  sel.onchange = () => { G = JSON.parse(JSON.stringify(PRESETS[sel.value])); buildInputs(); analyse(); };
+
+  function buildInputs() {
+    const t = $("nw-in");
+    let h = `<tr><th></th><th class="p2">${esc(G.c[0])}</th><th class="p2">${esc(G.c[1])}</th></tr>`;
+    for (let i = 0; i < 2; i++) {
+      h += `<tr><th class="p1">${esc(G.r[i])}</th>`;
+      for (let j = 0; j < 2; j++) h += `<td><input class="p1" data-i="${i}" data-j="${j}" data-p="0" value="${G.m[i][j][0]}"> , <input class="p2" data-i="${i}" data-j="${j}" data-p="1" value="${G.m[i][j][1]}"></td>`;
+      h += "</tr>";
+    }
+    t.innerHTML = h;
+    t.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => {
+      const v = parseFloat(inp.value.replace(",", ".").replace("−", "-"));
+      if (!isNaN(v)) { G.m[+inp.dataset.i][+inp.dataset.j][+inp.dataset.p] = v; analyse(); }
+    }));
+  }
+
+  function analyse() {
+    const M = G.m, R = G.r, C = G.c;
+    const u1 = (i, j) => M[i][j][0], u2 = (i, j) => M[i][j][1];
+    // beste responser
+    const br1 = [[0, 0], [0, 0]], br2 = [[0, 0], [0, 0]];
+    for (let j = 0; j < 2; j++) { const mx = Math.max(u1(0, j), u1(1, j)); for (let i = 0; i < 2; i++) br1[i][j] = u1(i, j) === mx; }
+    for (let i = 0; i < 2; i++) { const mx = Math.max(u2(i, 0), u2(i, 1)); for (let j = 0; j < 2; j++) br2[i][j] = u2(i, j) === mx; }
+    const pure = [];
+    for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) if (br1[i][j] && br2[i][j]) pure.push([i, j]);
+    // dominans
+    function dom(x, y) { // x og y er lister; returnerer "streng", "svak" eller ""
+      const ge = x.every((v, k) => v >= y[k]), gt = x.some((v, k) => v > y[k]), allgt = x.every((v, k) => v > y[k]);
+      return allgt ? "strengt" : (ge && gt ? "svakt" : "");
+    }
+    const r0 = [u1(0, 0), u1(0, 1)], r1 = [u1(1, 0), u1(1, 1)];
+    const c0 = [u2(0, 0), u2(1, 0)], c1 = [u2(0, 1), u2(1, 1)];
+    const d1 = [[dom(r0, r1), 0, 1], [dom(r1, r0), 1, 0]].filter(d => d[0]);
+    const d2 = [[dom(c0, c1), 0, 1], [dom(c1, c0), 1, 0]].filter(d => d[0]);
+    // Pareto og velferd
+    const cells = [[0, 0], [0, 1], [1, 0], [1, 1]];
+    const pareto = cells.filter(([i, j]) => !cells.some(([k, l]) => (k !== i || l !== j) && u1(k, l) >= u1(i, j) && u2(k, l) >= u2(i, j) && (u1(k, l) > u1(i, j) || u2(k, l) > u2(i, j))));
+    const sums = cells.map(([i, j]) => u1(i, j) + u2(i, j)), maxSum = Math.max(...sums);
+    const mins = cells.map(([i, j]) => Math.min(u1(i, j), u2(i, j))), maxMin = Math.max(...mins);
+    const zs = new Set(sums).size === 1;
+    // blandet
+    const a = u1(0, 0), b = u1(0, 1), c = u1(1, 0), d = u1(1, 1);
+    const e = u2(0, 0), f = u2(0, 1), g = u2(1, 0), h = u2(1, 1);
+    const n2 = d - b, den2 = a - b - c + d, n1 = h - g, den1 = e - f - g + h;
+    const p2 = den2 !== 0 ? n2 / den2 : NaN, p1 = den1 !== 0 ? n1 / den1 : NaN;
+    const interior = p1 > 1e-9 && p1 < 1 - 1e-9 && p2 > 1e-9 && p2 < 1 - 1e-9;
+    const cn = (i, j) => `(${esc(R[i])}, ${esc(C[j])})`;
+
+    // matrise med understreking
+    let mt = `<table class="pm"><tr><th></th><th></th><th colspan="2" class="p2">P2</th></tr><tr><th></th><th></th><th class="p2">${esc(C[0])}</th><th class="p2">${esc(C[1])}</th></tr>`;
+    for (let i = 0; i < 2; i++) {
+      mt += `<tr>${i === 0 ? '<th rowspan="2" class="p1">P1</th>' : ""}<th class="p1">${esc(R[i])}</th>`;
+      for (let j = 0; j < 2; j++) {
+        const ne = br1[i][j] && br2[i][j];
+        mt += `<td class="${ne ? "ne" : ""}"><span class="p1 ${br1[i][j] ? "br" : ""}">${num(u1(i, j))}</span>, <span class="p2 ${br2[i][j] ? "br" : ""}">${num(u2(i, j))}</span></td>`;
+      }
+      mt += "</tr>";
+    }
+    mt += "</table><p class='pm-cap'>Understreket = beste respons. Grønn celle = Nash-likevekt i rene strategier.</p>";
+
+    let out = mt + "<h4>Dominans</h4><ul>";
+    out += d1.length ? d1.map(([k, x, y]) => `<li>P1: <b>${esc(R[x])}</b> dominerer ${esc(R[y])} ${k} (${num(M[x][0][0])} vs ${num(M[y][0][0])}, ${num(M[x][1][0])} vs ${num(M[y][1][0])}).</li>`).join("") : "<li>P1 har ingen dominert strategi.</li>";
+    out += d2.length ? d2.map(([k, x, y]) => `<li>P2: <b>${esc(C[x])}</b> dominerer ${esc(C[y])} ${k} (${num(M[0][x][1])} vs ${num(M[0][y][1])}, ${num(M[1][x][1])} vs ${num(M[1][y][1])}).</li>`).join("") : "<li>P2 har ingen dominert strategi.</li>";
+    const s1 = d1.find(x => x[0] === "strengt"), s2 = d2.find(x => x[0] === "strengt");
+    if (s1 && s2) out += `<li><b>Dominant strategi-likevekt (streng):</b> ${cn(s1[1], s2[1])}.</li>`;
+    out += "</ul><h4>Nash-likevekter</h4><ul>";
+    out += pure.length ? pure.map(([i, j]) => `<li>Ren: ${cn(i, j)}, dvs. π<sub>1</sub> = ${i === 0 ? 1 : 0}, π<sub>2</sub> = ${j === 0 ? 1 : 0}, utbytte (${num(u1(i, j))}, ${num(u2(i, j))}).</li>`).join("") : "<li>Ingen likevekt i rene strategier.</li>";
+    // blandet forklaring
+    let mx = `<li>P1 indifferent: ${num(a)}π<sub>2</sub> + ${num(b)}(1 − π<sub>2</sub>) = ${num(c)}π<sub>2</sub> + ${num(d)}(1 − π<sub>2</sub>) ⇒ `;
+    mx += den2 !== 0 ? `π<sub>2</sub> = (${num(d)} − ${num(b)}) / (${num(a)} − ${num(b)} − ${num(c)} + ${num(d)}) = <b>${frac(n2, den2)}</b>` : (n2 === 0 ? "alltid indifferent" : "aldri indifferent (én handling alltid best)");
+    mx += `</li><li>P2 indifferent: ${num(e)}π<sub>1</sub> + ${num(g)}(1 − π<sub>1</sub>) = ${num(f)}π<sub>1</sub> + ${num(h)}(1 − π<sub>1</sub>) ⇒ `;
+    mx += den1 !== 0 ? `π<sub>1</sub> = (${num(h)} − ${num(g)}) / (${num(e)} − ${num(f)} − ${num(g)} + ${num(h)}) = <b>${frac(n1, den1)}</b>` : (n1 === 0 ? "alltid indifferent" : "aldri indifferent (én handling alltid best)");
+    mx += "</li>";
+    if (interior) {
+      const U1 = a * p1 * p2 + b * p1 * (1 - p2) + c * (1 - p1) * p2 + d * (1 - p1) * (1 - p2);
+      const U2 = e * p1 * p2 + f * p1 * (1 - p2) + g * (1 - p1) * p2 + h * (1 - p1) * (1 - p2);
+      out += `<li>Blandet: π<sub>1</sub> = ${frac(n1, den1)}, π<sub>2</sub> = ${frac(n2, den2)}, forventet nytte U<sub>1</sub> = ${num(U1)}, U<sub>2</sub> = ${num(U2)}.</li>`;
+    } else out += "<li>Ingen (fullt) blandet likevekt – se likningene under.</li>";
+    out += `</ul><p style="margin:.2rem 0"><b>Totalt ${pure.length + (interior ? 1 : 0)} Nash-likevekt(er)</b> (π<sub>1</sub> = P(${esc(R[0])}), π<sub>2</sub> = P(${esc(C[0])})).</p><ul>${mx}</ul>`;
+    out += `<h4>Velferd</h4><ul><li>Pareto-optimale: ${pareto.map(([i, j]) => cn(i, j)).join(", ")}.</li>`;
+    out += `<li>Maks utilitaristisk (sum = ${num(maxSum)}): ${cells.filter((x, k) => sums[k] === maxSum).map(([i, j]) => cn(i, j)).join(", ")}.</li>`;
+    out += `<li>Maks egalitær (minste = ${num(maxMin)}): ${cells.filter((x, k) => mins[k] === maxMin).map(([i, j]) => cn(i, j)).join(", ")}.</li>`;
+    out += `<li>${zs ? "Nullsum (konstant sum " + num(sums[0]) + ")." : "Ikke nullsum."}</li></ul>`;
+    out += `<div class="plots"><figure>${plot([a, b], [c, d], "π₂", "U₁", ["l1", "l2"], R, interior || (den2 !== 0 && p2 >= 0 && p2 <= 1) ? p2 : null)}<figcaption>P1s nytte av ${esc(R[0])} (heltrukket) og ${esc(R[1])} (stiplet) som funksjon av π₂</figcaption></figure>`;
+    out += `<figure>${plot([e, f], [g, h], "π₁", "U₂", ["r1", "r2"], C, interior || (den1 !== 0 && p1 >= 0 && p1 <= 1) ? p1 : null)}<figcaption>P2s nytte av ${esc(C[0])} (heltrukket) og ${esc(C[1])} (stiplet) som funksjon av π₁</figcaption></figure></div>`;
+    $("nw-out").innerHTML = out;
+    CourseKit.relayout();
+  }
+  // Linje 1: handling 1 gir y = A[0]·π + A[1]·(1−π); linje 2: handling 2 gir B[0]·π + B[1]·(1−π)
+  // For P2-plottet: handling «første kolonne» gir e·π1 + g·(1−π1), «andre» f·π1 + h·(1−π1)
+  function plot(A, B, xl, yl, cls, names, px) {
+    // A og B for P1: [a,b] og [c,d] → y1(π) = a·π + b(1−π), y2(π) = c·π + d(1−π)
+    // For P2 sendes [e,f],[g,h] → første kolonne: e·π + g(1−π), andre: f·π + h(1−π)
+    let L1, L2;
+    if (cls[0] === "l1") { L1 = p => A[0] * p + A[1] * (1 - p); L2 = p => B[0] * p + B[1] * (1 - p); }
+    else { L1 = p => A[0] * p + B[0] * (1 - p); L2 = p => A[1] * p + B[1] * (1 - p); }
+    const ys = [L1(0), L1(1), L2(0), L2(1)];
+    let lo = Math.min(...ys), hi = Math.max(...ys); if (hi - lo < 1e-9) { hi += 1; lo -= 1; }
+    const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+    const W = 300, H = 200, x0 = 40, x1 = 285, y0 = 175, y1 = 12;
+    const X = p => x0 + (x1 - x0) * p, Y = v => y0 - (y0 - y1) * (v - lo) / (hi - lo);
+    let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="${yl} som funksjon av ${xl}">`;
+    for (const t of [0, 0.25, 0.5, 0.75, 1]) s += `<line class="grid" x1="${X(t)}" y1="${y1}" x2="${X(t)}" y2="${y0}"/><text x="${X(t)}" y="${y0 + 13}" text-anchor="middle">${String(t).replace(".", ",")}</text>`;
+    if (lo < 0 && hi > 0) s += `<line class="axis" x1="${x0}" y1="${Y(0)}" x2="${x1}" y2="${Y(0)}"/><text x="${x0 - 4}" y="${Y(0) + 3}" text-anchor="end">0</text>`;
+    s += `<text x="${x0 - 4}" y="${Y(hi - pad) + 3}" text-anchor="end">${num(hi - pad)}</text><text x="${x0 - 4}" y="${Y(lo + pad) + 3}" text-anchor="end">${num(lo + pad)}</text>`;
+    s += `<line class="axis" x1="${x0}" y1="${y0}" x2="${x1}" y2="${y0}"/><line class="axis" x1="${x0}" y1="${y1}" x2="${x0}" y2="${y0}"/>`;
+    s += `<line class="${cls[0]}" x1="${X(0)}" y1="${Y(L1(0))}" x2="${X(1)}" y2="${Y(L1(1))}"/><line class="${cls[1]}" x1="${X(0)}" y1="${Y(L2(0))}" x2="${X(1)}" y2="${Y(L2(1))}"/>`;
+    if (px !== null && isFinite(px)) s += `<circle class="dot" cx="${X(px)}" cy="${Y(L1(px))}" r="5"/>`;
+    s += `<text x="${(x0 + x1) / 2}" y="${H - 2}" text-anchor="middle">${xl}</text><text x="10" y="${(y0 + y1) / 2}" text-anchor="middle" transform="rotate(-90 10 ${(y0 + y1) / 2})">${yl}</text></svg>`;
+    return s;
+  }
+  buildInputs(); analyse();
+
+  /* ================= Iterert eliminering ================= */
+  const IE = {
+    lecture: { r: ["Up", "Middle", "Down"], c: ["Left", "Middle", "Right"], rn: "P1", cn: "P2",
+      m: [[[13, 3], [1, 4], [7, 3]], [[4, 1], [3, 3], [6, 2]], [[-1, 9], [2, 8], [8, -1]]] },
+    agi: { r: ["Accelerate", "Maintain", "Hinder"], c: ["Accelerate", "Maintain", "Hinder"], rn: "US", cn: "China",
+      m: [[[6, 6], [8, 4], [9, 2]], [[4, 8], [7, 7], [10, 2]], [[2, 9], [2, 10], [5, 5]]] }
+  };
+  let ie, rows, cols, ieLog;
+  function ieReset() { ie = IE[$("ie-preset").value]; rows = ie.r.map((_, i) => i); cols = ie.c.map((_, j) => j); ieLog = []; ieDraw(); }
+  function ieStep() {
+    // P1: rad x strengt dominert av rad y?
+    for (const x of rows) for (const y of rows) {
+      if (x === y) continue;
+      if (cols.every(j => ie.m[y][j][0] > ie.m[x][j][0])) {
+        ieLog.push(`${ie.rn}: <b>${ie.r[x]}</b> er strengt dominert av ${ie.r[y]} (` + cols.map(j => `${ie.m[y][j][0]} &gt; ${ie.m[x][j][0]}`).join(", ") + `) → stryk raden.`);
+        rows = rows.filter(r => r !== x); ieDraw(); return;
+      }
+    }
+    for (const x of cols) for (const y of cols) {
+      if (x === y) continue;
+      if (rows.every(i => ie.m[i][y][1] > ie.m[i][x][1])) {
+        ieLog.push(`${ie.cn}: <b>${ie.c[x]}</b> er strengt dominert av ${ie.c[y]} (` + rows.map(i => `${ie.m[i][y][1]} &gt; ${ie.m[i][x][1]}`).join(", ") + `) → stryk kolonnen.`);
+        cols = cols.filter(c => c !== x); ieDraw(); return;
+      }
+    }
+    ieLog.push(rows.length === 1 && cols.length === 1
+      ? `Ferdig: bare (${ie.r[rows[0]]}, ${ie.c[cols[0]]}) står igjen, med utbytte (${ie.m[rows[0]][cols[0]].join(", ")}). Det er den eneste Nash-likevekten.`
+      : "Ingen flere strengt dominerte strategier. De gjenværende strategiene overlever iterert eliminering.");
+    ieDraw(true);
+  }
+  function ieDraw(done) {
+    let h = `<table class="pm"><tr><th></th><th></th><th colspan="${ie.c.length}" class="p2">${ie.cn}</th></tr><tr><th></th><th></th>${ie.c.map(c => `<th class="p2">${c}</th>`).join("")}</tr>`;
+    ie.r.forEach((r, i) => {
+      h += `<tr>${i === 0 ? `<th rowspan="${ie.r.length}" class="p1">${ie.rn}</th>` : ""}<th class="p1">${r}</th>`;
+      ie.c.forEach((c, j) => {
+        const gone = !rows.includes(i) || !cols.includes(j);
+        const fin = rows.length === 1 && cols.length === 1 && !gone;
+        h += `<td class="${gone ? "gone" : ""} ${fin ? "ne" : ""}"><span class="p1">${num(ie.m[i][j][0])}</span>, <span class="p2">${num(ie.m[i][j][1])}</span></td>`;
+      });
+      h += "</tr>";
+    });
+    $("ie-table").innerHTML = h + "</table>";
+    $("ie-log").innerHTML = ieLog.map((l, k) => `<div class="${k === ieLog.length - 1 ? "cur" : ""}">${k + 1}. ${l}</div>`).join("");
+    $("ie-step").disabled = !!done;
+    CourseKit.relayout();
+  }
+  $("ie-step").onclick = ieStep; $("ie-reset").onclick = ieReset; $("ie-preset").onchange = ieReset;
+  ieReset();
+
+  /* ================= Grim trigger-kalkulator ================= */
+  function grim() {
+    const Rv = parseFloat($("gr-R").value), T = parseFloat($("gr-T").value), P = parseFloat($("gr-P").value), d = parseFloat($("gr-d").value);
+    $("gr-dv").textContent = d.toFixed(2).replace(".", ",");
+    const coop = Rv / (1 - d), dev = T + d * P / (1 - d);
+    const thr = (T - Rv) / (T - P);
+    const ok = coop >= dev - 1e-12;
+    $("gr-out").innerHTML = `Samarbeid for alltid: R/(1 − δ) = ${num(coop)} · Avvik: T + δP/(1 − δ) = ${num(dev)} → ${ok ? '<b style="color:var(--good)">ingen gevinst ved å avvike: (grim, grim) er Nash-likevekt</b>' : '<b style="color:var(--bad)">lønner seg å avvike: ikke likevekt</b>'}.<br>Terskel: δ ≥ (T − R)/(T − P) = ${isFinite(thr) ? num(thr) : "–"}${T > Rv && Rv > P ? "" : " <span style='color:var(--warn)'>(merk: dette er bare et fangens dilemma når T &gt; R &gt; P)</span>"}.`;
+  }
+  ["gr-R", "gr-T", "gr-P", "gr-d"].forEach(id => $(id).addEventListener("input", grim));
+  grim();
+
+  /* ================= Gjentatt fangens dilemma ================= */
+  // 1 = testify (vitne), 0 = refuse (nekte); h = liste av [a1, a2]; me = 0/1 (min indeks)
+  const STRATS = {
+    grim:   ["Grim trigger", (h, me) => h.some(x => x[1 - me] === 1) ? 1 : 0],
+    tft:    ["Tit for tat", (h, me) => h.length === 0 ? 0 : h[h.length - 1][1 - me]],
+    dove:   ["Alltid nekte (Dove)", () => 0],
+    hawk:   ["Alltid vitne (Hawk)", () => 1],
+    rnd:    ["Tilfeldig (50/50)", () => Math.random() < 0.5 ? 1 : 0]
+  };
+  const PAY = { "1,1": [-5, -5], "1,0": [0, -10], "0,1": [-10, 0], "0,0": [-1, -1] };
+  for (const id of ["ipd-s1", "ipd-s2"]) for (const [k, [n]] of Object.entries(STRATS)) { const o = document.createElement("option"); o.value = k; o.textContent = n; $(id).append(o); }
+  $("ipd-s1").value = "grim"; $("ipd-s2").value = "tft";
+  function ipd() {
+    const s1 = STRATS[$("ipd-s1").value][1], s2 = STRATS[$("ipd-s2").value][1];
+    const n = Math.max(1, Math.min(60, parseInt($("ipd-n").value) || 10)), d = parseFloat($("ipd-d").value) || 0.9;
+    const h = []; let t1 = 0, t2 = 0, d1 = 0, d2 = 0;
+    for (let t = 0; t < n; t++) {
+      const a1 = s1(h, 0), a2 = s2(h, 1); h.push([a1, a2]);
+      const [u1, u2] = PAY[a1 + "," + a2]; t1 += u1; t2 += u2; d1 += Math.pow(d, t) * u1; d2 += Math.pow(d, t) * u2;
+    }
+    const lab = a => a ? "T" : "R";
+    let tab = `<table><tr><th>t</th>${h.map((_, t) => `<th>${t}</th>`).join("")}<th>Sum</th><th>Σδᵗ·U</th></tr>`;
+    tab += `<tr><th class="p1">P1</th>${h.map(x => `<td class="${lab(x[0])}">${lab(x[0])}</td>`).join("")}<td>${num(t1)}</td><td>${num(d1)}</td></tr>`;
+    tab += `<tr><th class="p2">P2</th>${h.map(x => `<td class="${lab(x[1])}">${lab(x[1])}</td>`).join("")}<td>${num(t2)}</td><td>${num(d2)}</td></tr></table>`;
+    $("ipd-out").innerHTML = tab + `<p style="font-family:var(--font);font-size:.82rem;color:var(--muted)">T = testify (vitne), R = refuse (nekte). Utbytte per runde som i forelesningen: (R,R) = −1 hver, (T,T) = −5 hver, T mot R = 0 og −10.</p>`;
+    CourseKit.relayout();
+  }
+  $("ipd-go").onclick = ipd; ["ipd-s1", "ipd-s2"].forEach(id => $(id).onchange = ipd);
+  ipd();
+})();
+</script>
+</body>
+</html>

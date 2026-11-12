@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modul 04 — Lokalt søk og komplekse omgivelser · TDT4136</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  /* Modulspesifikk CSS for m04 */
+  main .formula { text-align: left; padding-left: 1.2rem; }
+  svg .sq-light { fill: var(--paper); stroke: var(--line); stroke-width: 1; }
+  svg .sq-dark { fill: var(--code-bg); stroke: var(--line); stroke-width: 1; }
+  svg .sq-click { cursor: pointer; }
+  svg .sq-click:hover { fill: var(--accent-soft); }
+  svg text.queen { font-size: 26px; fill: var(--ink); pointer-events: none; }
+  svg text.queen.bad { fill: var(--bad); }
+  svg text.hval { font-size: 11px; fill: var(--muted); pointer-events: none; }
+  svg text.hval.best { fill: var(--good); font-weight: 700; }
+  svg .curve { stroke: var(--ink); stroke-width: 2.2; fill: none; }
+  svg .curve-fill { fill: var(--accent-soft); stroke: none; opacity: .6; }
+  svg .trail { fill: var(--warn); opacity: .55; }
+  svg .wall { fill: var(--ink); opacity: .6; stroke: var(--line); }
+  svg .free { fill: var(--paper); stroke: var(--accent); stroke-width: .8; stroke-opacity: .5; }
+  svg .belief { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+  svg .agent { fill: var(--accent); }
+  svg .dirt { fill: var(--warn); }
+  svg .vbox { fill: var(--paper); stroke: var(--ink); stroke-width: 1.2; }
+  svg .vbox-hl { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2.2; }
+  svg .vbox-good { fill: var(--good-soft); stroke: var(--good); stroke-width: 2.2; }
+  svg .vbox-dim { fill: var(--paper); stroke: var(--line); stroke-width: 1; opacity: .45; }
+  svg .bubble { fill: var(--purple-soft); stroke: var(--purple); stroke-width: 1.5; }
+  svg .andnode { fill: var(--good-soft); stroke: var(--good); stroke-width: 1.6; }
+  .dig-p1 { color: var(--accent); font-weight: 700; }
+  .dig-p2 { color: var(--good); font-weight: 700; }
+  .dig-mut { color: var(--bad); font-weight: 700; text-decoration: underline; }
+  .ga-table td, .ga-table th { text-align: center; vertical-align: middle; }
+  .ga-table td.str { font-family: var(--mono); font-size: 1rem; letter-spacing: .08em; }
+  .readout { font-family: var(--mono); font-size: .9rem; padding: .3rem .6rem; background: var(--code-bg); border-radius: 6px; display: inline-block; margin: .2rem 0; }
+  .widget label { display: inline-flex; align-items: center; gap: .3rem; }
+  .widget input[type=range] { width: 140px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+  .small-note { font-size: .82rem; color: var(--muted); }
+</style>
+</head>
+<body data-module="m04">
+<div class="layout">
+  <nav class="toc"></nav>
+  <main>
+    <div class="kicker">Modul 4 · Kap. 4</div>
+    <h1>Lokalt søk og komplekse omgivelser</h1>
+    <p class="lead">Hittil har vi lett etter <em>stier</em> i fullt observerbare, deterministiske verdener. Nå slipper vi taket på disse antagelsene: først bryr vi oss bare om å finne en god <em>tilstand</em> (lokalt søk: hill climbing, simulated annealing, genetiske algoritmer), deretter lærer vi å planlegge når handlinger er uforutsigbare, når agenten ikke ser hvor den er, og når verden er ukjent.</p>
+
+    <div class="box key">
+      <span class="box-title">Læringsmål</span>
+      <ul>
+        <li>Forklare forskjellen på <b>lokalt søk</b> og <b>systematisk søk</b>, og når stien er irrelevant.</li>
+        <li>Tegne og bruke begrepene i et <b>tilstandsromlandskap</b>: globalt/lokalt maksimum, platå, skulder, flatt lokalt maksimum og rygg.</li>
+        <li>Kjøre <b>hill climbing</b> (steepest ascent) for hånd på 8-dronninger med h = antall angripende par, og kjenne variantene stokastisk, first-choice, random-restart og sidelengs trekk.</li>
+        <li>Regne ut aksept-sannsynligheten i <b>simulated annealing</b> og forklare rollen til temperaturen.</li>
+        <li>Forklare <b>local beam search</b>, <b>stochastic beam search</b> og alle stegene i en <b>genetisk algoritme</b> (fitness, seleksjon, crossover, mutasjon) – og regne gjennom bokas 8-dronninger-eksempel.</li>
+        <li>Lage <b>AND-OR-søketrær</b> og <b>betingede planer</b> for ikke-deterministiske handlinger (erratic vacuum world), inkl. sykliske løsninger.</li>
+        <li>Regne med <b>belief states</b>: sensorløse problemer, og prediction–observation–update i delvis observerbare omgivelser (som i eksamen 2023).</li>
+        <li>Kjenne til <b>online søk</b>, <b>competitive ratio</b> og <b>LRTA*</b>.</li>
+      </ul>
+    </div>
+
+    <div class="box exam">
+      <span class="box-title">Hvorfor dette er viktig til eksamen</span>
+      <p>Lokalt søk dukker opp på så godt som <b>hver eneste eksamen</b>, men oftest som korte spørsmål som gir «gratis» poeng hvis du kan begrepene:</p>
+      <ul>
+        <li><b>Flervalg/sant-usant</b> om hill climbing, simulated annealing og genetiske algoritmer: 2015 (2 + 2 p), 2017, 2018 (2 spørsmål), 2019 (3 spørsmål, inkl. et bonusspørsmål der du må <em>regne</em> e<sup>ΔE/T</sup>), 2024 Q6 og <b>2025 Q2 (5 p)</b>.</li>
+        <li><b>Korte forklaringer</b>: «forskjellen på inkrementelt og lokalt søk», «hvorfor mutasjon i GA» (2022), «hva kan tilstanden være hvis hill climbing står fast, og hvilket triks hjelper» (2023).</li>
+        <li><b>Belief states</b> i delvis observerbare omgivelser: en hel oppgave i 2023 (robot i labyrint, 5 %), og AND-OR-søk/betingede planer i 2024 Q2. Sensorløs planlegging i 2025 Q11b.</li>
+      </ul>
+      <p>Faglærer sier på forelesningen: «This idea is very important in artificial intelligence and optimization. Well worth understanding.» – om søkelandskapet. Bruk tid på det.</p>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>1. Fra stier til tilstander: hva er lokalt søk?</h2>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>Tenk deg at du skal plassere møbler i en stue slik at det blir så fint som mulig. Ingen bryr seg om <em>i hvilken rekkefølge</em> du flyttet sofaen og bokhylla – bare om sluttresultatet. Du starter med en eller annen plassering, prøver små endringer («flytt sofaen litt til venstre»), og beholder endringen hvis det ble bedre. Det er lokalt søk.</p>
+    </div>
+
+    <p>Algoritmene fra modul 2 og 3 (BFS, UCS, A* …) er <span class="term" data-en="systematic search">systematiske<span class="def">Søk som holder styr på stier og hvilke alternativer som er utforsket (grense + reached-mengde), slik at hele rommet til slutt dekkes. Gir komplett­het, men koster mye minne.</span></span>: de husker stier i en grense, holder rede på hva som er besøkt, og løsningen er <em>stien</em> fra start til mål. Men i mange problemer er stien helt uinteressant. I 8-dronninger-problemet vil vi bare ha en gyldig sluttplassering; i kretsdesign, timeplanlegging og fabrikklayout er det sluttkonfigurasjonen som teller.</p>
+
+    <p><span class="term" data-en="local search">Lokalt søk<span class="def">Søk som starter i en tilstand og gjentatt flytter seg til en nabotilstand, uten å huske stier eller hvilke tilstander som er besøkt.</span></span> jobber med én (eller noen få) <em>nåværende tilstander</em> og flytter seg til naboer. Det husker ikke stien, og ikke hvilke tilstander det har sett. Det betyr:</p>
+    <ul>
+      <li><b>Fordel 1:</b> svært lite minne – vanligvis konstant.</li>
+      <li><b>Fordel 2:</b> finner ofte gode løsninger i enorme eller uendelige (kontinuerlige) tilstandsrom der systematiske algoritmer er håpløse.</li>
+      <li><b>Ulempe:</b> ikke systematisk → vanligvis verken <em>komplett</em> eller <em>optimal</em>. Slides: «It eases up on the completeness and optimality in the interest of improving time and space complexity.»</li>
+    </ul>
+
+    <p>Lokalt søk bruker typisk en <span class="term" data-en="complete-state formulation">komplett-tilstandsformulering<span class="def">Hver tilstand er en fullstendig (men kanskje dårlig) kandidatløsning, f.eks. alle 8 dronninger på brettet. Motsatt av inkrementell formulering, der man bygger løsningen bit for bit.</span></span>: hver tilstand er en hel kandidatløsning. Vi forbedrer den ved små endringer. Dette står i kontrast til den <em>inkrementelle</em> formuleringen fra kapittel 3, der man starter med tomt brett og legger til én dronning om gangen.</p>
+
+    <p>Lokalt søk egner seg spesielt for <span class="term" data-en="optimization problem">optimeringsproblemer<span class="def">Problemer der målet er å finne den beste tilstanden etter en objektfunksjon, ikke bare en hvilken som helst måltilstand.</span></span>, der vi vil finne den <em>beste</em> tilstanden ifølge en <span class="term" data-en="objective function">objektfunksjon<span class="def">Funksjonen som gir hver tilstand en verdi («høyde») vi vil maksimere. Er det en kostnad vil vi minimere den.</span></span>. Hva som er «naboer» bestemmes av hvilke små endringer vi tillater – det kalles <span class="term" data-en="neighbourhood">nabolaget<span class="def">Mengden tilstander man kan nå fra en tilstand med én lokal endring (én handling). Lokalt søk ser bare på nabolaget når det velger neste steg.</span></span>.</p>
+
+    <figure>
+      <svg viewBox="0 0 620 200" width="620" role="img" aria-label="Systematisk søk vs lokalt søk">
+        <text x="150" y="18" text-anchor="middle" class="label">Systematisk søk (kap. 3)</text>
+        <text x="470" y="18" text-anchor="middle" class="label">Lokalt søk (kap. 4)</text>
+        <line class="edge" x1="310" y1="5" x2="310" y2="195" stroke-dasharray="4 4"/>
+        <!-- tree -->
+        <line class="edge-hl" x1="150" y1="45" x2="90" y2="95"/><line class="edge" x1="150" y1="45" x2="210" y2="95"/>
+        <line class="edge-hl" x1="90" y1="95" x2="60" y2="150"/><line class="edge" x1="90" y1="95" x2="120" y2="150"/>
+        <line class="edge" x1="210" y1="95" x2="180" y2="150"/><line class="edge" x1="210" y1="95" x2="240" y2="150"/>
+        <circle class="node-hl" cx="150" cy="45" r="13"/><circle class="node-hl" cx="90" cy="95" r="13"/><circle class="node" cx="210" cy="95" r="13"/>
+        <circle class="node-good" cx="60" cy="150" r="13"/><circle class="node" cx="120" cy="150" r="13"/><circle class="node" cx="180" cy="150" r="13"/><circle class="node" cx="240" cy="150" r="13"/>
+        <text x="150" y="185" text-anchor="middle" class="small">husker grense + besøkte; løsning = STI (blå)</text>
+        <!-- local -->
+        <circle class="node" cx="400" cy="70" r="11"/><circle class="node" cx="450" cy="50" r="11"/><circle class="node" cx="500" cy="80" r="11"/>
+        <circle class="node" cx="420" cy="130" r="11"/><circle class="node" cx="530" cy="130" r="11"/>
+        <line class="edge" x1="470" y1="105" x2="410" y2="74"/><line class="edge" x1="470" y1="105" x2="449" y2="60"/>
+        <line class="edge" x1="470" y1="105" x2="492" y2="88"/><line class="edge" x1="470" y1="105" x2="428" y2="124"/><line class="edge" x1="470" y1="105" x2="520" y2="126"/>
+        <circle class="node-hl" cx="470" cy="105" r="14"/><text x="470" y="110" text-anchor="middle" class="label">cur</text>
+        <text x="470" y="170" text-anchor="middle" class="small">husker bare nåværende tilstand;</text>
+        <text x="470" y="185" text-anchor="middle" class="small">ser på naboene og flytter seg; løsning = TILSTAND</text>
+      </svg>
+      <figcaption>Figur 1: Systematisk søk bygger et søketre og returnerer en sti. Lokalt søk husker bare én tilstand og ser på nabolaget.</figcaption>
+    </figure>
+
+    <div class="box example"><span class="box-title">Eksempel fra forelesningen: nabolag</span>
+      <p>I grafen fra modul 2 (S, A, B, C, G) er nabolaget til A mengden {A, C, S} – tilstandene vi kan nå fra A (inkludert å bli stående). «This concept of neighbourhood is very important for local search, as we decide where to move next by looking around us!»</p>
+    </div>
+
+    <div class="quiz" data-answer="c">
+      <p class="q">Hvilket av disse problemene passer <em>best</em> for lokalt søk?</p>
+      <ul class="opts">
+        <li data-why="Her er selve stien svaret – vi trenger rekkefølgen av veier. Det er A*-land.">Finne korteste kjørerute fra Trondheim til Oslo</li>
+        <li data-why="8-puslespillet krever en sekvens av trekk som løsning, og optimal sti er ofte målet.">Løse et 8-puslespill med færrest mulig trekk</li>
+        <li>Lage en timeplan for 300 forelesninger som bryter færrest mulig skranker</li>
+        <li data-why="Et spill mot motstander krever adversarialt søk (minimax), modul 6.">Velge beste trekk i sjakk mot en motstander</li>
+      </ul>
+      <div class="feedback">Timeplanen er et rent optimeringsproblem: bare sluttresultatet teller, tilstandsrommet er gigantisk, og vi kan definere en objektfunksjon (antall brutte skranker). Perfekt for lokalt søk.</div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Eksamen 2022 spurte: «What is the difference between incremental and local search?» Prøv å formulere et svar på 2–3 setninger før du ser forslaget.</p>
+      <details><summary>Vis et forslag</summary>
+        <p><b>Inkrementelt (systematisk) søk</b> bygger løsningen steg for steg fra en tom/start-tilstand, husker stier og hva som er utforsket, og kan derfor garantere å finne en løsning (komplett) og ev. oppdage tidlig at en delløsning ikke fører frem. <b>Lokalt søk</b> starter med en komplett (men dårlig) tilstand, husker bare nåværende tilstand og flytter seg til naboer etter en objektfunksjon; det bruker lite minne men kan sette seg fast og er ikke komplett.</p>
+      </details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>2. Tilstandsromlandskapet</h2>
+
+    <p>Den viktigste mentale modellen i dette kapitlet er <span class="term" data-en="state-space landscape">tilstandsromlandskapet<span class="def">Visualisering der hver tilstand er et punkt, og «høyden» er objektfunksjonen (eller kostnaden). Lokalt søk er å vandre i dette landskapet.</span></span>. Legg alle tilstander langs x-aksen (naboer ved siden av hverandre), og la høyden være verdien til objektfunksjonen. Da blir søk det samme som å vandre i et fjellandskap – i tett tåke, uten kart, og uten hukommelse.</p>
+
+    <figure>
+      <svg id="fig-landscape" viewBox="0 0 640 280" width="640" role="img" aria-label="Endimensjonalt tilstandsromlandskap"></svg>
+      <figcaption>Figur 2: Et endimensjonalt tilstandsromlandskap (jf. bokas figur 4.1). Høyden er objektfunksjonen; målet er det globale maksimumet.</figcaption>
+    </figure>
+
+    <p>Begrepene du må kunne (og tegne!):</p>
+    <ul>
+      <li><span class="term" data-en="global maximum">Globalt maksimum<span class="def">Tilstanden med høyest verdi i hele tilstandsrommet. Det er dette vi egentlig vil finne.</span></span>: den høyeste toppen av alle.</li>
+      <li><span class="term" data-en="local maximum">Lokalt maksimum<span class="def">En topp som er høyere enn alle sine naboer, men lavere enn det globale maksimumet. Hill climbing stopper her.</span></span>: en topp som er høyere enn alle naboene, men ikke den høyeste. Hill climbing «trekkes oppover» mot toppen og blir stående der.</li>
+      <li><span class="term" data-en="plateau">Platå<span class="def">Et flatt område i landskapet der naboene har samme verdi. Enten et flatt lokalt maksimum eller en skulder.</span></span>: et flatt område. Det finnes to typer:
+        <ul>
+          <li><b>flatt lokalt maksimum</b> (<i>flat local maximum</i>): ingen utgang oppover fra platået,</li>
+          <li><span class="term" data-en="shoulder">skulder<span class="def">Et platå som det går an å komme videre oppover fra – flatt et stykke, så stiger det igjen.</span></span>: platå der det <em>går</em> oppover videre på andre siden.</li>
+        </ul></li>
+      <li><span class="term" data-en="ridge">Rygg<span class="def">En skrå «fjellrygg» som gir en sekvens av lokale maksima som ikke er direkte forbundet; alle tilgjengelige handlinger peker nedover selv om ryggen stiger.</span></span>: et terreng som stiger skrått i forhold til retningene vi kan gå i (se figur 3).</li>
+    </ul>
+
+    <figure>
+      <svg viewBox="0 0 560 230" width="560" role="img" aria-label="Rygg">
+        <defs>
+          <linearGradient id="ridgeGrad" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0" stop-color="var(--accent-soft)"/><stop offset="1" stop-color="var(--accent)" stop-opacity=".45"/>
+          </linearGradient>
+        </defs>
+        <polygon points="40,200 110,200 520,30 450,30" fill="url(#ridgeGrad)" stroke="var(--accent)" stroke-width="1"/>
+        <line x1="75" y1="200" x2="485" y2="30" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="548" y="22" text-anchor="end" class="small">ryggen stiger mot høyre →</text>
+        <!-- grid of states -->
+        <g id="ridge-grid"></g>
+        <text x="20" y="20" class="small">Pilene viser de eneste lovlige trekkene (opp/ned/høyre/venstre).</text>
+        <text x="20" y="34" class="small">Fra en tilstand på ryggen fører ALLE trekk nedover → lokalt maksimum.</text>
+      </svg>
+      <figcaption>Figur 3: En rygg (jf. bokas figur 4.4). Tilstandene ligger i et rutenett, men ryggen går diagonalt. Hvert punkt på ryggen er et lokalt maksimum, selv om ryggen som helhet stiger.</figcaption>
+    </figure>
+
+    <h3>Objektfunksjon, kostnad og heuristikk</h3>
+    <p>Om høyden er noe vi vil maksimere eller minimere er bare en konvensjon:</p>
+    <table>
+      <tr><th>Høyden er …</th><th>Vi leter etter …</th><th>Prosessen kalles …</th></tr>
+      <tr><td>en <b>objektfunksjon</b> (verdi, fitness, gevinst)</td><td>høyeste topp – globalt <b>maksimum</b></td><td><b>hill climbing</b> (steepest ascent)</td></tr>
+      <tr><td>en <b>kostnad</b> (feil, antall konflikter, h)</td><td>dypeste dal – globalt <b>minimum</b></td><td><span class="term" data-en="gradient descent">gradient descent<span class="def">Lokalt søk som minimerer en kostnadsfunksjon ved å gå i retningen der kostnaden synker mest (motsatt av gradienten).</span></span> (steepest descent)</td></tr>
+    </table>
+    <p>Du kan alltid gjøre om det ene til det andre: maksimer −kostnad. Boka bruker f.eks. <b>−h</b> som objektfunksjon for hill climbing på 8-dronninger, der h = antall par dronninger som angriper hverandre.</p>
+
+    <div class="box warning"><span class="box-title">Vanlig feil: «heuristikk» betyr ikke det samme som i A*</span>
+      <p>I lokalt søk er objektfunksjonen/kostnaden bare et mål på hvor god <em>tilstanden</em> er. Begrepene <b>admissibel</b> og <b>konsistent</b> fra A* har ingenting her å gjøre – vi estimerer ikke gjenværende stikostnad. Eksamen 2024 Q6 lurte nettopp med alternativet «use a heuristic that is both admissible and consistent» som et (feil) triks for å unnslippe lokale optima. Løsningsforslaget: «In local search we use an objective or cost function, but we do not have any admissibility nor consistency.»</p>
+    </div>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">Eksamen 2019: «Assume a Hill Climbing algorithm that aims to find the best state according to a heuristic objective function. Does it try to find the global minimum or the global maximum?»</p>
+      <ul class="opts">
+        <li data-why="Det ville vært gradient descent på en kostnadsfunksjon. Hill climbing klatrer oppover.">Global minimum</li>
+        <li>Global maximum</li>
+        <li data-why="Det er det den ofte ender i, men det er ikke det den prøver å finne.">Local maximum</li>
+      </ul>
+      <div class="feedback">Hill climbing prøver å finne det <b>globale maksimumet</b> av objektfunksjonen – men garanterer det ikke; den kan stoppe i et lokalt maksimum.</div>
+    </div>
+
+    <div class="quiz" data-answer="c">
+      <p class="q">Hill climbing står i en tilstand der den beste naboen har <em>nøyaktig samme</em> verdi som nåværende tilstand, og noen steg videre bortover går det oppover igjen. Hvor er vi?</p>
+      <ul class="opts">
+        <li data-why="Ved et lokalt maksimum er alle naboer strengt dårligere.">Et lokalt maksimum</li>
+        <li data-why="Fra et flatt lokalt maksimum går det ikke oppover noe sted fra platået.">Et flatt lokalt maksimum</li>
+        <li>En skulder</li>
+        <li data-why="En rygg er en diagonal topp der alle trekk går nedover.">En rygg</li>
+      </ul>
+      <div class="feedback">Et platå med utgang oppover er en <b>skulder</b>. Standard hill climbing stopper likevel her (beste nabo er ikke <em>bedre</em>), med mindre vi tillater sidelengs trekk.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>3. Hill climbing</h2>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>«Like trying to find the top of Mount Everest in a thick fog while suffering from amnesia.» Du ser bare bakken rett rundt føttene dine. Du tar alltid det bratteste steget oppover. Når alle retninger går nedover, erklærer du at du er på toppen – selv om du kanskje bare står på en liten haug.</p>
+    </div>
+
+    <p><span class="term" data-en="hill climbing (steepest ascent)">Hill climbing<span class="def">Lokalt søk som i hvert steg flytter seg til den beste naboen (steepest ascent), og stopper når ingen nabo er bedre enn nåværende tilstand.</span></span> er den enkleste lokale søkealgoritmen. Den kalles også <span class="term" data-en="greedy local search">grådig lokalt søk<span class="def">Annet navn på hill climbing: den tar den beste naboen nå uten å tenke på hvor det leder senere.</span></span>, fordi den tar det beste steget <em>nå</em> uten å tenke fremover.</p>
+
+    <div class="box algo"><span class="box-title">Algoritme (bokas figur 4.2)</span>
+<pre>function HILL-CLIMBING(problem) returns a state that is a local maximum
+  current ← problem.INITIAL
+  while true do
+      neighbor ← a highest-valued successor state of current
+      if VALUE(neighbor) ≤ VALUE(current) then return current
+      current ← neighbor</pre>
+    </div>
+    <ul>
+      <li><b>Linje 2:</b> start i starttilstanden (ofte tilfeldig valgt).</li>
+      <li><b>Linje 4:</b> generer <em>alle</em> naboer og velg den med høyest verdi (<em>steepest ascent</em>). Ved uavgjort: velg tilfeldig blant de beste.</li>
+      <li><b>Linje 5:</b> stoppkriteriet bruker <b>≤</b>: er beste nabo ikke <em>strengt</em> bedre, stopper vi. Det betyr at algoritmen stopper både på topper <em>og</em> på platåer.</li>
+      <li><b>Linje 6:</b> ellers flytter vi oss. Merk: ingen liste over besøkte tilstander, ingen sti.</li>
+    </ul>
+
+    <h3>8-dronninger med h = antall angripende par</h3>
+    <p>Problemet: plasser 8 dronninger på et sjakkbrett slik at ingen angriper hverandre (samme rad, kolonne eller diagonal). Bokas formulering for lokalt søk:</p>
+    <ul>
+      <li><b>Tilstand:</b> én dronning i hver kolonne → tilstanden kan skrives som 8 sifre, der siffer nr. <i>c</i> er raden til dronningen i kolonne <i>c</i> (rad 1 nederst). Det gir 8<sup>8</sup> ≈ 17 millioner tilstander.</li>
+      <li><b>Naboer:</b> flytt én dronning til en annen rute i <em>samme kolonne</em> → 8 · 7 = <b>56 naboer</b>.</li>
+      <li><b>Kostnad h:</b> antall <em>par</em> av dronninger som angriper hverandre, direkte eller indirekte (det teller som angrep selv om en annen brikke står imellom). h = 0 ⇔ løsning. Vi minimerer h (= maksimerer −h).</li>
+    </ul>
+
+    <div class="box warning"><span class="box-title">Vanlig feil når du teller h</span>
+      <ul>
+        <li>Tell <b>par</b>, ikke dronninger. Tre dronninger på samme rad gir 3 par (ikke 2 og ikke 3 «dronninger under angrep»).</li>
+        <li>Et angrep teller selv om det står en dronning imellom. Fire dronninger på én diagonal gir C(4,2) = 6 par.</li>
+        <li>Diagonaltest: dronninger i kolonne i og j angriper diagonalt hvis |rad<sub>i</sub> − rad<sub>j</sub>| = |i − j|.</li>
+        <li>Fitness i den genetiske algoritmen er det motsatte: antall <em>ikke-angripende</em> par = 28 − h (det finnes C(8,2) = 28 par totalt).</li>
+      </ul>
+    </div>
+
+    <div class="widget" id="queens-widget">
+      <p><b>8-dronninger-laben.</b> Klikk i en rute for å flytte dronningen i den kolonnen dit. Røde streker viser angripende par. Slå på «vis h for naboer» for å se h-verdien du ville fått ved å flytte dronningen i den kolonnen til den ruta (som bokas figur 4.3b); grønne tall er de beste naboene. Trykk «Ett hill-climbing-steg» for å la algoritmen ta ett steepest-descent-steg på h.</p>
+      <div style="text-align:center"><svg id="q-board" viewBox="0 0 360 360" width="360"></svg></div>
+      <div class="controls">
+        <span class="readout" id="q-info">h = ?</span>
+      </div>
+      <div class="controls">
+        <button id="q-step">Ett hill-climbing-steg</button>
+        <button id="q-run" class="secondary">Kjør til den stopper</button>
+        <button id="q-restart" class="secondary">Random-restart til løsning</button>
+      </div>
+      <div class="controls">
+        <button id="q-book" class="secondary">Bokas brett (h = 17)</button>
+        <button id="q-locmin" class="secondary">Lokalt minimum (h = 1)</button>
+        <button id="q-rand" class="secondary">Tilfeldig brett</button>
+        <label><input type="checkbox" id="q-showh" checked> vis h for naboer</label>
+        <label><input type="checkbox" id="q-side"> tillat sidelengs trekk (maks 100 på rad)</label>
+      </div>
+      <div class="log" id="q-log"></div>
+    </div>
+
+    <p>Prøv «Bokas brett (h = 17)»: åtte naboer har h = 12, og hill climbing velger én av dem tilfeldig. I boka tar det bare fem steg å komme ned til et brett med h = 1 – som viser seg å være et <b>lokalt minimum</b> for h: <em>hvert</em> av de 56 trekkene gjør det verre (prøv knappen «Lokalt minimum»).</p>
+
+    <div class="check" data-answer="3" data-mode="number">
+      <p class="q">Tre dronninger står på samme rad, og ingen andre par angriper hverandre. Hva er h?</p>
+      <div class="explain">h teller <em>par</em>: av tre dronninger kan man lage C(3,2) = 3 par, og alle angriper hverandre langs raden (også det «indirekte» paret med en dronning imellom). h = 3.</div>
+    </div>
+
+    <h3>Hvorfor hill climbing setter seg fast</h3>
+    <p>Hill climbing gjør raske fremskritt (det er lett å forbedre en dårlig tilstand), men stopper ved:</p>
+    <ol>
+      <li><b>Lokale maksima</b> – alle naboer er dårligere.</li>
+      <li><b>Rygger</b> – en serie lokale maksima som ikke er direkte forbundet.</li>
+      <li><b>Platåer</b> – ingen nabo er bedre; algoritmen ser ingen retning.</li>
+    </ol>
+    <p>Tall fra boka for 8-dronninger med steepest-ascent fra et tilfeldig brett: algoritmen <b>står fast 86 %</b> av gangene og <b>løser bare 14 %</b>. Men den er rask: i snitt 4 steg når den lykkes, 3 når den står fast – i et rom med 17 millioner tilstander.</p>
+
+    <h3>Varianter av hill climbing</h3>
+    <table>
+      <tr><th>Variant</th><th>Idé</th><th>Effekt</th></tr>
+      <tr><td><span class="term" data-en="sideways move">Sidelengs trekk<span class="def">Tillat trekk til en nabo med lik verdi, i håp om at platået er en skulder. Begrens antall sidelengs trekk på rad for å unngå evig vandring.</span></span></td><td>Tillat trekk til nabo med <em>lik</em> verdi (begrenset til f.eks. 100 på rad)</td><td>8-dronninger: fra 14 % til <b>94 %</b> løst, men ~21 steg per suksess og ~64 per fiasko. Hjelper på skuldre, ikke på flate lokale maksima.</td></tr>
+      <tr><td><span class="term" data-en="stochastic hill climbing">Stokastisk hill climbing<span class="def">Velger tilfeldig blant forbedrende trekk, gjerne med sannsynlighet som øker med hvor bratt trekket er.</span></span></td><td>Velg tilfeldig blant de trekkene som går <em>oppover</em> (evt. vektet etter bratthet)</td><td>Konvergerer saktere, men finner noen ganger bedre løsninger.</td></tr>
+      <tr><td><span class="term" data-en="first-choice hill climbing">First-choice hill climbing<span class="def">Stokastisk hill climbing der man genererer tilfeldige naboer én og én til man finner en som er bedre enn nåværende, og tar den.</span></span></td><td>Generer tilfeldige naboer til du finner én som er bedre, og ta den</td><td>Bra når hver tilstand har tusenvis av naboer (slipper å generere alle).</td></tr>
+      <tr><td><span class="term" data-en="random-restart hill climbing">Random-restart hill climbing<span class="def">Kjører hill climbing gjentatte ganger fra tilfeldige starttilstander til et mål er funnet. Komplett med sannsynlighet 1.</span></span></td><td>«If at first you don't succeed, try, try again»: kjør hill climbing fra nye tilfeldige starter til du finner mål</td><td><b>Komplett med sannsynlighet 1</b> (før eller siden er starten selv et mål). Med suksessrate p trengs i snitt <b>1/p</b> forsøk.</td></tr>
+    </table>
+
+    <div class="box example"><span class="box-title">Gjennomregnet: forventet kostnad for random restart</span>
+      <p>Uten sidelengs trekk er p ≈ 0,14 → i snitt 1/0,14 ≈ <b>7 forsøk</b> (6 fiaskoer + 1 suksess). Forventet antall steg = kostnad for én suksess + (1 − p)/p · kostnad for én fiasko ≈ 4 + (0,86/0,14) · 3 ≈ 4 + 18 = <b>22 steg</b>.</p>
+      <p>Med sidelengs trekk er p ≈ 0,94 → 1/0,94 ≈ 1,06 forsøk og (1 · 21) + (0,06/0,94) · 64 ≈ <b>25 steg</b>. Random-restart er altså svært effektivt for 8-dronninger – boka nevner at det løser <em>tre millioner</em> dronninger på sekunder.</p>
+    </div>
+
+    <div class="check" data-answer="5" data-mode="number" data-tol="0.01">
+      <p class="q">Et hill-climbing-forsøk lykkes med sannsynlighet p = 0,2. Hvor mange forsøk trenger random-restart i forventning?</p>
+      <div class="explain">Antall forsøk til første suksess er geometrisk fordelt med forventning 1/p = 1/0,2 = 5.</div>
+    </div>
+
+    <div class="box warning"><span class="box-title">Vanlig feil</span>
+      <ul>
+        <li>«Hill climbing er komplett» – <b>nei</b>. Ren hill climbing kan stoppe i lokale maksima/platåer. <em>Random-restart</em> hill climbing er komplett med sannsynlighet 1.</li>
+        <li>«Hill climbing er perfekt for CSP-er» (eksamen 2019, usant): den kan sette seg fast i lokale minima av antall brutte skranker.</li>
+        <li>Primær svakhet ved hill climbing (eksamen 2015): den kan sette seg fast i et <b>lokalt</b> maksimum – ikke at den bruker mye minne (den bruker nesten ingen).</li>
+      </ul>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Boka sier at landskap for NP-harde problemer ofte ser ut som «a widely scattered family of balding porcupines on a flat floor, with miniature porcupines living on the tip of each porcupine needle». Hva betyr dette for hill climbing, og hvilken variant ville du valgt?</p>
+      <details><summary>Vis et forslag</summary><p>Landskapet har eksponentielt mange lokale maksima (piggene) og store flate områder (gulvet). Ren hill climbing stopper på første pigg. Random restart gir mange sjanser fra forskjellige steder, og sidelengs trekk hjelper over flate områder. Boka påpeker at man likevel ofte finner et <em>rimelig godt</em> lokalt maksimum etter et lite antall restarter.</p></details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>4. Simulated annealing</h2>
+
+    <div class="box intuition"><span class="box-title">Intuisjon: ping-pong-ballen</span>
+      <p>Du vil få en ping-pong-ball ned i den dypeste sprekken i en humpete overflate (nå tenker vi <em>minimering</em>). Lar du ballen bare rulle, havner den i nærmeste grop (lokalt minimum). Rister du overflaten, spretter ballen ut av grunne groper. Trikset er å riste <em>hardt</em> i starten og så <em>gradvis mindre</em> – da spretter ballen ut av grunne groper, men blir liggende i den dypeste. Navnet kommer fra metallurgi: <em>annealing</em> (gløding) er å varme opp metall og kjøle det langsomt slik at atomene finner en lavenergitilstand.</p>
+    </div>
+
+    <p>Hill climbing tar aldri et steg nedover → kan sette seg fast. En ren <em>random walk</em> (tilfeldig vandring) finner før eller siden det globale maksimumet, men er ekstremt ineffektiv. <span class="term" data-en="simulated annealing">Simulated annealing<span class="def">Lokalt søk som velger en tilfeldig nabo; bedre trekk aksepteres alltid, dårligere aksepteres med sannsynlighet e^(ΔE/T) som synker med hvor mye verre trekket er og med temperaturen T.</span></span> kombinerer de to: den tar av og til «dårlige» steg, men stadig sjeldnere.</p>
+
+    <div class="box algo"><span class="box-title">Algoritme (bokas figur 4.5, skrevet for maksimering – se advarsel under)</span>
+<pre>function SIMULATED-ANNEALING(problem, schedule) returns a solution state
+  current ← problem.INITIAL
+  for t = 1 to ∞ do
+      T ← schedule(t)
+      if T = 0 then return current
+      next ← a randomly selected successor of current
+      ΔE ← VALUE(next) – VALUE(current)
+      if ΔE > 0 then current ← next
+      else current ← next only with probability e<sup>ΔE/T</sup></pre>
+    </div>
+    <ul>
+      <li><b>schedule(t)</b> er <span class="term" data-en="(cooling) schedule">avkjølingsplanen<span class="def">Funksjon som bestemmer temperaturen T ved tidssteg t; T starter høyt og synker mot 0.</span></span>: den gir <span class="term" data-en="temperature">temperaturen<span class="def">Parameter T i simulated annealing. Høy T: mange dårlige trekk aksepteres (utforskning). Lav T: nesten bare forbedringer (som hill climbing).</span></span> T ved tid t. T starter høyt og synker.</li>
+      <li>I stedet for å se på <em>alle</em> naboer, velger vi <b>én tilfeldig</b> nabo.</li>
+      <li>Er naboen bedre (ΔE &gt; 0): flytt <b>alltid</b>.</li>
+      <li>Er naboen dårligere eller lik (ΔE ≤ 0): flytt med sannsynlighet <b>e<sup>ΔE/T</sup></b>. Siden ΔE ≤ 0 er dette et tall i (0, 1].</li>
+    </ul>
+
+    <div class="formula">P(aksepter dårligere trekk) = e^(ΔE / T)
+der ΔE = VALUE(next) − VALUE(current) ≤ 0</div>
+
+    <p>Sannsynligheten avhenger av to ting:</p>
+    <ul>
+      <li><b>Hvor mye verre</b> trekket er (|ΔE|): jo verre, jo mindre sannsynlig (eksponentielt).</li>
+      <li><b>Temperaturen</b> T: høy T → nesten alt aksepteres (nesten random walk); T → 0 → nesten ingen dårlige trekk (blir hill climbing).</li>
+    </ul>
+
+    <table>
+      <tr><th>ΔE (forverring)</th><th>T = 10</th><th>T = 1</th><th>T = 0,1</th></tr>
+      <tr><td>0 (like god)</td><td>e<sup>0</sup> = 1</td><td>1</td><td>1</td></tr>
+      <tr><td>−1</td><td>e<sup>−0,1</sup> ≈ 0,905</td><td>e<sup>−1</sup> ≈ 0,368</td><td>e<sup>−10</sup> ≈ 0,000045</td></tr>
+      <tr><td>−2</td><td>e<sup>−0,2</sup> ≈ 0,819</td><td>e<sup>−2</sup> ≈ 0,135</td><td>≈ 2 · 10<sup>−9</sup></td></tr>
+      <tr><td>−10</td><td>e<sup>−1</sup> ≈ 0,368</td><td>e<sup>−10</sup> ≈ 0,000045</td><td>≈ 0</td></tr>
+    </table>
+
+    <div class="box warning"><span class="box-title">Vanlig feil: fortegnet til ΔE</span>
+      <p>Det finnes to konvensjoner – begge betyr det samme:</p>
+      <ul>
+        <li><b>Maksimering (boka, 3. utg.; slik vi skriver den her):</b> ΔE = VALUE(next) − VALUE(current). Dårlig trekk ⇒ ΔE &lt; 0 ⇒ P = e<sup>ΔE/T</sup> &lt; 1.</li>
+        <li><b>Minimering (forelesningsslides, «energi»):</b> ΔE = E(next) − E(current). Dårlig trekk ⇒ ΔE &gt; 0 ⇒ P = e<sup>−ΔE/T</sup> &lt; 1.</li>
+      </ul>
+      <p>Sjekk alltid at sannsynligheten du regner ut blir <b>mellom 0 og 1</b>. Får du e<sup>+2</sup> ≈ 7,4 har du snudd fortegnet. <i>Merk:</i> den globale utgaven av boka trykker «ΔE ← VALUE(current) – VALUE(next)» i pseudokoden. Det er konsistent bare hvis VALUE er en <em>kostnad</em> som skal minimeres (boka har nettopp byttet til «gradient descent»-synsvinkelen med ping-pong-ballen) – da betyr ΔE &gt; 0 at naboen er bedre, og e<sup>ΔE/T</sup> &lt; 1 for dårligere naboer. Men figurteksten («downhill moves») og setningen etter («global maxima») snakker om maksimering, så boka blander konvensjonene. Er VALUE noe du vil <em>maksimere</em> (som i hill climbing), må du bruke VALUE(next) − VALUE(current), som i boksen over.</p>
+    </div>
+
+    <p><b>Garantien:</b> Hvis avkjølingsplanen senker T mot 0 <em>langsomt nok</em>, vil en egenskap ved Boltzmann-fordelingen e<sup>ΔE/T</sup> gjøre at all sannsynlighet konsentreres på de globale maksimaene – algoritmen finner globalt optimum med sannsynlighet som går mot 1. (I praksis kan «langsomt nok» være upraktisk langsomt.) Simulated annealing har vært brukt til VLSI-layout siden 1980-tallet og til fabrikkplanlegging.</p>
+
+    <div class="box example"><span class="box-title">Gjennomregnet eksempel</span>
+      <p>Vi maksimerer. Nåværende tilstand har VALUE = 20, T = 4. Tilfeldig valgt nabo har VALUE = 14.</p>
+      <p>ΔE = 14 − 20 = −6. P(aksepter) = e<sup>−6/4</sup> = e<sup>−1,5</sup> ≈ <b>0,223</b>. Algoritmen trekker et tilfeldig tall u ∈ [0,1) og flytter hvis u &lt; 0,223.</p>
+      <p>Hadde naboen hatt VALUE = 25, er ΔE = +5 &gt; 0, og vi flytter med sannsynlighet 1.</p>
+    </div>
+
+    <div class="check" data-answer="0.368" data-mode="number" data-tol="0.005">
+      <p class="q">Vi minimerer kostnad (slide-konvensjon). Nåværende kostnad 10, nabo har kostnad 13, T = 3. Hva er sannsynligheten for å akseptere naboen? (tre desimaler)</p>
+      <div class="explain">Forverringen er ΔE = 13 − 10 = 3 (kostnad opp). P = e<sup>−3/3</sup> = e<sup>−1</sup> ≈ 0,368.</div>
+    </div>
+
+    <div class="quiz" data-answer="a">
+      <p class="q">Eksamen 2019 (bonus): Simulated annealing starter i S0 midt på et stort platå (alle tilstander har samme verdi). Første tilfeldige nabo S1 har samme verdi som S0. Vil SA flytte til S1?</p>
+      <ul class="opts">
+        <li>Ja, med sannsynlighet 1, fordi ΔE = 0 og e<sup>0/T</sup> = 1</li>
+        <li data-why="Hill climbing ville stoppet (VALUE(neighbor) ≤ VALUE(current)), men SA bruker sannsynlighetsregelen for ΔE ≤ 0.">Nei, fordi ΔE ikke er større enn 0</li>
+        <li data-why="Sannsynligheten avhenger ikke av T når ΔE = 0: e^(0/T) = 1 for alle T > 0.">Det avhenger av temperaturen T</li>
+        <li data-why="Det er riktig at ΔE = 0, men e^0 = 1, ikke 0,5.">Ja, med sannsynlighet 0,5</li>
+      </ul>
+      <div class="feedback">ΔE = VALUE(S1) − VALUE(S0) = 0. Siden ΔE ikke er &gt; 0, går vi til else-grenen: flytt med sannsynlighet e<sup>ΔE/T</sup> = e<sup>0</sup> = 1. Så SA flytter alltid til en like god nabo (så lenge T &gt; 0). Sensor krevde formelen – «No points will be given otherwise».</div>
+    </div>
+
+    <div class="widget" id="land-widget">
+      <p><b>Landskapslaben.</b> Klikk et sted på kurven for å plassere startpunktet. Hver tilstand x har to naboer (x − 1 og x + 1). Prøv:</p>
+      <ol class="small-note">
+        <li>Start til venstre (x ≈ 10) og trykk «Klatre til stopp» – hill climbing havner på det lokale maksimumet.</li>
+        <li>Start på skulderen (x ≈ 58) – stopper umiddelbart (platå). Slå på sidelengs trekk og prøv igjen.</li>
+        <li>Trykk «Random restart» og se hvor mange restarter som trengs.</li>
+        <li>Kjør simulated annealing med T₀ = 0, 5, 20 og 40 fra samme startpunkt. Hva skjer?</li>
+      </ol>
+      <svg id="land-svg" viewBox="0 0 640 270" width="640" style="max-width:100%;cursor:crosshair"></svg>
+      <div class="controls"><span class="readout" id="land-info">Klikk på kurven for å velge start.</span></div>
+      <div class="controls">
+        <button id="land-step">Ett hill-climbing-steg</button>
+        <button id="land-run" class="secondary">Klatre til stopp</button>
+        <button id="land-rr" class="secondary">Random restart (til global topp)</button>
+        <label><input type="checkbox" id="land-side"> sidelengs trekk (maks 100 på rad)</label>
+      </div>
+      <div class="controls">
+        <label>T₀ = <input type="range" id="land-T" min="0" max="60" step="1" value="20"> <span id="land-Tval">20</span></label>
+        <button id="land-sa">Kjør simulated annealing</button>
+        <button id="land-stop" class="secondary">Stopp</button>
+        <span class="small-note">Avkjøling: T(t) = T₀ · 0,999<sup>t</sup>, tilfeldig nabo innen ±4.</span>
+      </div>
+      <div class="log" id="land-log"></div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Hva skjer med simulated annealing hvis T er konstant og veldig høy hele tiden? Og hvis T = 0 fra start?</p>
+      <details><summary>Vis et forslag</summary><p>Konstant høy T: nesten alle trekk aksepteres → en <b>random walk</b> som aldri «setter seg». Den vil før eller siden besøke den globale toppen, men ikke bli der. T = 0: e<sup>ΔE/0</sup> → 0 for alle dårlige trekk, så bare forbedringer aksepteres → det blir <b>stokastisk/first-choice hill climbing</b> (tilfeldig nabo, flytt bare hvis bedre), som setter seg fast i lokale maksima. (Pseudokoden returnerer faktisk straks hvis T = 0; i laben over fortsetter vi likevel med bare forbedringer for å illustrere poenget.) Kunsten er å starte varmt og kjøle ned sakte.</p></details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>5. Local beam search og stochastic beam search</h2>
+
+    <p>Å huske bare én tilstand er ekstremt. <span class="term" data-en="local beam search">Local beam search<span class="def">Lokalt søk som holder k tilstander; genererer alle etterfølgere av alle k og beholder de k beste av hele listen.</span></span> holder <b>k</b> tilstander i stedet:</p>
+    <div class="box algo"><span class="box-title">Local beam search (beskrivelse fra boka)</span>
+<pre>start med k tilfeldig genererte tilstander
+loop:
+    generer ALLE etterfølgere av ALLE k tilstander
+    hvis en av dem er et mål: stopp
+    ellers: velg de k BESTE etterfølgerne fra hele lista</pre>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 600 210" width="600" role="img" aria-label="Local beam search">
+        <text x="20" y="22" class="small">generasjon t (k = 3)</text>
+        <text x="20" y="122" class="small">alle etterfølgere</text>
+        <text x="20" y="200" class="small">generasjon t+1 = 3 beste</text>
+        <g id="beam-fig"></g>
+      </svg>
+      <figcaption>Figur 4: Local beam search med k = 3. Alle 9 etterfølgere sammenlignes globalt; de tre beste (grønne) kommer alle fra den samme foreldertilstanden («come over here, the grass is greener!»).</figcaption>
+    </figure>
+
+    <p><b>Er ikke dette bare k random restarts i parallell?</b> Nei! Ved random restart kjører hvert søk <em>uavhengig</em>. I local beam search deles informasjon: tilstander som genererer gode etterfølgere «trekker» ressursene til seg, og fruktløse søk forlates raskt.</p>
+    <p><b>Problem:</b> mangel på mangfold – alle k tilstander kan klumpe seg i samme lille område, og da blir det bare en k ganger tregere hill climbing. Løsning: <span class="term" data-en="stochastic beam search">stochastic beam search<span class="def">Variant av local beam search der de k etterfølgerne velges tilfeldig med sannsynlighet proporsjonal med verdien, i stedet for de k beste. Gir mer mangfold.</span></span>, som velger k etterfølgere <em>tilfeldig, med sannsynlighet proporsjonal med verdien</em>. Det gir mer mangfold – og er et kort steg unna genetiske algoritmer.</p>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">Hva er den viktigste forskjellen mellom local beam search med k tilstander og k uavhengige random-restart-søk?</p>
+      <ul class="opts">
+        <li data-why="Begge bruker omtrent k ganger så mye minne som ett hill-climbing-søk.">Beam search bruker mye mindre minne</li>
+        <li>I beam search konkurrerer etterfølgerne til alle k tilstander om plassene, så informasjon deles mellom trådene</li>
+        <li data-why="Beam search er heller ikke garantert å finne det globale optimum.">Beam search er garantert å finne globalt optimum</li>
+        <li data-why="Det er stochastic beam search som bruker tilfeldighet i utvalget; vanlig beam search velger deterministisk de k beste.">Beam search velger etterfølgere tilfeldig</li>
+      </ul>
+      <div class="feedback">I beam search velges de k beste fra den <em>felles</em> lista. Søk som gjør det dårlig, «dør» og plassene overtas av etterfølgere av gode tilstander.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>6. Genetiske algoritmer</h2>
+
+    <div class="box intuition"><span class="box-title">Intuisjon</span>
+      <p>Naturlig seleksjon: en populasjon av individer; de best tilpassede får flest barn; barna arver deler av genene fra hver forelder (crossover), og av og til skjer en tilfeldig endring (mutasjon). Etter mange generasjoner blir populasjonen bedre. Slides: «Nature accidentally did something like this one time, using survival as a fitness function, and now we are here.»</p>
+    </div>
+
+    <p><span class="term" data-en="evolutionary algorithms">Evolusjonære algoritmer<span class="def">Familie av populasjonsbaserte optimeringsmetoder inspirert av naturlig seleksjon. Kan sees som varianter av stochastic beam search.</span></span> kan sees som stochastic beam search der etterfølgere lages ved å kombinere <em>to</em> foreldre. En <span class="term" data-en="genetic algorithm (GA)">genetisk algoritme<span class="def">Evolusjonær algoritme der hvert individ er en streng over et endelig alfabet. Nye individer lages ved seleksjon (vektet etter fitness), crossover og mutasjon.</span></span> (GA) har disse ingrediensene:</p>
+    <ul>
+      <li><span class="term" data-en="population / individual">Populasjon<span class="def">Mengden av k tilstander (individer) algoritmen jobber med samtidig. Hvert individ er typisk en streng, f.eks. «24748552».</span></span>: k individer (tilstander), hver representert som en <b>streng</b> over et endelig alfabet (f.eks. bits, eller sifre 1–8).</li>
+      <li><span class="term" data-en="fitness function">Fitness-funksjon<span class="def">Objektfunksjonen i en GA: høyere er bedre. For 8-dronninger: antall ikke-angripende par (maks 28).</span></span>: objektfunksjonen – høyere er bedre.</li>
+      <li><span class="term" data-en="selection">Seleksjon<span class="def">Valg av foreldre, typisk med sannsynlighet proporsjonal med fitness (eller turnering: trekk n tilfeldige, velg de beste).</span></span>: foreldre velges tilfeldig, <b>vektet etter fitness</b>. Gode individer kan velges flere ganger, dårlige ikke i det hele tatt.</li>
+      <li><span class="term" data-en="crossover">Crossover<span class="def">Rekombinasjon: velg et tilfeldig kuttpunkt, og lag et barn av første del av forelder 1 og resten av forelder 2 (og evt. omvendt).</span></span>: velg et tilfeldig <b>kuttpunkt</b> (crossover point) c; barnet får de c første tegnene fra forelder 1 og resten fra forelder 2.</li>
+      <li><span class="term" data-en="mutation">Mutasjon<span class="def">Liten tilfeldig endring av et barn (f.eks. ett siffer byttes ut) med lav sannsynlighet (mutation rate). Gir utforskning og mangfold.</span></span>: med liten sannsynlighet endres et tilfeldig tegn i barnet. For 8-dronninger: flytt en tilfeldig dronning til en tilfeldig rad i sin kolonne.</li>
+      <li><b>Ny generasjon:</b> barna erstatter populasjonen – eventuelt med de beste foreldrene tatt med videre (<span class="term" data-en="elitism">elitisme<span class="def">De beste individene fra forrige generasjon kopieres uendret inn i neste. Garanterer at beste fitness aldri synker.</span></span>, som garanterer at beste fitness aldri synker). <i>Culling</i> = kast alle under en terskel.</li>
+    </ul>
+
+    <p>Forelesningens oppsummering av algoritmen:</p>
+    <ol>
+      <li>Start med en populasjon av k tilfeldig genererte tilstander.</li>
+      <li>Velg tilfeldig to foreldre, vektet etter fitness.</li>
+      <li>Lag barn ved å kombinere foreldrene tilfeldig (crossover), evt. mutere.</li>
+      <li>Legg barna til den nye populasjonen.</li>
+      <li>Erstatt den gamle populasjonen med den nye. Gjenta til en løsning er funnet eller nok generasjoner har gått.</li>
+    </ol>
+
+    <div class="box algo"><span class="box-title">Algoritme (bokas figur 4.8)</span>
+<pre>function GENETIC-ALGORITHM(population, fitness) returns an individual
+  repeat
+      weights ← WEIGHTED-BY(population, fitness)
+      population2 ← empty list
+      for i = 1 to SIZE(population) do
+          parent1, parent2 ← WEIGHTED-RANDOM-CHOICES(population, weights, 2)
+          child ← REPRODUCE(parent1, parent2)
+          if (small random probability) then child ← MUTATE(child)
+          add child to population2
+      population ← population2
+  until some individual is fit enough, or enough time has elapsed
+  return the best individual in population, according to fitness
+
+function REPRODUCE(parent1, parent2) returns an individual
+  n ← LENGTH(parent1)
+  c ← random number from 1 to n
+  return APPEND(SUBSTRING(parent1, 1, c), SUBSTRING(parent2, c + 1, n))</pre>
+    </div>
+    <p>Merk: pseudokoden lager <em>ett</em> barn per foreldrepar, mens figur 4.6 lager <em>to</em> barn per par (forelder 1 + forelder 2 og omvendt). Begge varianter er vanlige.</p>
+
+    <h3>Bokas 8-dronninger-eksempel (figur 4.6), regnet ut</h3>
+    <p>Hver streng er en 8-dronninger-tilstand: siffer nr. c = raden til dronningen i kolonne c. Fitness = antall <b>ikke-angripende</b> par = 28 − h. Seleksjonssannsynlighet = fitness / sum av fitness. Summen er 24 + 23 + 20 + 11 = 78.</p>
+    <table class="ga-table">
+      <tr><th>(a) Populasjon</th><th>(b) Fitness</th><th>P(valgt)</th><th>(c) Seleksjon</th><th>(d) Crossover</th><th>(e) Mutasjon</th></tr>
+      <tr><td class="str">24748552</td><td>24</td><td>24/78 ≈ 31 %</td><td class="str">327|52411</td><td class="str"><span class="dig-p1">327</span><span class="dig-p2">48552</span></td><td class="str">32748<span class="dig-mut">1</span>52</td></tr>
+      <tr><td class="str">32752411</td><td>23</td><td>23/78 ≈ 29 %</td><td class="str">247|48552</td><td class="str"><span class="dig-p1">247</span><span class="dig-p2">52411</span></td><td class="str">24752411</td></tr>
+      <tr><td class="str">24415124</td><td>20</td><td>20/78 ≈ 26 %</td><td class="str">32752|411</td><td class="str"><span class="dig-p1">32752</span><span class="dig-p2">124</span></td><td class="str">32<span class="dig-mut">2</span>52124</td></tr>
+      <tr><td class="str">32543213</td><td>11</td><td>11/78 ≈ 14 %</td><td class="str">24415|124</td><td class="str"><span class="dig-p1">24415</span><span class="dig-p2">411</span></td><td class="str">2441541<span class="dig-mut">7</span></td></tr>
+    </table>
+    <ul>
+      <li>(c) To par velges: (32752411, 24748552) med kuttpunkt etter 3. siffer, og (32752411, 24415124) med kuttpunkt etter 5. Legg merke til at 32752411 ble valgt <b>to ganger</b>, og 32543213 (fitness 11) <b>ikke i det hele tatt</b>.</li>
+      <li>(d) Første barn får 327 fra forelder 1 og 48552 fra forelder 2 → <b>32748552</b> (fitness 23).</li>
+      <li>(e) Hvert siffer muteres med liten uavhengig sannsynlighet: barn 1, 3 og 4 fikk ett mutert siffer hver. Det første barnet ble etter mutasjon 32748152 med fitness 24.</li>
+    </ul>
+
+    <div class="check" data-answer="24752411" data-mode="text">
+      <p class="q">Foreldre 24748552 og 32752411, kuttpunkt etter 3. siffer. Hva blir barnet som starter med forelder 1 (24748552)?</p>
+      <div class="explain">De tre første fra forelder 1: <b>247</b>, resten (siffer 4–8) fra forelder 2: <b>52411</b> → 24752411.</div>
+    </div>
+
+    <div class="widget" id="ga-widget">
+      <p><b>GA-laben.</b> Gå gjennom én generasjon steg for steg. Start med bokas populasjon (stegene følger figur 4.6 nøyaktig), eller en tilfeldig populasjon (da trekkes seleksjon, kuttpunkt og mutasjon tilfeldig). Blå sifre kommer fra forelder 1, grønne fra forelder 2, røde er mutert.</p>
+      <div class="controls">
+        <button id="ga-book" class="secondary">Bokas populasjon</button>
+        <button id="ga-rand" class="secondary">Tilfeldig populasjon</button>
+        <button id="ga-next">Neste steg →</button>
+        <label>mutasjonssannsynlighet per barn: <input type="range" id="ga-pm" min="0" max="1" step="0.05" value="0.3"> <span id="ga-pmval">0.30</span></label>
+      </div>
+      <div class="readout" id="ga-stage">Steg: –</div>
+      <div id="ga-view" style="overflow-x:auto"></div>
+      <hr>
+      <p><b>Crossover-lekeplass:</b> skriv to 8-sifrede strenger (sifre 1–8) og velg kuttpunkt.</p>
+      <div class="controls">
+        <label>Forelder 1 <input type="text" id="cx-p1" value="24748552" size="9" maxlength="8"></label>
+        <label>Forelder 2 <input type="text" id="cx-p2" value="32752411" size="9" maxlength="8"></label>
+        <label>kuttpunkt c = <input type="range" id="cx-c" min="1" max="7" value="3"> <span id="cx-cval">3</span></label>
+      </div>
+      <div id="cx-view"></div>
+      <hr>
+      <p><b>Full kjøring:</b> populasjon på 100, fitness-proporsjonal seleksjon, to barn per par, mutasjonssannsynligheten fra glideren over. Den finner vanligvis (men ikke alltid!) en løsning innen et par hundre generasjoner.</p>
+      <div class="controls">
+        <button id="ga-full">Kjør inntil 500 generasjoner</button>
+        <label><input type="checkbox" id="ga-elite" checked> elitisme (behold 2 beste)</label>
+      </div>
+      <div class="log" id="ga-log"></div>
+    </div>
+
+    <h3>Hvorfor crossover? Skjemaer</h3>
+    <p>Crossover er det som skiller en GA fra stochastic beam search. Det hjelper hvis strengen har <b>blokker</b> som er nyttige hver for seg. For eksempel kan «de tre første dronningene på rad 2, 4 og 6» (som ikke angriper hverandre) være en god byggekloss som kan kombineres med andre gode klosser. Teorien bruker <span class="term" data-en="schema">skjemaer<span class="def">Delstreng der noen posisjoner er uspesifisert (*), f.eks. 246*****. Strenger som passer er instanser. Skjemaer med over-snittlig fitness får flere instanser over tid.</span></span>: 246***** beskriver alle tilstander med de tre første dronningene på 2, 4, 6. Hvis gjennomsnittlig fitness til instansene av et skjema er over snittet, vil antall instanser vokse over tid.</p>
+    <p>Konsekvens: Er posisjonene i strengen tilfeldig permutert (ingen meningsfulle blokker), gir crossover <em>ingen</em> fordel. Vellykket bruk av GA krever nøye valg av representasjon.</p>
+    <p><b>Crossover vs. mutasjon:</b> Tidlig, når populasjonen er mangfoldig, tar crossover <em>store</em> steg i tilstandsrommet (likt høy temperatur i SA). Etter hvert blir populasjonen likere, og stegene mindre. Mutasjon sørger for at vi kan utforske verdier som ingen i populasjonen har.</p>
+
+    <div class="box exam"><span class="box-title">Eksamen 2022: «Why do we have mutations in genetic algorithms?»</span>
+      <p>Offisielt svar: «To explore the neighbourhood of some solutions by making small alterations to their genotype we expect improvements in their fitness, as opposed to crossover which is a bigger alteration to exploit the "good" solutions.» Et godt svar nevner også: mutasjon <b>opprettholder mangfold</b> og kan gjeninnføre gener som har forsvunnet fra populasjonen, så GA-en ikke låser seg (lokalt optimum).</p>
+    </div>
+
+    <p>Andre ting boka nevner om evolusjonære algoritmer: <i>mixing number</i> ρ = antall foreldre per barn (ρ = 2 vanligst; ρ = 1 er stochastic beam search). I <i>evolution strategies</i> er individet en vektor av reelle tall, i <i>genetic programming</i> et dataprogram. Seleksjon kan også være turneringsbasert: trekk n tilfeldige individer og velg de ρ beste.</p>
+
+    <div class="quiz" data-answer="d">
+      <p class="q">Eksamen 2016 (tilpasset): Hvilken algoritme passer best til å «finne den beste designen av en bil»?</p>
+      <ul class="opts">
+        <li data-why="A* trenger en sti og en admissibel heuristikk; her er stien irrelevant.">A*</li>
+        <li data-why="Minimax er for spill mot en motstander.">Minimax</li>
+        <li data-why="Constraint propagation passer for problemer med harde skranker (f.eks. flyruteplan med restriksjoner).">Constraint propagation</li>
+        <li>Genetiske algoritmer</li>
+      </ul>
+      <div class="feedback">Design er et optimeringsproblem i et enormt rom der bare sluttresultatet teller, og der delløsninger (komponenter) kan kombineres – klassisk GA-bruk. Fasit 2016: flyruteplan → constraint propagation, backgammon → minimax, bildesign → GA, korteste rute → A*.</div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Forelesningens «assignment lecture» spurte: Ville en genetisk algoritme eller en CSP-løser være mest effektiv på 8-dronninger? Hvorfor?</p>
+      <details><summary>Vis et forslag</summary><p>8-dronninger har en tydelig skrankestruktur (ingen to på samme rad/diagonal). En CSP-løser med backtracking + forward checking/MRV, eller lokal søk med min-conflicts, utnytter strukturen direkte og løser det svært raskt (min-conflicts løser til og med millioner av dronninger). En GA er generell og vet ingenting om skrankene utover fitness; crossover mellom to brett gir ofte nye konflikter i skjøten. GA kan løse det, men er typisk tregere. GA er mest nyttig når vi har «lite signal om hvor vi skal gå» og ingen struktur å utnytte.</p></details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>7. Lokalt søk i kontinuerlige rom</h2>
+
+    <p>De fleste virkelige problemer er kontinuerlige: tilstanden er en vektor <b>x</b> av reelle tall. Da finnes uendelig mange naboer, så «generer alle naboer» fungerer ikke. Bokas eksempel: plasser tre flyplasser i Romania (seks variabler x<sub>1</sub>, y<sub>1</sub>, …, x<sub>3</sub>, y<sub>3</sub>) slik at summen av kvadrerte avstander fra hver by til nærmeste flyplass minimeres.</p>
+    <ul>
+      <li><b>Diskretisering:</b> la hver variabel bare endres med ±δ → 12 naboer → bruk vanlig hill climbing. Å måle fremgang ved endring i f mellom nærliggende punkter kalles <i>empirical gradient</i>.</li>
+      <li><b>Gradient:</b> <span class="term" data-en="gradient ∇f">gradienten<span class="def">Vektoren av partielle deriverte ∇f = (∂f/∂x₁, …, ∂f/∂xₙ). Peker i retningen der f øker raskest.</span></span> ∇f peker i retningen der f stiger raskest. Steepest-ascent i kontinuerlig rom: </li>
+    </ul>
+    <div class="formula">x ← x + α ∇f(x)      (maksimering, gradient ascent)
+x ← x − α ∇f(x)      (minimering, gradient descent)</div>
+    <p>der α er <span class="term" data-en="step size / learning rate">steglengden<span class="def">Konstanten α i gradientoppdateringen. For liten: mange steg. For stor: man kan hoppe over optimum.</span></span>. For liten α → for mange steg; for stor α → vi kan hoppe forbi toppen. <i>Line search</i> dobler α til f begynner å synke igjen. <i>Newton–Raphson</i> bruker også andrederiverte (Hessian-matrisen): x ← x − H<sub>f</sub><sup>−1</sup>(x) ∇f(x). Kontinuerlige rom har akkurat de samme problemene med lokale maksima, rygger og platåer – random restart og simulated annealing hjelper også her. (<i>Constrained optimization</i> og <i>linear programming</i> nevnes i boka, men er bare orienteringsstoff.)</p>
+
+    <div class="box example"><span class="box-title">Forelesningens kobling: maskinlæring er lokalt søk</span>
+      <p>Et nevralt nett med 1 milliard parametere θ og en tapsfunksjon (hvor mye den bommer på treningsdata) gir et 1-milliard-dimensjonalt landskap. Trening = finn bunnen: gå i retning −∇<sub>θ</sub>f. Det er gradient descent – lokalt søk, der vi heller ikke bryr oss om stien vi gikk.</p>
+      <p><b>«Wake up problem»</b> fra slides: Finn minimum av f(x) = sin(x). Gradient descent er raskest – landskapet er glatt, og −f′(x) peker rett mot bunnen. Men for <i>Weierstrass-funksjonen</i> (kontinuerlig overalt, deriverbar ingen steder, fraktal med utallige små topper) gir gradienten nesten ingen nyttig informasjon – da kan en populasjonsbasert metode som GA være bedre. «If you have no signal on where to go, this can be very powerful.»</p>
+    </div>
+
+    <div class="quiz" data-answer="c">
+      <p class="q">Hvilken påstand om gradient descent er riktig?</p>
+      <ul class="opts">
+        <li data-why="Dette var nettopp det usanne utsagnet i eksamen 2025 Q2.">Den vil alltid unnslippe lokale optima, i motsetning til hill climbing</li>
+        <li data-why="Gradienten peker oppover; gradient descent går motsatt vei.">Den går i retningen til gradienten for å minimere</li>
+        <li>Den er hill climbing for kostnader i kontinuerlige rom, og kan sette seg fast i lokale minima</li>
+        <li data-why="Stor steglengde kan få algoritmen til å hoppe over minimumet eller divergere.">Jo større steglengde α, jo bedre</li>
+      </ul>
+      <div class="feedback">Gradient descent er den kontinuerlige motparten til hill climbing (minimering). Den deler svakheten: den stopper der gradienten er null – som kan være et lokalt minimum eller et platå.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>8. Ikke-deterministiske handlinger: AND-OR-søk</h2>
+
+    <p>Nå bytter vi tema. Resten av modulen handler ikke om optimering, men om å planlegge når verden er mindre snill enn i kapittel 3. Der kunne agenten planlegge en sekvens og utføre den «med lukkede øyne». Det går ikke lenger når:</p>
+    <ul>
+      <li>handlinger er <span class="term" data-en="nondeterministic">ikke-deterministiske<span class="def">En handling kan gi flere mulige utfall; agenten vet ikke på forhånd hvilket. Beskrives med RESULTS(s, a) som returnerer en mengde tilstander.</span></span> (agenten vet ikke hvilket utfall den får), eller</li>
+      <li>omgivelsene er <b>delvis observerbare</b> (agenten vet ikke helt hvor den er) – seksjon 9–10.</li>
+    </ul>
+    <p>Begge tilfeller fører til at agenten tenker i <span class="term" data-en="belief state">belief states<span class="def">Mengden av fysiske tilstander agenten mener den kan være i. «Jeg er enten i s1 eller s3.»</span></span>: «Jeg er enten i s<sub>1</sub> eller s<sub>3</sub>, og gjør jeg a havner jeg i s<sub>2</sub>, s<sub>4</sub> eller s<sub>5</sub>.» Løsningen er ikke lenger en sekvens, men en <span class="term" data-en="conditional plan / contingency plan / strategy">betinget plan<span class="def">Plan med if–then–else (og evt. løkker) som sier hva agenten skal gjøre avhengig av hva den observerer underveis. Kalles også contingency plan eller strategi. Løsninger er trær, ikke sekvenser.</span></span> (contingency plan) med if–then–else.</p>
+
+    <h3>Støvsugerverdenen og den uberegnelige støvsugeren</h3>
+    <p>Støvsugerverdenen har to ruter (venstre L og høyre R), en agent og eventuelt skitt i hver rute: 2 · 2 · 2 = 8 tilstander. Handlinger: <i>Left</i>, <i>Right</i>, <i>Suck</i>. Mål: alt rent (tilstand 7 eller 8).</p>
+    <figure>
+      <svg id="fig-vac8" viewBox="0 0 560 200" width="560" role="img" aria-label="De åtte tilstandene i støvsugerverdenen"></svg>
+      <figcaption>Figur 5: De åtte tilstandene (bokas figur 4.9). Blå trekant = agenten, oransje prikker = skitt. 7 og 8 er måltilstander.</figcaption>
+    </figure>
+
+    <p>I den <span class="term" data-en="erratic vacuum world">uberegnelige støvsugerverdenen<span class="def">Variant der Suck på en skitten rute renser den og noen ganger også naborute, og Suck på en ren rute noen ganger legger igjen skitt.</span></span> (erratic vacuum world) virker <i>Suck</i> slik:</p>
+    <ul>
+      <li>På skitten rute: renser ruta, og <em>noen ganger</em> også naboruta.</li>
+      <li>På ren rute: legger <em>noen ganger</em> skitt på teppet.</li>
+    </ul>
+    <p>Overgangsmodellen må da returnere en <b>mengde</b>: <code>RESULTS(s, a)</code> i stedet for <code>RESULT(s, a)</code>. For eksempel:</p>
+    <div class="formula">RESULTS(1, Suck) = {5, 7}
+RESULTS(7, Suck) = {3, 7}
+RESULTS(5, Suck) = {1, 5}</div>
+    <p>Fra tilstand 1 finnes ingen fast sekvens som alltid virker, men denne betingede planen gjør det:</p>
+    <div class="formula">[Suck, if State = 5 then [Right, Suck] else [ ]]</div>
+
+    <div class="check" data-answer="8" data-mode="set">
+      <p class="q">Hva er RESULTS(6, Suck) i den uberegnelige støvsugerverdenen? Skriv tilstandsnumrene kommaseparert. (Hint: i tilstand 6 står agenten i høyre rute som er skitten, venstre er ren.)</p>
+      <div class="explain">Suck på skitten rute renser den (→ 8) og noen ganger også naboruta – men naboruta er allerede ren, så det utfallet gir også 8. Derfor er RESULTS(6, Suck) = {8}: ikke-determinismen «forsvinner» her. Sammenlign med RESULTS(2, Suck) = {4, 8}, der venstre rute er skitten.</div>
+    </div>
+    <div class="check" data-answer="4,8" data-mode="set">
+      <p class="q">Hva er RESULTS(2, Suck)? (Tilstand 2: agenten til høyre, begge ruter skitne.)</p>
+      <div class="explain">Høyre rute renses → 4 (bare venstre skitten). Noen ganger renses begge → 8. RESULTS(2, Suck) = {4, 8}.</div>
+    </div>
+
+    <h3>AND-OR-søketrær</h3>
+    <p>I et vanlig søketre er all forgrening <em>agentens valg</em>. Nå har vi to typer forgrening:</p>
+    <ul>
+      <li><span class="term" data-en="OR node">OR-noder<span class="def">Noder der agenten velger handling. Det holder at ÉN av handlingene fører til en løsning. Tegnes som tilstander (rektangler).</span></span>: agenten velger handling (Left <em>eller</em> Right <em>eller</em> Suck). Det holder at <b>én</b> av grenene fører til mål.</li>
+      <li><span class="term" data-en="AND node">AND-noder<span class="def">Noder der omgivelsene velger utfall av en handling. ALLE utfall må ha en plan. Tegnes som sirkler med en bue over grenene.</span></span>: <em>omgivelsene</em> velger utfall. Vi må ha en plan for <b>alle</b> utfall (5 <em>og</em> 7). Tegnes som sirkler med en bue som binder grenene sammen.</li>
+    </ul>
+    <p>En <b>løsning</b> i et AND-OR-tre er et deltre som (1) har en måltilstand i hvert løv, (2) velger én handling i hver OR-node, og (3) inkluderer <em>alle</em> utfallsgrener i hver AND-node.</p>
+
+    <figure>
+      <svg id="fig-andor" viewBox="0 0 700 440" width="700" role="img" aria-label="AND-OR-tre for erratic vacuum world"></svg>
+      <figcaption>Figur 6: De to første nivåene av AND-OR-søketreet for den uberegnelige støvsugeren (bokas figur 4.10 / slide 46). Rektangler = OR-noder (tilstander), grønne sirkler = AND-noder (utfall). Buen viser at alle utfall må håndteres. Løsningen er tegnet med tykke grønne kanter. LOOP = tilstanden finnes allerede på stien fra roten.</figcaption>
+    </figure>
+
+    <div class="box algo"><span class="box-title">Algoritme: AND-OR-SEARCH (bokas figur 4.11)</span>
+<pre>function AND-OR-SEARCH(problem) returns a conditional plan, or failure
+  return OR-SEARCH(problem, problem.INITIAL, [ ])
+
+function OR-SEARCH(problem, state, path) returns a conditional plan, or failure
+  if problem.IS-GOAL(state) then return the empty plan
+  if IS-CYCLE(state, path) then return failure
+  for each action in problem.ACTIONS(state) do
+      plan ← AND-SEARCH(problem, RESULTS(state, action), [state] + path)
+      if plan ≠ failure then return [action] + [plan]
+  return failure
+
+function AND-SEARCH(problem, states, path) returns a conditional plan, or failure
+  for each s<sub>i</sub> in states do
+      plan<sub>i</sub> ← OR-SEARCH(problem, s<sub>i</sub>, path)
+      if plan<sub>i</sub> = failure then return failure
+  return [if s<sub>1</sub> then plan<sub>1</sub> else if s<sub>2</sub> then plan<sub>2</sub> else … if s<sub>n−1</sub> then plan<sub>n−1</sub> else plan<sub>n</sub>]</pre>
+    </div>
+    <ul>
+      <li>Rekursivt, dybde-først. Basistilfeller: <b>mål</b> → tom plan; <b>syklus</b> → failure.</li>
+      <li><b>OR-SEARCH</b> prøver handlinger én etter én og returnerer den første som gir en plan («det holder med én»).</li>
+      <li><b>AND-SEARCH</b> krever en plan for <em>hvert</em> utfall; feiler ett, feiler alt («alle må virke»).</li>
+      <li><b>Syklussjekk:</b> hvis tilstanden allerede er på stien fra roten, returneres failure. Det betyr ikke at det ikke finnes noen løsning herfra – bare at en eventuell ikke-syklisk løsning må kunne nås fra den tidligere forekomsten. Dette garanterer terminering i endelige rom.</li>
+    </ul>
+
+    <div class="stepper" data-label="Steg">
+      <div class="step"><p><b>Steg 1:</b> OR-SEARCH(1, []). Tilstand 1 er ikke mål og ikke en syklus. Første handling: <i>Suck</i>. RESULTS(1, Suck) = {5, 7} → kall AND-SEARCH({5, 7}, path = [1]).</p><svg class="andor-step" data-step="1" viewBox="0 0 700 440" width="700"></svg></div>
+      <div class="step"><p><b>Steg 2:</b> AND-SEARCH må løse både 5 og 7. Først OR-SEARCH(5, [1]). Prøver <i>Suck</i>: RESULTS(5, Suck) = {5, 1}. OR-SEARCH(5, [5, 1]) → 5 er på stien → <b>LOOP → failure</b>. Da feiler hele AND-noden (1 trenger ikke engang sjekkes – den er også LOOP).</p><svg class="andor-step" data-step="2" viewBox="0 0 700 440" width="700"></svg></div>
+      <div class="step"><p><b>Steg 3:</b> Neste handling i 5: <i>Right</i> → RESULTS(5, Right) = {6}. OR-SEARCH(6, [5, 1]): ikke mål. Prøver <i>Suck</i> → {8}. OR-SEARCH(8) → <b>mål</b> → tom plan. Altså plan(6) = [Suck].</p><svg class="andor-step" data-step="3" viewBox="0 0 700 440" width="700"></svg></div>
+      <div class="step"><p><b>Steg 4:</b> Dermed plan(5) = [Right, Suck]. Tilbake i AND-SEARCH({5, 7}): OR-SEARCH(7) → 7 er <b>mål</b> → tom plan [ ].</p><svg class="andor-step" data-step="4" viewBox="0 0 700 440" width="700"></svg></div>
+      <div class="step"><p><b>Steg 5:</b> AND-SEARCH returnerer [if State = 5 then [Right, Suck] else [ ]], og OR-SEARCH(1) returnerer <b>[Suck, if State = 5 then [Right, Suck] else [ ]]</b>. <i>Right</i>-grenen fra 1 blir aldri utforsket, fordi <i>Suck</i> allerede ga en plan (OR: én holder).</p><svg class="andor-step" data-step="5" viewBox="0 0 700 440" width="700"></svg></div>
+    </div>
+
+    <div class="box warning"><span class="box-title">Vanlig feil (eksamen 2024 Q2)</span>
+      <p>Utsagnet «In nondeterministic environments agent can apply AND-OR search to generate <b>adversive</b> plans» var det <b>gale</b> alternativet: AND-OR-søk lager <b>contingency plans</b> (betingede planer), ikke «adversive plans». (AND-OR-treet ligner riktignok et spilltre – AND-nodene er som «naturens trekk» – men det er ingen motstander.)</p>
+    </div>
+
+    <h3>Prøv, prøv igjen: sykliske løsninger</h3>
+    <p>I den <b>glatte</b> støvsugerverdenen (<i>slippery vacuum world</i>) kan bevegelser mislykkes: RESULTS(1, Right) = {1, 2}. Da finnes ingen <em>asyklisk</em> løsning fra 1, og AND-OR-SEARCH returnerer failure. Men det finnes en <span class="term" data-en="cyclic solution">syklisk løsning<span class="def">Betinget plan med en løkke («prøv igjen til det virker»). Er en løsning hvis hvert løv er et mål og et mål kan nås fra hvert punkt i planen.</span></span>: fortsett å prøve <i>Right</i> til det virker:</p>
+    <div class="formula">[Suck, while State = 5 do Right, Suck]
+eller
+[Suck, L1: Right, if State = 5 then L1 else Suck]</div>
+    <p>En syklisk plan er en løsning hvis hvert løv er et mål og et mål kan nås fra hvert punkt i planen. Den virker bare hvis feilen er <em>tilfeldig og uavhengig</em> hver gang. Har drivreima røket (en skjult, permanent årsak), hjelper det ikke å prøve igjen.</p>
+
+    <div class="quiz" data-answer="b">
+      <p class="q">I et AND-OR-tre: hva kreves ved en AND-node for at deltreet skal være en løsning?</p>
+      <ul class="opts">
+        <li data-why="Det er kravet ved en OR-node (agentens valg).">At minst én av utfallsgrenene fører til mål</li>
+        <li>At alle utfallsgrenene har en plan som fører til mål</li>
+        <li data-why="Det er ikke noe krav om sannsynlighet; vi planlegger for alle mulige utfall.">At det mest sannsynlige utfallet fører til mål</li>
+        <li data-why="Løkker er tillatt i sykliske planer, men det er ikke kravet som definerer AND-noder.">At ingen grener inneholder løkker</li>
+      </ul>
+      <div class="feedback">AND-noder representerer omgivelsenes valg – vi vet ikke hvilket utfall vi får, så vi må ha en plan for <em>alle</em>.</div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Eksamen 2019 Q8: «10 % av tiden renser ikke SUCK gulvet selv om det er skittent, og kan legge igjen skitt på et rent gulv.» Klassifiser omgivelsene: sekvensiell/episodisk, deterministisk/stokastisk, dynamisk/statisk. Hvordan henger dette sammen med AND-OR-søk?</p>
+      <details><summary>Vis et forslag</summary><p>Fasit: <b>sekvensiell, stokastisk (ikke-deterministisk), statisk</b>. Sekvensiell fordi nåværende handling påvirker fremtidige tilstander; stokastisk fordi utfallet av Suck ikke er bestemt; statisk fordi verden ikke endrer seg mens agenten tenker. Med full observerbarhet planlegger vi med AND-OR-søk: hver Suck gir en AND-node med flere utfall, og planen blir betinget (evt. syklisk: «sug til det er rent»).</p></details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>9. Søk uten observasjoner (sensorløse problemer)</h2>
+
+    <p>Hva om agenten ikke har noen sensorer i det hele tatt? Det kalles et <span class="term" data-en="sensorless / conformant problem">sensorløst problem<span class="def">Problem der agenten ikke får noen observasjoner. Kalles også conformant problem. Løsningen er en sekvens av handlinger som virker uansett hvilken tilstand man startet i.</span></span> (conformant problem). Det høres håpløst ut, men er overraskende nyttig: industriroboter kan orientere deler uten sensorer, og leger gir bredspektret antibiotika i stedet for å vente på blodprøven.</p>
+
+    <div class="box example"><span class="box-title">Gjennomregnet: sensorløs (deterministisk) støvsuger</span>
+      <p>Agenten kjenner geografien, men vet verken hvor den er eller hvor skitten er. Start-belief state: alle 8 tilstander.</p>
+      <ul>
+        <li>RESULT({1,2,3,4,5,6,7,8}, Right) = <b>{2, 4, 6, 8}</b> – nå vet agenten at den er til høyre, uten å ha observert noe!</li>
+        <li>RESULT({2,4,6,8}, Suck) = <b>{4, 8}</b> – høyre rute er garantert ren.</li>
+        <li>RESULT({4,8}, Left) = <b>{3, 7}</b></li>
+        <li>RESULT({3,7}, Suck) = <b>{7}</b> – garantert mål!</li>
+      </ul>
+      <p>Sekvensen [Right, Suck, Left, Suck] tvinger (<span class="term" data-en="coercion">coerce<span class="def">Å tvinge verden inn i en kjent tilstand gjennom handlinger, uten observasjoner. F.eks. [Right, Suck, Left, Suck] tvinger støvsugerverdenen til tilstand 7.</span></span>) verden inn i tilstand 7 uansett starttilstand. Slides: «Think of 5D chess: you solve the problem on multiple paths at the same time!»</p>
+    </div>
+
+    <p>Løsningen på et sensorløst problem er alltid en <b>sekvens</b> (ikke en betinget plan) – det er ingen observasjoner å forgrene på. Vi søker i <b>belief-state-rommet</b>, som er <em>fullt observerbart</em> (agenten vet alltid sin egen belief state). Da kan vi bruke de vanlige algoritmene fra kapittel 3 (BFS, A* …) på et transformert problem:</p>
+
+    <table>
+      <tr><th>Komponent</th><th>Belief-state-problemet (fra fysisk problem P)</th></tr>
+      <tr><td>Tilstander</td><td>Alle delmengder av fysiske tilstander: <b>2<sup>N</sup></b> belief states (de fleste unåelige). Støvsuger: 2<sup>8</sup> = 256, men bare 12 er nåbare.</td></tr>
+      <tr><td>Starttilstand</td><td>Typisk mengden av alle tilstander i P.</td></tr>
+      <tr><td>Handlinger</td><td><b>Union</b> av lovlige handlinger i alle s ∈ b (trygt hvis ulovlige handlinger ikke har effekt), eller <b>snitt</b> (hvis ulovlige handlinger kan være katastrofale).</td></tr>
+      <tr><td>Overgangsmodell (<span class="term" data-en="prediction">prediksjon<span class="def">b̂ = PREDICT(b, a): mengden tilstander agenten kan være i etter handling a, gitt belief state b. Union av RESULTS(s, a) for alle s ∈ b.</span></span>)</td><td>Deterministisk: b′ = {RESULT<sub>P</sub>(s, a) : s ∈ b}. Ikke-deterministisk: b′ = ⋃<sub>s∈b</sub> RESULTS<sub>P</sub>(s, a). Deterministisk: |b′| ≤ |b|; ikke-deterministisk kan b′ bli <em>større</em>.</td></tr>
+      <tr><td>Måltest</td><td><i>Muligens</i> nådd hvis <em>noen</em> s ∈ b er mål; <i>nødvendigvis</i> nådd hvis <em>alle</em> s ∈ b er mål. Vi krever <b>nødvendigvis</b>.</td></tr>
+      <tr><td>Handlingskostnad</td><td>Antar samme kostnad i alle tilstander (ellers vanskelig).</td></tr>
+    </table>
+
+    <p><b>Pruning med delmengder:</b> Hvis vi har nådd belief state {5, 7}, kan vi forkaste supermengden {1, 3, 5, 7}: en løsning for den store mengden må virke for alle dens tilstander, og dermed også for {5, 7}. Omvendt: er en supermengde løsbar, er alle delmengder det. («If I have a solution that works when I'm very confused about what state I'm in, it will still work when I'm less confused.») Boka nevner også <i>inkrementelt belief-state-søk</i>: finn en løsning for tilstand 1, sjekk om den virker for 2, osv. – oppdager raskt uløsbarhet.</p>
+
+    <div class="widget" id="vac-widget">
+      <p><b>Belief-state-laben for støvsugeren.</b> Den blå rammen viser belief state (mengden mulige tilstander). Klikk handlinger og se prediksjonen. Velg variant for å se hvordan ikke-determinisme kan <em>øke</em> belief state. Med «lokal sensing» får agenten etter hver handling en observasjon [posisjon, Dirty/Clean]; velg hvilken observasjon som kom for å gjøre <b>update</b>.</p>
+      <svg id="vac-svg" viewBox="0 0 560 200" width="560"></svg>
+      <div class="controls">
+        <label>Variant: <select id="vac-mode">
+          <option value="det">Deterministisk</option>
+          <option value="erratic">Erratic (Suck uberegnelig)</option>
+          <option value="slippery">Slippery (bevegelse kan feile)</option>
+        </select></label>
+        <label><input type="checkbox" id="vac-sense"> lokal sensing</label>
+        <button id="vac-reset" class="secondary">Nullstill til {1,…,8}</button>
+      </div>
+      <div class="controls">
+        <button id="vac-L">Left</button><button id="vac-R">Right</button><button id="vac-S">Suck</button>
+        <span id="vac-percepts"></span>
+      </div>
+      <div class="readout" id="vac-info"></div>
+      <div class="log" id="vac-log"></div>
+    </div>
+
+    <div class="check" data-answer="1,3,5,7" data-mode="set">
+      <p class="q">Sensorløs, deterministisk støvsuger: hva er RESULT({1,2,3,4,5,6,7,8}, Left)?</p>
+      <div class="explain">Left flytter agenten til venstre uten å endre skitt: 1→1, 2→1, 3→3, 4→3, 5→5, 6→5, 7→7, 8→7. Belief state = {1, 3, 5, 7}.</div>
+    </div>
+
+    <div class="check" data-answer="5,7" data-mode="set">
+      <p class="q">Hva er RESULT({1, 3, 5, 7}, Suck) i den <em>deterministiske</em> sensorløse støvsugeren?</p>
+      <div class="explain">Agenten er til venstre i alle; Suck renser venstre rute: 1→5, 3→7, 5→5, 7→7. Resultat {5, 7}. (Dette er også belief staten boka bruker i eksempelet om supermengde-pruning.)</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>10. Delvis observerbare omgivelser</h2>
+
+    <p>Mellom «ser alt» og «ser ingenting» ligger delvis observerbarhet. Problemet har nå en funksjon PERCEPT(s) som gir observasjonen i tilstand s. (Fullt observerbart: PERCEPT(s) = s. Sensorløst: PERCEPT(s) = null.) Flere tilstander kan gi samme percept.</p>
+    <p><b>Lokal-sensing-støvsuger:</b> agenten ser sin posisjon (L/R) og om ruta den står i er skitten. I tilstand 1 er perceptet [L, Dirty] – men det er det også i tilstand 3. Start-belief state etter første percept: {1, 3}.</p>
+
+    <h3>Prediction – observation – update</h3>
+    <p>Overgangen mellom belief states skjer i tre trinn:</p>
+    <ol>
+      <li><b>Prediction:</b> b̂ = PREDICT(b, a) – akkurat som i det sensorløse tilfellet.</li>
+      <li><b>Mulige percepts:</b> POSSIBLE-PERCEPTS(b̂) = {o : o = PERCEPT(s), s ∈ b̂}.</li>
+      <li><span class="term" data-en="update">Update<span class="def">b_o = UPDATE(b̂, o) = {s ∈ b̂ : PERCEPT(s) = o}. Behold bare tilstandene som er forenlige med observasjonen o.</span></span>: for hvert mulig percept o: b<sub>o</sub> = UPDATE(b̂, o) = {s ∈ b̂ : PERCEPT(s) = o}.</li>
+    </ol>
+    <div class="formula">RESULTS(b, a) = { UPDATE(PREDICT(b, a), o) :
+                 o ∈ POSSIBLE-PERCEPTS(PREDICT(b, a)) }</div>
+    <p>Viktige egenskaper: Prediksjon kan <em>øke</em> belief state (ved ikke-determinisme), mens en observasjon bare kan <em>krympe</em> den (|b<sub>o</sub>| ≤ |b̂|). Med deterministiske sensorer er b<sub>o</sub>-ene disjunkte – de <em>partisjonerer</em> b̂.</p>
+
+    <figure>
+      <svg id="fig-pou" viewBox="0 0 640 230" width="640" role="img" aria-label="Prediction og update i lokal-sensing-støvsuger"></svg>
+      <figcaption>Figur 7: Deterministisk lokal-sensing-støvsuger (bokas figur 4.15a). Fra b = {1, 3} gir Right prediksjonen b̂ = {2, 4}. Mulige percepts er [R, Dirty] og [R, Clean], som gir to singleton-belief-states.</figcaption>
+    </figure>
+
+    <p>Fordi det er flere mulige percepts, blir dette en <b>AND-node</b>: vi må ha en plan for hvert percept. Altså kan vi løse delvis observerbare problemer med <b>AND-OR-søk over belief states</b>. Resultatet er en betinget plan som tester <em>belief state</em> (agenten kjenner jo ikke den faktiske tilstanden):</p>
+    <div class="formula">[Suck, Right, if B<sub>state</sub> = {6} then Suck else [ ]]</div>
+
+    <figure>
+      <svg id="fig-beliefandor" viewBox="0 0 560 250" width="560" role="img" aria-label="AND-OR-tre over belief states"></svg>
+      <figcaption>Figur 8: Første nivå av AND-OR-treet over belief states (slide 52 / bokas figur 4.16). Nodene er nå belief states; AND-nodene forgrener på percepts.</figcaption>
+    </figure>
+
+    <h3>En agent som holder rede på belief state</h3>
+    <p>Under utførelsen får agenten et faktisk percept o, så den trenger ikke vurdere alle mulige – den oppdaterer bare:</p>
+    <div class="formula">b′ = UPDATE(PREDICT(b, a), o)</div>
+    <p>Dette kalles <span class="term" data-en="monitoring / filtering / state estimation">monitoring, filtrering eller tilstandsestimering<span class="def">Å kontinuerlig vedlikeholde belief state ut fra handlinger og percepts: b′ = UPDATE(PREDICT(b, a), o). En rekursiv tilstandsestimator.</span></span> og er en kjernefunksjon i enhver intelligent agent i delvis observerbare omgivelser. Det er en <em>rekursiv</em> estimator: ny belief state regnes fra forrige, ikke fra hele perceptsekvensen.</p>
+
+    <h3>Lokalisering: roboten i labyrinten</h3>
+    <p><span class="term" data-en="localization">Lokalisering<span class="def">Tilstandsestimering der agenten skal finne ut hvor den er, gitt kart, handlinger og percepts.</span></span> er det klassiske eksempelet: en robot med kart, men uten å vite hvor den er, har fire sensorer som sier om det er vegg i nord, øst, sør og vest. Den starter med belief = alle frie ruter, oppdaterer med første percept, flytter seg (prediction), oppdaterer igjen – og belief state krymper raskt til ett punkt. Dette er nøyaktig eksamensoppgaven fra 2023 (se seksjon 12), og du kan øve på den her:</p>
+
+    <div class="widget" id="maze-widget">
+      <p><b>Lokaliseringslaben (labyrinten fra eksamen 2023).</b> Mørke ruter er vegger/hindringer, og utenfor brettet er det vegg. Blå ruter = belief state. Klikk en rute for å se hvilket percept den gir (det fylles også inn i boksene). Bruk «Update» med et percept og piltastene for «Predict» (å gå inn i en vegg = bli stående).</p>
+      <svg id="maze-svg" viewBox="0 0 560 230" width="560"></svg>
+      <div class="controls">
+        <b>Percept (vegg i …):</b>
+        <label><input type="checkbox" id="mz-N"> North</label>
+        <label><input type="checkbox" id="mz-S"> South</label>
+        <label><input type="checkbox" id="mz-W"> West</label>
+        <label><input type="checkbox" id="mz-E"> East</label>
+        <button id="mz-update">Update med dette perceptet</button>
+      </div>
+      <div class="controls">
+        <b>Predict:</b>
+        <button id="mz-up" class="secondary">Up ↑</button>
+        <button id="mz-down" class="secondary">Down ↓</button>
+        <button id="mz-left" class="secondary">Left ←</button>
+        <button id="mz-right" class="secondary">Right →</button>
+        <button id="mz-reset" class="secondary">Nullstill (alle frie ruter)</button>
+      </div>
+      <div class="readout" id="mz-info"></div>
+      <div class="log" id="mz-log"></div>
+    </div>
+
+    <div class="quiz" data-answer="a,c">
+      <p class="q">Hvilke påstander om belief states er riktige? (flere riktige)</p>
+      <ul class="opts">
+        <li>En observasjon (update) kan aldri gjøre belief state større</li>
+        <li data-why="Med ikke-deterministiske handlinger kan prediksjonen bli større enn b. Bare med deterministiske handlinger er |b̂| ≤ |b|.">Prediksjon gjør alltid belief state mindre eller lik</li>
+        <li>Med N fysiske tilstander finnes 2<sup>N</sup> mulige belief states</li>
+        <li data-why="I sensorløse problemer finnes ingen observasjoner å forgrene på, så løsningen er en sekvens.">Løsningen på et sensorløst problem er en betinget plan</li>
+      </ul>
+      <div class="feedback">Update filtrerer bort tilstander (krymper). Prediksjon med ikke-determinisme kan vokse. Belief-state-rommet er potensmengden 2<sup>N</sup>. Sensorløse løsninger er sekvenser.</div>
+    </div>
+
+    <div class="reflect">
+      <p class="q">Eksamen 2023: «To behave intelligently in a partially observable environment, in which respects should the agent be different from a simple reflex agent?»</p>
+      <details><summary>Vis et forslag</summary><p>Fasit: agenten trenger <b>hukommelse/intern tilstand</b>, og overgangsfunksjonen dens må operere på <b>belief states</b> (mengder av mulige tilstander), ikke én enkelt tilstand. En enkel refleksagent reagerer bare på nåværende percept; i delvis observerbare omgivelser kan samme percept komme fra ulike tilstander, så agenten må bruke en modell av hvordan verden endrer seg (predict) og hva percepts betyr (update) for å holde rede på hvor den kan være.</p></details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>11. Online søk og ukjente omgivelser</h2>
+
+    <p>Alt hittil har vært <span class="term" data-en="offline search">offline søk<span class="def">Agenten beregner en fullstendig løsning (på en modell) før den utfører første handling.</span></span>: agenten regner ut hele løsningen før den gjør noe. Et <span class="term" data-en="online search">online søk<span class="def">Agenten veksler mellom å handle, observere og beregne. Nødvendig i ukjente omgivelser der den må utforske for å lære hva handlingene gjør.</span></span> veksler mellom å <em>handle</em>, <em>observere</em> og <em>regne</em>. Det er nødvendig i <b>ukjente omgivelser</b> (agenten vet ikke hva handlingene gjør, f.eks. en robot i en ukjent bygning – <i>mapping problem</i>), og nyttig i dynamiske omgivelser der det straffes å tenke for lenge.</p>
+    <p>Agenten kjenner bare ACTIONS(s), kostnaden c(s, a, s′) (først etter at den har sett s′) og IS-GOAL(s) – og kanskje en heuristikk h(s). RESULT(s, a) lærer den bare ved å faktisk være i s og gjøre a.</p>
+    <ul>
+      <li><span class="term" data-en="competitive ratio">Competitive ratio<span class="def">Forholdet mellom kostnaden online-agenten faktisk bruker og kostnaden til optimal sti hvis rommet var kjent på forhånd. Vi vil ha den så liten som mulig.</span></span> = (kostnad agenten faktisk bruker) / (kostnad for beste sti hvis den kjente rommet). Ønskes liten.</li>
+      <li><span class="term" data-en="dead end / safely explorable">Blindveier<span class="def">Tilstander der ingen mål kan nås (f.eks. etter en irreversibel handling). Et rom er «safely explorable» hvis et mål kan nås fra alle nåbare tilstander.</span></span>: etter irreversible handlinger kan målet bli unåelig. Ingen algoritme unngår blindveier i alle rom (<i>adversary argument</i>: en motstander bygger rommet mens agenten utforsker). Algoritmene garanteres derfor bare å virke i <b>safely explorable</b> rom. Selv da finnes ingen begrenset competitive ratio hvis stikostnadene er ubegrenset.</li>
+      <li><b>Online DFS</b> passer, fordi den ekspanderer noder i lokal rekkefølge (agenten må fysisk gå dit). Backtracking krever reversible handlinger. Den traverserer hver kant høyst to ganger.</li>
+      <li><b>Hill climbing</b> er allerede online (husker bare nåværende tilstand), men står fast, og <em>random restart er umulig</em> – agenten kan ikke teleportere. <i>Random walk</i> virker i endelige, safely explorable rom, men kan bruke eksponentielt mange steg.</li>
+    </ul>
+
+    <h3>LRTA*: hill climbing med hukommelse</h3>
+    <p><span class="term" data-en="LRTA* (learning real-time A*)">LRTA*<span class="def">Learning Real-Time A*: online-agent som lagrer et estimat H(s) for hver besøkt tilstand, flytter seg til naboen som minimerer c(s,a,s′) + H(s′), og oppdaterer H(s) underveis. Uprøvde handlinger antas å gå rett til mål med kostnad h(s) (optimisme).</span></span> lagrer et «nåværende beste estimat» H(s) av kostnaden til mål for hver besøkte tilstand (starter som h(s)). I hver tilstand:</p>
+    <ol>
+      <li>Oppdater H for tilstanden vi nettopp forlot: H(s) ← min<sub>b</sub> [c(s, b, s′) + H(s′)].</li>
+      <li>Gå til naboen som ser best ut: argmin<sub>b</sub> [c(s, b, s′) + H(s′)].</li>
+    </ol>
+    <p>Uprøvde handlinger antas å føre rett til mål med kostnad h(s) – <i>optimism under uncertainty</i> – som oppmuntrer til utforskning. LRTA* finner alltid mål i endelige, safely explorable rom (O(n²) steg i verste fall), men er ikke komplett i uendelige rom. Eksempelet fra slides (bokas figur 4.23; alle kanter koster 1):</p>
+
+    <div class="stepper" data-label="Iterasjon">
+      <div class="step"><p><b>(a)</b> Agenten (skyggelagt) står i en tilstand med H = 2 – et flatt lokalt minimum. Venstre: 1 + 9 = 10, høyre: 1 + 2 = 3. Best: gå til høyre.</p><svg class="lrta-step" data-step="0" viewBox="0 0 520 70" width="520"></svg></div>
+      <div class="step"><p><b>(b)</b> H for tilstanden vi forlot oppdateres til 3 (beste nabo kostet 1 + 2) – dobbel sirkel. Nå: venstre 1 + 3 = 4, høyre 1 + 4 = 5 → gå til venstre.</p><svg class="lrta-step" data-step="1" viewBox="0 0 520 70" width="520"></svg></div>
+      <div class="step"><p><b>(c)</b> Tilstanden vi forlot får H = 4. Nå: venstre 1 + 9 = 10, høyre 1 + 4 = 5 → gå til høyre.</p><svg class="lrta-step" data-step="2" viewBox="0 0 520 70" width="520"></svg></div>
+      <div class="step"><p><b>(d)</b> Tilstanden vi forlot får H = 5. Nå: venstre 1 + 5 = 6, høyre 1 + 4 = 5 → gå til høyre.</p><svg class="lrta-step" data-step="3" viewBox="0 0 520 70" width="520"></svg></div>
+      <div class="step"><p><b>(e)</b> Tilstanden vi forlot får H = 5. Det lokale minimumet er «fylt opp», og agenten har sluppet ut mot høyre. Agenten har altså <em>lært</em> at gropa var dypere enn heuristikken trodde.</p><svg class="lrta-step" data-step="4" viewBox="0 0 520 70" width="520"></svg></div>
+    </div>
+
+    <div class="quiz" data-answer="c">
+      <p class="q">Hvorfor kan ikke en online-agent bruke random-restart hill climbing?</p>
+      <ul class="opts">
+        <li data-why="Hill climbing trenger svært lite minne; det er ikke problemet.">Det krever for mye minne</li>
+        <li data-why="Online-agenten kan godt ha en heuristikk.">Den har ingen heuristikk</li>
+        <li>Agenten kan ikke teleportere seg til en ny tilfeldig starttilstand – den må fysisk gå dit</li>
+        <li data-why="Online søk kan fint brukes i deterministiske omgivelser.">Omgivelsene er alltid ikke-deterministiske</li>
+      </ul>
+      <div class="feedback">Offline kan vi «hoppe» hvor vi vil i modellen. Online foregår søket i den virkelige verden, så en restart ville krevd å gå hele veien til en tilfeldig tilstand. Derfor brukes random walk eller (bedre) LRTA*.</div>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>12. Eksamensoppgaver</h2>
+
+    <p>Her er alle oppgaver om lokalt søk, simulated annealing, genetiske algoritmer, AND-OR-søk og belief states fra eksamenene 2015–2025. Oppgavetekst på engelsk som på eksamen. Løs på papir først! (Oppgaver om <i>min-conflicts</i> som lokalt søk for CSP – eksamen 2017 Problem 1d og 2024 Q9 – finner du i modul 5.)</p>
+
+    <div class="exercise" data-title="Local Search (flervalg)" data-meta="Eksamen 2025 · Q2 · 5 p">
+      <p><b>Which of the following statements is false?</b> Select one alternative:</p>
+      <ol type="A">
+        <li>Local search uses a single node and moves to a neighboring node depending on the heuristic function</li>
+        <li>To escape local optima, a local search algorithm needs to move to non-locally-optimal states from time to time</li>
+        <li>Gradient descent, in contrast to hill-climbing algorithms, will always escape local optima</li>
+        <li>The Genetic Algorithm is a population-based local search method</li>
+        <li>Hill-climbing is a local search procedure which will always choose the best state in the neighborhood of a solution</li>
+      </ol>
+      <details class="hint"><summary>Hint</summary><p>Gradient descent og hill climbing er «samme algoritme» – én minimerer, den andre maksimerer. Ord som «always» er mistenkelige.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>Svar: C</b> er usann.</p>
+        <ul>
+          <li><b>A – sant:</b> det klassiske lokale søket holder én nåværende node og flytter seg til en nabo basert på objekt-/heuristikkfunksjonen (slide: «It uses a single current node and moves to neighbouring nodes»).</li>
+          <li><b>B – sant:</b> for å komme ut av et lokalt optimum må man av og til gå til tilstander som ikke er lokalt optimale – det er nettopp det SA (dårlige trekk), random restart og mutasjon gjør.</li>
+          <li><b>C – USANT:</b> gradient descent er bare hill climbing for minimering («If you are minimising instead, then the procedure is called gradient descent»). Slides: «Both hill-climbing and gradient descent get stuck in local optima.»</li>
+          <li><b>D – sant:</b> GA er populasjonsbasert («a well-known metaheuristic in the family of population-based optimisers»).</li>
+          <li><b>E – sant:</b> steepest-ascent hill climbing velger alltid den beste naboen.</li>
+        </ul>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Q6 – Local search" data-meta="Eksamen 2024 · flervalg">
+      <p><i>Bare løsningsforslaget er bevart; spørsmålet er rekonstruert ut fra det.</i> Both hill-climbing and gradient descent can get stuck in local optima. <b>Which of the following is NOT a way to escape local optima?</b></p>
+      <ol type="A">
+        <li>Restart the search from a new (random) state</li>
+        <li>Jump to another part of the search space via mutation or perturbation</li>
+        <li>Accept a worse ("bad") decision every now and then</li>
+        <li>Use a heuristic that is both admissible and consistent to have a monotonically non-decreasing objective function</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>Svar: D.</b> Restart (random-restart hill climbing), perturbasjon/mutasjon (GA, «kicks») og å akseptere dårlige trekk (simulated annealing) er alle måter å komme ut av lokale optima på. Offisiell begrunnelse: «In local search we use an objective or cost function, but we do not have any admissibility nor consistency. In fact, we do not know the function value of the search space until we actually visit the state!» Admissibilitet og konsistens er egenskaper ved A*-heuristikker (estimat av gjenværende stikostnad), og har ingenting med landskapet i lokalt søk å gjøre.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Q2 – Mixture of chapters (utdrag)" data-meta="Eksamen 2024 · flervalg">
+      <p><i>Rekonstruert fra løsningsforslaget.</i> <b>Which statement is false?</b> Blant alternativene var:</p>
+      <ul>
+        <li>"In nondeterministic environments agent can apply AND-OR search to generate adversive plans."</li>
+        <li>"Consider that our simple vacuum cleaner has a suction mechanism that doesn't suck properly. This is then a fully observable and nondeterministic environment."</li>
+        <li>(+ andre alternativer om agentfunksjoner m.m.)</li>
+      </ul>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>Det usanne utsagnet er det første:</b> AND-OR-søk i ikke-deterministiske omgivelser lager <b>contingency plans</b> (betingede planer), ikke «adversive plans». Det finnes ingen motstander – AND-nodene representerer naturens/omgivelsenes valg av utfall.</p>
+        <p>Det andre ble også godtatt fordi noen leste «our vacuum cleaner» som agenten fra Q1 (med smussensor men <em>uten</em> posisjonssensor → delvis observerbar). Med den vanlige støvsugeren (ser alt) er en sugemekanisme som ikke virker skikkelig nettopp <em>fullt observerbar og ikke-deterministisk</em> – erratic vacuum world.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Short question: Hill climbing stuck" data-meta="Eksamen 2023 · kortsvar">
+      <p>Assume a Hill Climbing algorithm found a state from which none of the neighbour states produce an increase in the score value. What can this state be, if not a global maximum? What method/trick may be added to the algorithm in order to proceed from such states?</p>
+      <details class="hint"><summary>Hint</summary><p>Tenk på landskapsfiguren: hvilke steder har ingen nabo som er <em>strengt</em> bedre?</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p>Offisielt svar: «It can also be a plateau. Random start would be a good trick.»</p>
+        <p>Fullstendig svar: tilstanden kan være et <b>lokalt maksimum</b>, et <b>platå</b> (enten et <b>flatt lokalt maksimum</b> eller en <b>skulder</b>), eller et punkt på en <b>rygg</b>. Triks: <b>random-restart</b> (start på nytt fra tilfeldig tilstand), <b>sidelengs trekk</b> (hjelper på skuldre), <b>simulated annealing</b> (aksepter dårligere trekk med sannsynlighet e<sup>ΔE/T</sup>), eller stokastisk hill climbing / beam search.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="7.1 Partially observable environment" data-meta="Eksamen 2023 · 5 %">
+      <p>Assume a robot in a maze with walls, as shown in Fig. 4. The robot can only see the walls but not its own locations (i.e., which of the "squares" it is in the maze). A percept includes data about the existence of walls on the north, south, west and east of the square in which the robot currently is. For example, P1 = {North, South, NoWest, NoEast} means that the robot senses a wall in its north and south, but not on east and west. The location of a square that the robot believes it may be in is shown with the row and column number of the square. For example, the robot in the figure is in location S = (r2, c3). It has possible actions: Right, Left, Up, and Down.</p>
+      <figure>
+        <svg id="ex-maze-svg" viewBox="0 0 560 230" width="560" role="img" aria-label="Labyrint fra eksamen 2023"></svg>
+        <figcaption>Fig. 4 (gjenskapt): Robot in a partially observable environment. Mørke ruter er vegger; ytterkanten er vegg. Roboten står i (r2, c3).</figcaption>
+      </figure>
+      <ol>
+        <li>If the robot's perception, at time step 1, is P1 = {North, South, West, NoEast}, what will be the belief state of the robot for its location? Show a belief state in this format: S = {(r−x, c−y), (), …, ()}.</li>
+        <li>If the robot takes action "Right", and perceives P2 = {North, South, NoWest, NoEast}, what will its belief state S2 be for its location?</li>
+        <li>Assume that action "Right" makes a move to left, and action "Left" does a move to right. What will be the agent's belief state when it takes a "Right" action from its initial location?</li>
+      </ol>
+      <details class="hint"><summary>Hint</summary><p>Steg 1 er en ren <b>update</b> fra «alle frie ruter»: finn rutene med vegg i N, S og V, men ikke Ø. Steg 2 er <b>predict</b> (flytt hver kandidat én til høyre) etterfulgt av <b>update</b>. Du kan sjekke deg selv i lokaliseringslaben i seksjon 10.</p></details>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>1. Update med P1 = {North, South, West, NoEast}.</b> Vi trenger ruter med vegg/kant i nord, sør og vest, men åpent i øst. Gå systematisk gjennom kandidatene med vegg i vest (kolonne 0, eller rett til høyre for en mørk rute):</p>
+        <ul>
+          <li>(r0, c0): N = (r1,c0) er vegg ✓, S = kant ✓, W = kant ✓, E = (r0,c1) fri ✓ → <b>passer</b>.</li>
+          <li>(r3, c0): N = kant ✓, S = (r2,c0) vegg ✓, W = kant ✓, E = (r3,c1) fri ✓ → <b>passer</b>.</li>
+          <li>(r0, c7): N = (r1,c7) vegg ✓, S = kant ✓, W = (r0,c6) vegg ✓, E = (r0,c8) fri ✓ → <b>passer</b>.</li>
+          <li>Andre ruter med vegg i vest, f.eks. (r0,c3), (r1,c1), (r1,c5), (r2,c2), (r1,c8), (r3,c5), (r3,c11) feiler på N eller S eller E.</li>
+        </ul>
+        <p class="formula">S1 = {(r0, c0), (r3, c0), (r0, c7)}</p>
+        <p><b>2. Predict med Right, så update med P2 = {North, South, NoWest, NoEast}.</b> Prediksjon: (r0,c0) → (r0,c1), (r3,c0) → (r3,c1), (r0,c7) → (r0,c8). Percepts: (r0,c1): N = (r1,c1) er fri → passer ikke. (r3,c1): N kant, S = (r2,c1) vegg, W, E frie → <b>passer</b>. (r0,c8): N = (r1,c8) fri → passer ikke.</p>
+        <p class="formula">S2 = {(r3, c1)}</p>
+        <p>Roboten er lokalisert etter bare to percepts – typisk for et variert kart.</p>
+        <p><b>3. «Right» flytter til venstre.</b> Oppgaven er tvetydig, og den offisielle løsningen behandler to tolkninger:</p>
+        <ul>
+          <li><i>1a: «initial location» = belief state fra spørsmål 1.</i> Alle tre kandidatene har vegg i vest, så et trekk mot venstre er blokkert. Antar vi at roboten blir stående når den går inn i en vegg, blir belief state uendret: S = {(r0, c0), (r3, c0), (r0, c7)} (og perceptet er det samme som før).</li>
+          <li><i>1b: «initial location» = posisjonen i figuren, (r2, c3).</i> Roboten flytter til (r2, c2) og får percept {NoNorth, NoSouth, West, NoEast}. Rutene med akkurat dette perceptet er (r1, c8) og (r2, c2): S = {(r1, c8), (r2, c2)}.</li>
+        </ul>
+        <p><b>Poenget:</b> Hvis agenten <em>tror</em> den går til høyre men faktisk går til venstre, blir prediksjonen feil. Hvis agenten oppdaterer kun med perceptet (fra alle ruter), får den {(r1,c8), (r2,c2)} – en riktig belief state. Men bruker den den feilaktige prediksjonen «én til høyre» fra et kjent startpunkt, kan den ende med en tom eller gal belief state. På eksamen: skriv eksplisitt hvilke antagelser du gjør.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Short question: partially observable vs simple reflex" data-meta="Eksamen 2023 · kortsvar">
+      <p>This question is about the environment and agent matching. To behave intelligently in a partially observable environment, in which respects the agent should be different from a simple reflex agent?</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p>Offisielt: «needs memory and its action transition function operates with belief states, i.e., not single state.» Utdyp gjerne: agenten må ha intern tilstand (modellbasert), bruke en overgangsmodell til å <em>predikere</em> og en sensormodell til å <em>oppdatere</em> belief state (b′ = UPDATE(PREDICT(b, a), o)), og velge handlinger (ev. betingede planer) ut fra belief state i stedet for bare nåværende percept.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="1.4 og 1.5 – Incremental vs local search; mutations" data-meta="Eksamen 2022 · kortsvar">
+      <p><b>1.4)</b> What is the difference between incremental and local search?</p>
+      <p><b>1.5)</b> Why we have mutations in genetic algorithms?</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>1.4)</b> Offisielt: «Local search does not remember the states it has been or the paths it has taken, so it only looks in the vicinity. Incremental search looks for a consistent solution/action that works for all states, and instead can detect failure early.» Med andre ord: lokalt søk jobber med komplette tilstander og forbedrer dem via naboer (lite minne, ikke komplett); inkrementelt søk bygger løsningen del for del (f.eks. backtracking: én variabel/dronning om gangen), holder styr på hva som er prøvd, og kan oppdage tidlig at en delløsning ikke kan utvides.</p>
+        <p><b>1.5)</b> Offisielt: «To explore the neighbourhood of some solutions by making small alterations to their genotype we expect improvements in their fitness, as opposed to crossover which is a bigger alteration to exploit the "good" solutions.» Legg til: mutasjon gir/bevarer <b>mangfold</b> og kan gjeninnføre gener som har forsvunnet fra populasjonen, slik at algoritmen ikke låser seg i et lokalt optimum.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Tre spørsmål om hill climbing og simulated annealing" data-meta="Eksamen 2019 · 2 + 2 + bonus">
+      <p><b>a) True or False:</b> Simple "hill climbing" algorithm is perfect to solve constraint satisfaction problems.</p>
+      <p><b>b)</b> Assume a Hill Climbing algorithm that aims to find the best state according to a heuristic objective function. Does it try to find the global minimum or the global maximum?</p>
+      <p><b>c) BONUS QUESTION:</b> Assume that Simulated Annealing search algorithm starts from a state S0 in the middle of a large plateau. That is, the values of all states on the plateau are exactly the same. Assume also that in the first step the random neighbor we picked is S1, which has the same value as S0. Will Simulated annealing move to S1? Explain your answer mathematically (i.e. using a formula). No points will be given otherwise.</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>a) False.</b> «It can get stuck at local minima and fail to find a solution.» (Antall brutte skranker har lokale minima.)</p>
+        <p><b>b) Global maximum.</b></p>
+        <p><b>c) Ja, med sannsynlighet 1.</b> ΔE = VALUE(S1) − VALUE(S0) = 0. Siden ΔE &gt; 0 ikke holder, brukes else-grenen: flytt med sannsynlighet P = e<sup>ΔE/T</sup> = e<sup>0/T</sup> = e<sup>0</sup> = 1 (for alle T &gt; 0). Offisiell fasit skriver ΔE = |VALUE(S0) − VALUE(S1)| = 0 og konkluderer likt. (Sammenlign: hill climbing ville <em>stoppet</em> her, fordi VALUE(neighbor) ≤ VALUE(current).)</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="True/False" data-meta="Eksamen 2018 · 2 p hver (−1 for feil)">
+      <p><b>4.</b> In simulated annealing search the states represent a complete solution.</p>
+      <p><b>6.</b> Shortcoming of hill climbing algorithms are local maxima and plateaus.</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>4. True.</b> SA er et lokalt søk med komplett-tilstandsformulering: hver tilstand er en fullstendig kandidatløsning (f.eks. alle 8 dronninger på brettet), og vi flytter oss mellom slike.</p>
+        <p><b>6. True.</b> Hill climbing setter seg fast i lokale maksima og på platåer (og rygger).</p>
+        <p>NB: −1 per feil svar betyr at du bør la være å svare hvis du gjetter helt blindt.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Sant/usant og flervalg" data-meta="Eksamen 2015 + 2017">
+      <p><b>2015 1e)</b> Simulated annealing is a local search method. (True/False)</p>
+      <p><b>2017 4e)</b> Simulated annealing is a stochastic optimization method. (True/False)</p>
+      <p><b>2015 6a)</b> What is the primary drawback of hill-climbing search?</p>
+      <ol type="A">
+        <li>The search can get stuck in a local maximum</li>
+        <li>The algorithm requires a lot of memory</li>
+        <li>The search can get stuck in a global maximum</li>
+        <li>The result depends strongly on the temperature schedule</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p><b>2015 1e) True.</b> <b>2017 4e) True</b> – SA er et lokalt søk som bruker tilfeldighet (tilfeldig nabo, sannsynlighetsbasert aksept).</p>
+        <p><b>2015 6a) A.</b> B er feil – hill climbing bruker konstant minne. C gir ikke mening (å «sette seg fast» i det globale maksimumet er målet). D gjelder simulated annealing, ikke hill climbing.</p>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="g) Search algorithms" data-meta="Eksamen 2016 · 3 p">
+      <p>Which of the search algorithms 1) A*, 2) genetic algorithms, 3) minimax, 4) constraint propagation should be chosen for the following search problems:</p>
+      <ol type="A">
+        <li>Search for a schedule of flights that has some restrictions.</li>
+        <li>Search for best action in backgammon.</li>
+        <li>Find the best design of a car.</li>
+        <li>Find the shortest route for a self-driving car.</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <table>
+          <tr><th>Oppgave</th><th>Svar</th><th>Hvorfor</th></tr>
+          <tr><td>A – flyruteplan</td><td>4 (constraint propagation)</td><td>Harde restriksjoner → CSP.</td></tr>
+          <tr><td>B – backgammon</td><td>3 (minimax)</td><td>Spill mot motstander (med terning → expectiminimax).</td></tr>
+          <tr><td>C – bildesign</td><td>2 (genetic algorithms)</td><td>Optimering der bare sluttresultatet teller; komponenter kan kombineres.</td></tr>
+          <tr><td>D – korteste rute</td><td>1 (A*)</td><td>Stisøk med god admissibel heuristikk (luftlinje).</td></tr>
+        </table>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="11 b) Classical vs sensorless planning" data-meta="Eksamen 2025 · 3 p">
+      <p>Describe briefly classical planning and sensorless planning and highlight the main differences between them.</p>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <p>Offisielt: Classical planning assumes a discrete, deterministic, static and fully observable environment. Sensorless (conformant) planning assumes the agent has no observations during execution. Main differences:</p>
+        <ul>
+          <li><b>Observability:</b> klassisk → fullt observerbar; sensorløs → ingen observasjoner.</li>
+          <li><b>World model:</b> klassisk → closed-world assumption; sensorløs → open-world (ukjente fakta er ukjente, ikke usanne).</li>
+          <li><b>Planning space:</b> klassisk → tilstandsrom; sensorløs → <b>belief-state-rom</b>.</li>
+        </ul>
+        <p>Koble til denne modulen: Sensorløs planlegging søker i belief-state-rommet og må finne én <em>sekvens</em> som virker fra alle mulige starttilstander (som [Right, Suck, Left, Suck] i støvsugerverdenen). Planlegging dekkes ellers i en senere modul.</p>
+      </details>
+    </div>
+
+    <h3>Egne eksamenslignende oppgaver</h3>
+
+    <div class="exercise" data-title="Ny oppgave 1: Simulated annealing for hånd" data-meta="Øving · ca. 6 p">
+      <p>A simulated annealing algorithm <em>maximizes</em> VALUE. The current state has VALUE 50.</p>
+      <ol type="a">
+        <li>The random neighbour has VALUE 47 and T = 6. With what probability does the algorithm move?</li>
+        <li>Same neighbour, but T = 0.5. Probability?</li>
+        <li>Neighbour has VALUE 53, T = 0.5. Probability?</li>
+        <li>Explain in one sentence why T is decreased over time.</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol type="a">
+          <li>ΔE = 47 − 50 = −3. P = e<sup>−3/6</sup> = e<sup>−0,5</sup> ≈ <b>0,607</b>.</li>
+          <li>P = e<sup>−3/0,5</sup> = e<sup>−6</sup> ≈ <b>0,0025</b>.</li>
+          <li>ΔE = +3 &gt; 0 → flytt alltid, P = <b>1</b>.</li>
+          <li>Høy T tidlig gir utforskning (kan unnslippe lokale maksima); lav T senere gjør at algoritmen «setter seg» i et godt (helst globalt) maksimum i stedet for å vandre tilfeldig – og med langsom nok avkjøling går sannsynligheten for å finne globalt optimum mot 1.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Ny oppgave 2: Genetisk algoritme for 8-dronninger" data-meta="Øving · ca. 8 p">
+      <p>Population (8-queens, digit c = row of the queen in column c): <code>16257483</code>, <code>24748552</code>, <code>32543213</code>, <code>66661166</code>. Fitness = number of non-attacking pairs.</p>
+      <ol type="a">
+        <li>Given that the attacking pairs are 1, 4, 17 and 17 respectively, compute the fitness of each individual and the fitness-proportional selection probabilities.</li>
+        <li>Parents <code>16257483</code> and <code>24748552</code> are crossed at point c = 3 (after the 3rd digit). Write both children. Their h-values are 5 and 7; what is their fitness?</li>
+        <li>What does this example say about crossover? What would mutation of the 6th digit of the first child correspond to on the board?</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol type="a">
+          <li>Fitness = 28 − h: 27, 24, 11, 11. Sum = 73. P ≈ 27/73 = <b>37,0 %</b>, 24/73 = <b>32,9 %</b>, 11/73 = <b>15,1 %</b>, 11/73 = <b>15,1 %</b>.</li>
+          <li>Barn 1 = <b>162</b> + <b>48552</b> = <code>16248552</code>, fitness 28 − 5 = <b>23</b>. Barn 2 = <b>247</b> + <b>57483</b> = <code>24757483</code>, fitness 28 − 7 = <b>21</b>.</li>
+          <li>To gode foreldre (27 og 24) ga <em>dårligere</em> barn: crossover garanterer ingen forbedring – det fungerer bare godt når representasjonen har meningsfulle blokker som passer sammen. Seleksjon sørger for at dårlige barn får færre etterkommere. Mutasjon av 6. siffer = flytt dronningen i kolonne 6 til en tilfeldig annen rad i samme kolonne.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Ny oppgave 3: Hill climbing på 4-dronninger" data-meta="Øving · ca. 5 p">
+      <p>Consider 4-queens with one queen per column; state <code>1234</code> (all queens on one diagonal). Neighbours: move one queen within its column. h = number of attacking pairs.</p>
+      <ol type="a">
+        <li>What is h(1234)? How many neighbours does a state have?</li>
+        <li>What is the h-value of the best neighbour(s)? Give one.</li>
+        <li>Is <code>2413</code> a goal? What would hill climbing do there?</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol type="a">
+          <li>Alle 4 dronninger på samme diagonal → alle C(4,2) = <b>6</b> par angriper. Naboer: 4 · 3 = <b>12</b>.</li>
+          <li>Beste naboer har <b>h = 4</b> (8 stk. er like gode), f.eks. <code>2234</code>: flytt dronningen i kolonne 1 til rad 2. Da angriper (2,3,4)-dronningene hverandre på diagonalen (3 par) og kolonne 1 og 2 står på samme rad (1 par) → 4.</li>
+          <li><code>2413</code>: radene er 2, 4, 1, 3 (alle forskjellige). Diagonaltest |rad<sub>i</sub> − rad<sub>j</sub>| vs |i − j| for alle kolonnepar: (1,2): 2 vs 1; (1,3): 1 vs 2; (1,4): 1 vs 3; (2,3): 3 vs 1; (2,4): 1 vs 2; (3,4): 2 vs 1 – aldri like → h = 0, et <b>mål</b>. Hill climbing stopper der fordi ingen nabo kan være bedre enn 0.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Ny oppgave 4: Belief states i støvsugerverdenen" data-meta="Øving · ca. 6 p">
+      <ol type="a">
+        <li>In the <em>sensorless, deterministic</em> vacuum world, compute the belief state after each action of [Left, Suck, Right, Suck] starting from {1, …, 8}.</li>
+        <li>In the <em>slippery</em> vacuum world (moves sometimes fail), what is RESULT({1, 3}, Right)?</li>
+        <li>In the <em>erratic</em> vacuum world (fully observable), give a conditional plan that reaches a goal from state 2.</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol type="a">
+          <li>Left: {1, 3, 5, 7} → Suck: {5, 7} → Right: {6, 8} → Suck: <b>{8}</b>. Altså virker også [Left, Suck, Right, Suck].</li>
+          <li>1 → {1, 2}, 3 → {3, 4}. Belief state = <b>{1, 2, 3, 4}</b> – den <em>vokste</em> fra 2 til 4 tilstander.</li>
+          <li>RESULTS(2, Suck) = {4, 8}. Fra 4: Left → 3, Suck → RESULTS(3, Suck) = {7}. Plan: <b>[Suck, if State = 4 then [Left, Suck] else [ ]]</b>.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="exercise" data-title="Ny oppgave 5: Lokalisering i 2023-labyrinten" data-meta="Øving · ca. 5 p">
+      <p>Same maze as the 2023 exam (Fig. 4). Moves are deterministic, and a move into a wall leaves the robot where it is.</p>
+      <ol type="a">
+        <li>The first percept is {North, South, NoWest, NoEast}. Give the belief state.</li>
+        <li>The robot moves Right and perceives {North, NoSouth, NoWest, NoEast}. New belief state?</li>
+        <li>The robot moves Right again and perceives {North, NoSouth, NoWest, East}. Where is it?</li>
+      </ol>
+      <details class="solution"><summary>Vis løsningsforslag</summary>
+        <ol type="a">
+          <li>Ruter med vegg i N og S, åpne mot V og Ø: <b>{(r0,c4), (r3,c1), (r3,c6), (r3,c7)}</b>.</li>
+          <li>Predict: (r0,c5), (r3,c2), (r3,c7), (r3,c8). Percepts: (r0,c5) → {South, East}; (r3,c2) → {North}; (r3,c7) → {North, South}; (r3,c8) → {North}. Update: <b>{(r3,c2), (r3,c8)}</b>.</li>
+          <li>Predict: (r3,c3), (r3,c9). Percepts: (r3,c3) → {North, East} (vegg i (r3,c4)); (r3,c9) → {North, South, East}. Update: <b>{(r3,c3)}</b> – lokalisert.</li>
+        </ol>
+        <p>Sjekk gjerne hvert steg i lokaliseringslaben i seksjon 10.</p>
+      </details>
+    </div>
+
+    <!-- ===================================================== -->
+    <h2>13. Oppsummering / jukselapp</h2>
+
+    <table>
+      <tr><th>Algoritme</th><th>Kjerneidé</th><th>Minne</th><th>Komplett?</th><th>Typisk svakhet</th></tr>
+      <tr><td>Hill climbing (steepest ascent)</td><td>Gå til beste nabo; stopp hvis ingen er <em>strengt</em> bedre</td><td>O(1)</td><td>Nei</td><td>Lokale maksima, platåer, rygger (8Q: 14 % løst)</td></tr>
+      <tr><td>+ sidelengs trekk</td><td>Tillat like gode naboer (maks k på rad)</td><td>O(1)</td><td>Nei</td><td>Flate lokale maksima (8Q: 94 % løst)</td></tr>
+      <tr><td>Stokastisk HC</td><td>Tilfeldig blant forbedringer</td><td>O(1)</td><td>Nei</td><td>Tregere konvergens</td></tr>
+      <tr><td>First-choice HC</td><td>Generer tilfeldige naboer til én er bedre</td><td>O(1)</td><td>Nei</td><td>Som HC; bra ved mange naboer</td></tr>
+      <tr><td>Random-restart HC</td><td>Kjør HC fra tilfeldige starter</td><td>O(1)</td><td>Ja, m. sanns. 1</td><td>Forventet 1/p forsøk</td></tr>
+      <tr><td>Simulated annealing</td><td>Tilfeldig nabo; bedre → alltid; verre → m. sanns. e<sup>ΔE/T</sup>; T synker</td><td>O(1)</td><td>Globalt opt. m. sanns. → 1 ved langsom nok avkjøling</td><td>Avhenger av avkjølingsplan</td></tr>
+      <tr><td>Local beam search</td><td>k tilstander; behold k beste av alle etterfølgere</td><td>O(k)</td><td>Nei</td><td>Mangel på mangfold</td></tr>
+      <tr><td>Stochastic beam search</td><td>Velg k etterfølgere med sanns. ∝ verdi</td><td>O(k)</td><td>Nei</td><td>–</td></tr>
+      <tr><td>Genetisk algoritme</td><td>Populasjon; fitness-vektet seleksjon, crossover, mutasjon</td><td>O(k)</td><td>Nei</td><td>Krever god representasjon (meningsfulle blokker)</td></tr>
+      <tr><td>Gradient ascent/descent</td><td>x ← x ± α∇f(x)</td><td>O(1)</td><td>Nei</td><td>Lokale optima; valg av α</td></tr>
+    </table>
+
+    <div class="two-col">
+      <div class="box key"><span class="box-title">Landskapet</span>
+        <ul>
+          <li><b>Globalt maks:</b> høyeste topp.</li>
+          <li><b>Lokalt maks:</b> høyere enn alle naboer, ikke høyest.</li>
+          <li><b>Platå:</b> flatt; <b>flatt lokalt maks</b> (ingen vei opp) eller <b>skulder</b> (vei opp videre).</li>
+          <li><b>Rygg:</b> sekvens av lokale maksima, ikke direkte forbundet.</li>
+          <li>Objektfunksjon → maks → hill climbing. Kostnad → min → gradient descent.</li>
+          <li>Ingen admissibilitet/konsistens i lokalt søk!</li>
+        </ul>
+      </div>
+      <div class="box key"><span class="box-title">8-dronninger</span>
+        <ul>
+          <li>Tilstand: 8 sifre, siffer c = rad i kolonne c. 8<sup>8</sup> ≈ 17 mill.</li>
+          <li>Naboer: 8 · 7 = 56.</li>
+          <li>h = antall angripende <b>par</b> (også indirekte). Mål: h = 0.</li>
+          <li>GA-fitness = 28 − h (ikke-angripende par).</li>
+          <li>Seleksjon: P(i) = fitness<sub>i</sub> / Σ fitness.</li>
+          <li>Crossover etter c: barn = p1[1..c] + p2[c+1..8].</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="formula">Simulated annealing (maks):  ΔE = VALUE(next) − VALUE(current)
+  ΔE &gt; 0  → flytt alltid
+  ΔE ≤ 0  → flytt med P = e^(ΔE/T)        (ΔE = 0 ⇒ P = 1!)
+Minimering (slides):  P = e^(−ΔE/T), ΔE = økning i kostnad</div>
+
+    <div class="two-col">
+      <div class="box key"><span class="box-title">Ikke-determinisme</span>
+        <ul>
+          <li>RESULTS(s, a) gir en <b>mengde</b>.</li>
+          <li>Løsning = <b>betinget plan</b> (contingency plan), et tre.</li>
+          <li><b>OR-node</b> = agentens valg (én må virke). <b>AND-node</b> = utfall (alle må virke).</li>
+          <li>AND-OR-SEARCH: rekursiv DFS; mål → [ ], syklus → failure.</li>
+          <li>Erratic: [Suck, if State = 5 then [Right, Suck] else [ ]].</li>
+          <li>Slippery: syklisk plan [Suck, while State = 5 do Right, Suck].</li>
+        </ul>
+      </div>
+      <div class="box key"><span class="box-title">Belief states</span>
+        <ul>
+          <li>Belief state = mengde mulige fysiske tilstander; 2<sup>N</sup> av dem.</li>
+          <li>Sensorløs: løsning = <b>sekvens</b>; [Right, Suck, Left, Suck] → {7}.</li>
+          <li>PREDICT: b̂ = ⋃ RESULTS(s, a). Kan vokse ved ikke-determinisme.</li>
+          <li>UPDATE: b<sub>o</sub> = {s ∈ b̂ : PERCEPT(s) = o}. Krymper alltid.</li>
+          <li>Agent: b′ = UPDATE(PREDICT(b, a), o) (monitoring/filtering).</li>
+          <li>Delvis observerbar + planlegging = AND-OR-søk over belief states.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="box key"><span class="box-title">Online søk</span>
+      <ul>
+        <li>Offline: planlegg alt først. Online: handle–observer–regn; nødvendig i ukjente omgivelser.</li>
+        <li><b>Competitive ratio</b> = faktisk kostnad / optimal kostnad med kjent kart.</li>
+        <li>Blindveier → krever <b>safely explorable</b> rom. Online-DFS krever reversible handlinger.</li>
+        <li>Random restart umulig online. <b>LRTA*</b>: H(s) ← min<sub>a</sub>[c(s,a,s′) + H(s′)], gå til argmin; uprøvd handling antas å koste h(s) (optimisme).</li>
+      </ul>
+    </div>
+
+    <div class="box exam"><span class="box-title">Eksamensfeller å huske</span>
+      <ul>
+        <li>«Gradient descent unnslipper alltid lokale optima» – <b>usant</b> (2025).</li>
+        <li>«Admissibel og konsistent heuristikk» hjelper ikke mot lokale optima (2024).</li>
+        <li>AND-OR-søk gir <b>contingency plans</b>, ikke «adversive plans» (2024).</li>
+        <li>SA på platå: ΔE = 0 ⇒ e<sup>0</sup> = 1 ⇒ flytter alltid (2019).</li>
+        <li>Hill climbing stuck: lokalt maks <em>eller platå</em>; triks: random restart (2023).</li>
+        <li>Belief-state-oppgaver: vær systematisk og skriv antagelser (f.eks. «gå i vegg = bli stående») (2023).</li>
+      </ul>
+    </div>
+  </main>
+  <aside class="margin"></aside>
+</div>
+<script src="assets/course.js"></script>
+<script>
+(function () {
+  "use strict";
+  const S = CourseKit.svg;
+  const $ = id => document.getElementById(id);
+  const rnd = n => Math.floor(Math.random() * n);
+  const clear = el => { while (el.firstChild) el.removeChild(el.firstChild); };
+  function logTo(el, msg, reset) { if (reset) el.textContent = ""; el.textContent += msg + "\n"; el.scrollTop = el.scrollHeight; }
+
+  /* =========================================================
+     1D-landskap (figur 2 og landskapslaben)
+     ========================================================= */
+  const CP = [[0, 20], [20, 45], [35, 30], [55, 60], [63, 60], [90, 100], [112, 50], [135, 70], [150, 55], [165, 72], [178, 72], [200, 30]];
+  const XMAX = 200;
+  function f(x) {
+    for (let i = 0; i < CP.length - 1; i++) {
+      const [x0, y0] = CP[i], [x1, y1] = CP[i + 1];
+      if (x >= x0 && x <= x1) {
+        if (y0 === y1) return y0;
+        const t = (x - x0) / (x1 - x0), w = (1 - Math.cos(Math.PI * t)) / 2;
+        return y0 + (y1 - y0) * w;
+      }
+    }
+    return 0;
+  }
+  const GLOBAL_X = 90, GLOBAL_V = 100;
+  function drawCurve(svgEl, opt) {
+    const X0 = opt.x0, X1 = opt.x1, Y0 = opt.y0, Y1 = opt.y1;
+    const px = x => X0 + (X1 - X0) * x / XMAX;
+    const py = v => Y0 - (Y0 - Y1) * v / 105;
+    let d = "";
+    for (let x = 0; x <= XMAX; x += 0.5) d += (x === 0 ? "M" : "L") + px(x).toFixed(1) + "," + py(f(x)).toFixed(1) + " ";
+    S("path", { d: d + `L${px(XMAX)},${Y0} L${px(0)},${Y0} Z`, class: "curve-fill" }, svgEl);
+    S("path", { d, class: "curve" }, svgEl);
+    S("line", { x1: X0, y1: Y0, x2: X1 + 8, y2: Y0, class: "edge" }, svgEl);
+    S("line", { x1: X0, y1: Y0, x2: X0, y2: Y1 - 8, class: "edge" }, svgEl);
+    return { px, py };
+  }
+  // Figur 2 (statisk)
+  (function () {
+    const el = $("fig-landscape"); if (!el) return;
+    const { px, py } = drawCurve(el, { x0: 40, x1: 610, y0: 245, y1: 30 });
+    S("text", { x: 46, y: 22, class: "small", text: "objektfunksjon" }, el);
+    S("text", { x: 560, y: 266, class: "small", text: "tilstandsrom" }, el);
+    const lab = (x, txt, dy, cls) => {
+      S("circle", { cx: px(x), cy: py(f(x)), r: 4, class: "fill-accent" }, el);
+      S("text", { x: px(x), y: py(f(x)) - dy, "text-anchor": "middle", class: cls || "small", text: txt }, el);
+    };
+    lab(GLOBAL_X, "globalt maksimum", 10, "label");
+    lab(20, "lokalt maksimum", 10);
+    lab(135, "lokalt maksimum", 22);
+    S("line", { x1: px(55), y1: py(60) - 4, x2: px(63), y2: py(60) - 4, class: "edge-hl" }, el);
+    S("text", { x: px(52), y: py(60) - 12, "text-anchor": "end", class: "small", text: "skulder (platå)" }, el);
+    S("line", { x1: px(165), y1: py(72) - 4, x2: px(178), y2: py(72) - 4, class: "edge-hl" }, el);
+    S("text", { x: px(160), y: py(72) - 12, "text-anchor": "start", class: "small", text: "«flatt» lokalt maksimum" }, el);
+    // nåværende tilstand
+    const cx = 105;
+    S("circle", { cx: px(cx), cy: py(f(cx)), r: 6, class: "node-warn" }, el);
+    S("line", { x1: px(cx), y1: py(f(cx)) + 8, x2: px(cx), y2: 238, class: "edge", "stroke-dasharray": "3 3" }, el);
+    S("text", { x: px(cx), y: 262, "text-anchor": "middle", class: "small", text: "nåværende tilstand" }, el);
+  })();
+
+  // Rygg-figur
+  (function () {
+    const g = $("ridge-grid"); if (!g) return;
+    const onRidge = (x, y) => { const yr = 200 - (x - 75) * 170 / 410; return Math.abs(y - yr) < 14; };
+    let pick = null;
+    for (let i = 0; i < 10; i++) for (let j = 0; j < 5; j++) {
+      const x = 60 + i * 50, y = 60 + j * 35;
+      const r = onRidge(x, y);
+      S("circle", { cx: x, cy: y, r: r ? 6 : 3.5, class: r ? "fill-accent" : "fill-muted" }, g);
+      if (r && i === 5) pick = [x, y];
+    }
+    if (pick) {
+      const [x, y] = pick;
+      [[0, -30], [0, 30], [-42, 0], [42, 0]].forEach(([dx, dy]) => {
+        S("line", { x1: x, y1: y, x2: x + dx * 0.85, y2: y + dy * 0.85, class: "edge-bad" }, g);
+      });
+      S("circle", { cx: x, cy: y, r: 9, class: "node-warn" }, g);
+      S("text", { x: x + 14, y: y + 26, class: "small bad", text: "alle trekk går ned" }, g);
+    }
+  })();
+
+  // Landskapslaben
+  (function () {
+    const el = $("land-svg"); if (!el) return;
+    const info = $("land-info"), log = $("land-log");
+    const base = S("g", null, el);
+    const { px, py } = drawCurve(base, { x0: 30, x1: 620, y0: 240, y1: 25 });
+    S("text", { x: px(GLOBAL_X), y: py(100) - 8, "text-anchor": "middle", class: "small", text: "global topp" }, base);
+    const trailG = S("g", null, el);
+    const dot = S("circle", { cx: -50, cy: -50, r: 7, class: "node-hl" }, el);
+    let x = null, sideCount = 0, saTimer = null;
+    const val = v => f(v).toFixed(1);
+    function place(nx, keepTrail) {
+      x = nx; dot.setAttribute("cx", px(x)); dot.setAttribute("cy", py(f(x)));
+      if (!keepTrail) clear(trailG);
+    }
+    function mark(nx) { S("circle", { cx: px(nx), cy: py(f(nx)), r: 2.5, class: "trail" }, trailG); }
+    function status(msg) { info.textContent = `x = ${x}, f(x) = ${val(x)}` + (msg ? " — " + msg : ""); }
+    el.addEventListener("click", ev => {
+      stopSA();
+      const pt = el.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+      const p = pt.matrixTransform(el.getScreenCTM().inverse());
+      let nx = Math.round((p.x - 30) / (590) * XMAX); nx = Math.max(0, Math.min(XMAX, nx));
+      place(nx); sideCount = 0; status("startpunkt valgt"); logTo(log, `Start i x = ${nx}, f = ${val(nx)}`, true);
+    });
+    // ett steepest-ascent-steg; returnerer "moved" | "side" | "stuck"
+    function hcStep(cur, allowSide, counter) {
+      const nb = [cur - 1, cur + 1].filter(v => v >= 0 && v <= XMAX);
+      const best = Math.max(...nb.map(f));
+      const cands = nb.filter(v => f(v) === best);
+      const nxt = cands[rnd(cands.length)];
+      if (best > f(cur)) return { kind: "moved", nx: nxt };
+      if (allowSide && best === f(cur) && counter.n < 100) { counter.n++; return { kind: "side", nx: nxt }; }
+      return { kind: "stuck", nx: cur };
+    }
+    function stuckMsg(cur) {
+      const nb = [cur - 1, cur + 1].filter(v => v >= 0 && v <= XMAX);
+      const anyEq = nb.some(v => f(v) === f(cur));
+      if (f(cur) === GLOBAL_V) return "GLOBALT MAKSIMUM!";
+      return anyEq ? "står fast på et PLATÅ (ingen nabo er strengt bedre)" : "står fast i et LOKALT MAKSIMUM";
+    }
+    function needStart() { if (x === null) { place(rnd(XMAX + 1)); logTo(log, `Tilfeldig start i x = ${x}`, true); } }
+    const counter = { n: 0 };
+    $("land-step").onclick = () => {
+      stopSA(); needStart();
+      const r = hcStep(x, $("land-side").checked, counter);
+      if (r.kind === "stuck") { status(stuckMsg(x)); logTo(log, `Stopp i x = ${x}: ${stuckMsg(x)}`); return; }
+      if (r.kind === "moved") counter.n = 0;
+      mark(x); place(r.nx, true);
+      status(r.kind === "side" ? `sidelengs trekk nr. ${counter.n}` : "flyttet oppover");
+      logTo(log, `${r.kind === "side" ? "Sidelengs" : "Opp"} til x = ${x}, f = ${val(x)}`);
+    };
+    function climb(start, allowSide) {
+      let cur = start, steps = 0; const c = { n: 0 }; const path = [cur];
+      while (steps < 2000) {
+        const r = hcStep(cur, allowSide, c);
+        if (r.kind === "stuck") break;
+        if (r.kind === "moved") c.n = 0;
+        cur = r.nx; steps++; path.push(cur);
+      }
+      return { end: cur, steps, path };
+    }
+    $("land-run").onclick = () => {
+      stopSA(); needStart();
+      const r = climb(x, $("land-side").checked);
+      r.path.forEach(mark); place(r.end, true); counter.n = 0;
+      status(stuckMsg(r.end)); logTo(log, `Hill climbing: ${r.steps} steg → x = ${r.end}, f = ${val(r.end)}. ${stuckMsg(r.end)}`);
+    };
+    $("land-rr").onclick = () => {
+      stopSA(); clear(trailG); logTo(log, "Random-restart hill climbing:", true);
+      let total = 0;
+      for (let k = 1; k <= 60; k++) {
+        const s0 = rnd(XMAX + 1); const r = climb(s0, $("land-side").checked); total += r.steps;
+        S("circle", { cx: px(s0), cy: py(f(s0)), r: 3, class: "trail" }, trailG);
+        logTo(log, `  forsøk ${k}: start x = ${s0} → x = ${r.end}, f = ${val(r.end)}`);
+        if (f(r.end) === GLOBAL_V) { place(r.end, true); status(`global topp funnet etter ${k} forsøk (${total} steg totalt)`); logTo(log, `Funnet globalt maksimum etter ${k} forsøk og ${total} steg.`); return; }
+      }
+      status("ga opp etter 60 forsøk");
+    };
+    const Tsl = $("land-T"); Tsl.oninput = () => { $("land-Tval").textContent = Tsl.value; };
+    function stopSA() { if (saTimer) { cancelAnimationFrame(saTimer); saTimer = null; } }
+    $("land-stop").onclick = () => { stopSA(); if (x !== null) status("stoppet"); };
+    $("land-sa").onclick = () => {
+      stopSA(); needStart(); clear(trailG);
+      const T0 = +Tsl.value; let t = 0, bad = 0, best = x;
+      logTo(log, `Simulated annealing fra x = ${x}, T₀ = ${T0}`, true);
+      const maxT = T0 > 0 ? Math.ceil(Math.log(0.05 / T0) / Math.log(0.999)) : 600;
+      const frame = () => {
+        for (let k = 0; k < 25 && t < maxT; k++, t++) {
+          const T = T0 * Math.pow(0.999, t);
+          let d = 0; while (d === 0) d = rnd(9) - 4;
+          const nx = Math.max(0, Math.min(XMAX, x + d));
+          const dE = f(nx) - f(x);
+          let acc = dE > 0;
+          if (!acc && T > 0) acc = Math.random() < Math.exp(dE / T);
+          if (acc) { if (dE < 0) bad++; x = nx; if (f(x) > f(best)) best = x; }
+          if (t % 8 === 0) mark(x);
+        }
+        place(x, true);
+        const T = T0 * Math.pow(0.999, t);
+        info.textContent = `t = ${t}, T = ${T.toFixed(2)}, x = ${x}, f = ${val(x)}, aksepterte dårlige trekk: ${bad}, P(aksepter ΔE = −10) = ${T > 0 ? Math.exp(-10 / T).toFixed(3) : "0"}`;
+        if (t < maxT) saTimer = requestAnimationFrame(frame);
+        else {
+          saTimer = null;
+          logTo(log, `Ferdig etter ${t} steg: x = ${x}, f = ${val(x)} (beste besøkt: f = ${val(best)}). ${f(x) === GLOBAL_V || Math.abs(x - GLOBAL_X) <= 2 ? "Endte ved den globale toppen!" : "Endte IKKE ved den globale toppen."}`);
+        }
+      };
+      saTimer = requestAnimationFrame(frame);
+    };
+  })();
+
+  /* =========================================================
+     8-dronninger
+     ========================================================= */
+  function hQ(s) { let c = 0; for (let i = 0; i < s.length; i++) for (let j = i + 1; j < s.length; j++) if (s[i] === s[j] || Math.abs(s[i] - s[j]) === j - i) c++; return c; }
+  function attackPairs(s) { const r = []; for (let i = 0; i < s.length; i++) for (let j = i + 1; j < s.length; j++) if (s[i] === s[j] || Math.abs(s[i] - s[j]) === j - i) r.push([i, j]); return r; }
+  const randQ = () => Array.from({ length: 8 }, () => 1 + rnd(8));
+  (function () {
+    const el = $("q-board"); if (!el) return;
+    const info = $("q-info"), log = $("q-log");
+    let q = "56745676".split("").map(Number), side = 0;
+    const X = c => 20 + c * 40, Y = r => 20 + (8 - r) * 40;
+    function succH() { const H = []; for (let c = 0; c < 8; c++) { H[c] = []; for (let r = 1; r <= 8; r++) { if (r === q[c]) { H[c][r] = null; continue; } const t = q.slice(); t[c] = r; H[c][r] = hQ(t); } } return H; }
+    function render() {
+      clear(el);
+      const H = succH(); let minH = Infinity;
+      H.forEach(col => col.forEach(v => { if (v !== null && v !== undefined && v < minH) minH = v; }));
+      const pairs = attackPairs(q), inAttack = new Set(pairs.flat());
+      for (let c = 0; c < 8; c++) for (let r = 1; r <= 8; r++) {
+        const rect = S("rect", { x: X(c), y: Y(r), width: 40, height: 40, class: ((c + r) % 2 ? "sq-light" : "sq-dark") + " sq-click" }, el);
+        rect.addEventListener("click", () => { q[c] = r; side = 0; logTo(log, `Flyttet dronningen i kolonne ${c + 1} til rad ${r}. h = ${hQ(q)}`); render(); });
+        if (q[c] !== r && $("q-showh").checked) S("text", { x: X(c) + 20, y: Y(r) + 25, "text-anchor": "middle", class: "hval" + (H[c][r] === minH ? " best" : ""), text: H[c][r] }, el);
+      }
+      for (let i = 0; i < 8; i++) {
+        S("text", { x: X(i) + 20, y: 352, "text-anchor": "middle", class: "small", text: i + 1 }, el);
+        S("text", { x: 10, y: Y(i + 1) + 25, "text-anchor": "middle", class: "small", text: i + 1 }, el);
+      }
+      pairs.forEach(([i, j]) => S("line", { x1: X(i) + 20, y1: Y(q[i]) + 20, x2: X(j) + 20, y2: Y(q[j]) + 20, class: "edge-bad", "pointer-events": "none" }, el));
+      for (let c = 0; c < 8; c++) S("text", { x: X(c) + 20, y: Y(q[c]) + 30, "text-anchor": "middle", class: "queen" + (inAttack.has(c) ? " bad" : ""), text: "♛" }, el);
+      const h = hQ(q);
+      info.textContent = `tilstand ${q.join("")}   ·   h = ${h} angripende par   ·   fitness = ${28 - h}   ·   beste nabo: h = ${minH}` + (h === 0 ? "   ·   LØSNING!" : "");
+    }
+    function step(silent) {
+      const h = hQ(q); if (h === 0) { if (!silent) logTo(log, "h = 0: dette er en løsning. Hill climbing stopper."); return "goal"; }
+      const H = succH(); let best = Infinity, cands = [];
+      for (let c = 0; c < 8; c++) for (let r = 1; r <= 8; r++) { const v = H[c][r]; if (v === null || v === undefined) continue; if (v < best) { best = v; cands = []; } if (v === best) cands.push([c, r]); }
+      const allowSide = $("q-side").checked;
+      if (best < h || (allowSide && best === h && side < 100)) {
+        const [c, r] = cands[rnd(cands.length)];
+        side = best < h ? 0 : side + 1;
+        q[c] = r;
+        if (!silent) logTo(log, `${best < h ? "Steg" : "Sidelengs steg " + side}: kolonne ${c + 1} → rad ${r} (valgt blant ${cands.length} like gode naboer). h: ${h} → ${best}`);
+        return "moved";
+      }
+      if (!silent) logTo(log, best === h ? `Beste nabo har h = ${best} = nåværende h: platå. Hill climbing stopper (ingen nabo er strengt bedre).` : `Alle 56 naboer har h ≥ ${best} > ${h}: LOKALT MINIMUM for h. Hill climbing stopper.`);
+      return "stuck";
+    }
+    $("q-step").onclick = () => { step(false); render(); };
+    $("q-run").onclick = () => { let n = 0, r; while ((r = step(false)) === "moved" && n < 300) n++; logTo(log, `— stoppet etter ${n} steg med h = ${hQ(q)}`); render(); };
+    $("q-restart").onclick = () => {
+      logTo(log, "Random-restart hill climbing:", true);
+      let total = 0;
+      for (let k = 1; k <= 2000; k++) {
+        q = randQ(); side = 0; let n = 0, r;
+        while ((r = step(true)) === "moved" && n < 400) n++;
+        total += n;
+        if (hQ(q) === 0) { logTo(log, `Løsning ${q.join("")} funnet i forsøk nr. ${k} (${total} steg totalt). Bokas forventning uten sidelengs trekk: ca. 7 forsøk / 22 steg.`); render(); return; }
+        if (k <= 15) logTo(log, `  forsøk ${k}: stoppet med h = ${hQ(q)} etter ${n} steg`);
+      }
+      render();
+    };
+    $("q-book").onclick = () => { q = "56745676".split("").map(Number); side = 0; logTo(log, "Brett med h = 17 (som bokas figur 4.3b). Åtte naboer har h = 12.", true); render(); };
+    $("q-locmin").onclick = () => { q = "16257483".split("").map(Number); side = 0; logTo(log, "Brett med h = 1: bare dronningene i kolonne 4 og 7 angriper hverandre (diagonalt). Alle 56 naboer har h ≥ 2.", true); render(); };
+    $("q-rand").onclick = () => { q = randQ(); side = 0; logTo(log, "Tilfeldig brett.", true); render(); };
+    $("q-showh").onchange = render;
+    logTo(log, "Brett med h = 17. Trykk «Ett hill-climbing-steg».", true);
+    render();
+  })();
+
+  /* =========================================================
+     Local beam search-figur
+     ========================================================= */
+  (function () {
+    const g = $("beam-fig"); if (!g) return;
+    const parents = [[200, 12], [330, 15], [460, 9]];
+    const kids = [[11, 13, 8], [17, 19, 16], [10, 7, 6]];
+    const flat = []; kids.forEach((ks, i) => ks.forEach((v, j) => flat.push({ i, j, v })));
+    const top = flat.slice().sort((a, b) => b.v - a.v).slice(0, 3).sort((a, b) => a.i - b.i || a.j - b.j);
+    parents.forEach(([x, v], i) => {
+      kids[i].forEach((kv, j) => {
+        const kx = x - 40 + j * 40, isTop = top.some(t => t.i === i && t.j === j);
+        S("line", { x1: x, y1: 45, x2: kx, y2: 95, class: isTop ? "edge-good" : "edge" }, g);
+        S("circle", { cx: kx, cy: 107, r: 13, class: isTop ? "node-good" : "node" }, g);
+        S("text", { x: kx, y: 112, "text-anchor": "middle", class: "small", text: kv }, g);
+        if (isTop) S("line", { x1: kx, y1: 121, x2: 290 + top.findIndex(t => t.i === i && t.j === j) * 40, y2: 168, class: "edge-good" }, g);
+      });
+      S("circle", { cx: x, cy: 32, r: 14, class: "node-hl" }, g);
+      S("text", { x, y: 37, "text-anchor": "middle", class: "small", text: v }, g);
+    });
+    top.forEach((t, k) => {
+      S("circle", { cx: 290 + k * 40, cy: 180, r: 13, class: "node-good" }, g);
+      S("text", { x: 290 + k * 40, y: 185, "text-anchor": "middle", class: "small", text: t.v }, g);
+    });
+  })();
+
+  /* =========================================================
+     Genetisk algoritme
+     ========================================================= */
+  const fit = s => 28 - hQ(s.split("").map(Number));
+  function miniBoard(str, size) {
+    const z = size || 56, c = z / 8; let out = `<svg viewBox="0 0 ${z} ${z}" width="${z}" height="${z}" style="vertical-align:middle">`;
+    for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) out += `<rect x="${i * c}" y="${j * c}" width="${c}" height="${c}" class="${(i + j) % 2 ? "sq-dark" : "sq-light"}"/>`;
+    for (let i = 0; i < 8; i++) { const r = +str[i]; out += `<circle cx="${i * c + c / 2}" cy="${(8 - r) * c + c / 2}" r="${c * 0.36}" class="fill-accent"/>`; }
+    return out + "</svg>";
+  }
+  function colored(child, c, mutIdx, swap) {
+    let s = "";
+    for (let i = 0; i < 8; i++) {
+      const cls = i === mutIdx ? "dig-mut" : ((i < c) !== !!swap ? "dig-p1" : "dig-p2");
+      s += `<span class="${cls}">${child[i]}</span>`;
+      if (i === c - 1 && mutIdx === undefined) s += `<span style="color:var(--muted)">|</span>`;
+    }
+    return s;
+  }
+  function weightedPick(pop, w) { const tot = w.reduce((a, b) => a + b, 0); let u = Math.random() * tot; for (let i = 0; i < pop.length; i++) { u -= w[i]; if (u < 0) return i; } return pop.length - 1; }
+  const randStr = () => Array.from({ length: 8 }, () => 1 + rnd(8)).join("");
+  function mutate(s) { const i = rnd(8); let d; do { d = 1 + rnd(8); } while (String(d) === s[i]); return { s: s.slice(0, i) + d + s.slice(i + 1), i }; }
+  (function () {
+    const view = $("ga-view"); if (!view) return;
+    const stageEl = $("ga-stage"), pmEl = $("ga-pm");
+    pmEl.oninput = () => { $("ga-pmval").textContent = (+pmEl.value).toFixed(2); };
+    const BOOK = { pop: ["24748552", "32752411", "24415124", "32543213"], pairs: [[1, 0, 3], [1, 2, 5]], mut: [[5, "1"], null, [2, "2"], [7, "7"]] };
+    let st;
+    function init(pop, book) { st = { pop, book, stage: 0, gen: 1 }; render(); }
+    const stageNames = ["(a) Startpopulasjon", "(b) Fitness-funksjon", "(c) Seleksjon", "(d) Crossover", "(e) Mutasjon"];
+    function compute() {
+      const P = st.pop, F = P.map(fit), tot = F.reduce((a, b) => a + b, 0);
+      st.F = F; st.prob = F.map(v => tot ? v / tot : 1 / P.length);
+      if (st.book && st.gen === 1) {
+        st.pairs = BOOK.pairs.map(([a, b, c]) => [a, b, c]);
+      } else {
+        st.pairs = [];
+        for (let k = 0; k < P.length / 2; k++) { const a = weightedPick(P, F), b = weightedPick(P, F); st.pairs.push([a, b, 1 + rnd(7)]); }
+      }
+      st.children = []; st.cpts = [];
+      st.pairs.forEach(([a, b, c]) => {
+        st.children.push(P[a].slice(0, c) + P[b].slice(c)); st.cpts.push(c);
+        st.children.push(P[b].slice(0, c) + P[a].slice(c)); st.cpts.push(c);
+      });
+      st.mutated = st.children.map((ch, k) => {
+        if (st.book && st.gen === 1) { const m = BOOK.mut[k]; return m ? { s: ch.slice(0, m[0]) + m[1] + ch.slice(m[0] + 1), i: m[0] } : { s: ch, i: undefined }; }
+        if (Math.random() < +pmEl.value) return mutate(ch);
+        return { s: ch, i: undefined };
+      });
+    }
+    function render() {
+      const s = st.stage, P = st.pop;
+      stageEl.textContent = `Generasjon ${st.gen} · Steg: ${stageNames[s]}`;
+      let h = `<table class="ga-table"><tr><th>#</th><th>Populasjon</th><th>Brett</th>`;
+      if (s >= 1) h += `<th>Fitness</th><th>P(valgt)</th>`;
+      h += `</tr>`;
+      P.forEach((p, i) => {
+        h += `<tr><td>${i + 1}</td><td class="str">${p}</td><td>${miniBoard(p, 48)}</td>`;
+        if (s >= 1) h += `<td>${st.F[i]}</td><td>${(100 * st.prob[i]).toFixed(1)} %</td>`;
+        h += `</tr>`;
+      });
+      h += `</table>`;
+      if (s >= 1) h += `<p class="small-note">Sum fitness = ${st.F.reduce((a, b) => a + b, 0)}. P(valgt) = fitness / sum.</p>`;
+      if (s >= 2) {
+        h += `<table class="ga-table"><tr><th>Par</th><th>Forelder 1</th><th>Forelder 2</th><th>Kuttpunkt</th></tr>`;
+        st.pairs.forEach(([a, b, c], k) => { h += `<tr><td>${k + 1}</td><td class="str"><span class="dig-p1">${P[a].slice(0, c)}</span>|${P[a].slice(c)}</td><td class="str">${P[b].slice(0, c)}|<span class="dig-p2">${P[b].slice(c)}</span></td><td>etter siffer ${c}</td></tr>`; });
+        h += `</table>`;
+      }
+      if (s >= 3) {
+        h += `<table class="ga-table"><tr><th>Barn</th><th>Crossover</th>${s >= 4 ? "<th>Etter mutasjon</th>" : ""}<th>Brett</th><th>Fitness</th></tr>`;
+        st.children.forEach((ch, k) => {
+          const c = st.cpts[k];
+          // barn nr. 2 i hvert par starter med forelder 2 (grønn) og slutter med forelder 1 (blå)
+          const m = st.mutated[k], fin = s >= 4 ? m.s : ch;
+          h += `<tr><td>${k + 1}</td><td class="str">${colored(ch, c, undefined, k % 2 === 1)}</td>${s >= 4 ? `<td class="str">${colored(m.s, c, m.i, k % 2 === 1)}</td>` : ""}<td>${miniBoard(fin, 48)}</td><td>${fit(fin)}</td></tr>`;
+        });
+        h += `</table>`;
+        if (s >= 4) h += `<p class="small-note">Trykk «Neste steg» for å la barna bli neste generasjon. Beste fitness nå: ${Math.max(...st.mutated.map(m => fit(m.s)))} (forrige: ${Math.max(...st.F)}).</p>`;
+      }
+      view.innerHTML = h;
+      CourseKit.relayout();
+    }
+    $("ga-next").onclick = () => {
+      if (st.stage === 0) { compute(); st.stage = 1; }
+      else if (st.stage < 4) st.stage++;
+      else { st.pop = st.mutated.map(m => m.s); st.gen++; st.stage = 1; compute(); }
+      render();
+    };
+    $("ga-book").onclick = () => init(BOOK.pop.slice(), true);
+    $("ga-rand").onclick = () => init([randStr(), randStr(), randStr(), randStr()], false);
+    init(BOOK.pop.slice(), true);
+
+    // crossover-lekeplass
+    const p1 = $("cx-p1"), p2 = $("cx-p2"), cs = $("cx-c"), cv = $("cx-view");
+    function cx() {
+      $("cx-cval").textContent = cs.value;
+      const a = p1.value.trim(), b = p2.value.trim(), c = +cs.value;
+      if (!/^[1-8]{8}$/.test(a) || !/^[1-8]{8}$/.test(b)) { cv.innerHTML = `<p class="small-note" style="color:var(--bad)">Begge foreldre må være 8 sifre mellom 1 og 8.</p>`; return; }
+      const k1 = a.slice(0, c) + b.slice(c), k2 = b.slice(0, c) + a.slice(c);
+      cv.innerHTML = `<table class="ga-table"><tr><th></th><th>Streng</th><th>Brett</th><th>Fitness (28 − h)</th></tr>
+        <tr><td>Forelder 1</td><td class="str"><span class="dig-p1">${a}</span></td><td>${miniBoard(a, 48)}</td><td>${fit(a)}</td></tr>
+        <tr><td>Forelder 2</td><td class="str"><span class="dig-p2">${b}</span></td><td>${miniBoard(b, 48)}</td><td>${fit(b)}</td></tr>
+        <tr><td>Barn 1</td><td class="str"><span class="dig-p1">${a.slice(0, c)}</span><span class="dig-p2">${b.slice(c)}</span></td><td>${miniBoard(k1, 48)}</td><td>${fit(k1)}</td></tr>
+        <tr><td>Barn 2</td><td class="str"><span class="dig-p2">${b.slice(0, c)}</span><span class="dig-p1">${a.slice(c)}</span></td><td>${miniBoard(k2, 48)}</td><td>${fit(k2)}</td></tr></table>`;
+      CourseKit.relayout();
+    }
+    [p1, p2].forEach(e => e.addEventListener("input", cx)); cs.addEventListener("input", cx); cx();
+
+    // full kjøring
+    $("ga-full").onclick = () => {
+      const log = $("ga-log"); logTo(log, "Kjører GA med populasjon 100 …", true);
+      const N = 100; let pop = Array.from({ length: N }, randStr); const pm = +pmEl.value, elite = $("ga-elite").checked;
+      for (let g = 0; g <= 500; g++) {
+        const F = pop.map(fit), best = Math.max(...F), bi = F.indexOf(best), avg = F.reduce((a, b) => a + b, 0) / F.length;
+        if (g % 25 === 0 || best === 28) logTo(log, `gen ${String(g).padStart(3)}: beste fitness ${best}, snitt ${avg.toFixed(1)}  (${pop[bi]})`);
+        if (best === 28) { logTo(log, `LØSNING funnet i generasjon ${g}: ${pop[bi]}`); return; }
+        const next = [];
+        if (elite) { const idx = F.map((v, i) => i).sort((a, b) => F[b] - F[a]); next.push(pop[idx[0]], pop[idx[1]]); }
+        while (next.length < N) {
+          const a = pop[weightedPick(pop, F)], b = pop[weightedPick(pop, F)], c = 1 + rnd(7);
+          let k1 = a.slice(0, c) + b.slice(c), k2 = b.slice(0, c) + a.slice(c);
+          if (Math.random() < pm) k1 = mutate(k1).s; if (Math.random() < pm) k2 = mutate(k2).s;
+          next.push(k1); if (next.length < N) next.push(k2);
+        }
+        pop = next;
+      }
+      logTo(log, "Ingen løsning etter 500 generasjoner – prøv igjen, eller endre mutasjonsraten. (GA er ikke garantert å finne optimum.)");
+    };
+  })();
+
+  /* =========================================================
+     Støvsugerverdenen
+     ========================================================= */
+  const VS = { 1: [0, 1, 1], 2: [1, 1, 1], 3: [0, 1, 0], 4: [1, 1, 0], 5: [0, 0, 1], 6: [1, 0, 1], 7: [0, 0, 0], 8: [1, 0, 0] };
+  const num = (a, l, r) => +Object.keys(VS).find(k => VS[k][0] === a && VS[k][1] === l && VS[k][2] === r);
+  function results(s, act, mode) {
+    const [a, l, r] = VS[s]; const out = new Set();
+    if (act === "Left" || act === "Right") {
+      out.add(num(act === "Left" ? 0 : 1, l, r)); if (mode === "slippery") out.add(s);
+    } else {
+      const dirty = a === 0 ? l : r;
+      const clean = num(a, a === 0 ? 0 : l, a === 1 ? 0 : r);
+      if (mode !== "erratic") out.add(clean);
+      else if (dirty) { out.add(clean); out.add(num(a, 0, 0)); }
+      else { out.add(s); out.add(num(a, a === 0 ? 1 : l, a === 1 ? 1 : r)); }
+    }
+    return [...out].sort((x, y) => x - y);
+  }
+  const percept = s => `[${VS[s][0] ? "R" : "L"}, ${(VS[s][0] ? VS[s][2] : VS[s][1]) ? "Dirty" : "Clean"}]`;
+  // tegn én tilstand; (x,y) = senter; w = bredde
+  function drawVac(parent, x, y, s, cls, w, label) {
+    w = w || 60; const h = w * 0.42, half = w / 2; const g = S("g", null, parent);
+    const [a, l, r] = VS[s];
+    S("rect", { x: x - half, y: y - h / 2, width: w, height: h, rx: 3, class: cls || "vbox" }, g);
+    S("line", { x1: x, y1: y - h / 2, x2: x, y2: y + h / 2, class: "edge" }, g);
+    const ax = a === 0 ? x - half * 0.62 : x + half * 0.38;
+    S("path", { d: `M${ax - w * 0.08},${y + h * 0.05} L${ax + w * 0.08},${y + h * 0.05} L${ax},${y - h * 0.38} Z`, class: "agent" }, g);
+    [[l, x - half * 0.5], [r, x + half * 0.5]].forEach(([d, cx]) => {
+      if (!d) return;
+      [[-0.1, 0.25], [0.02, 0.32], [0.13, 0.22]].forEach(([dx, dy]) => S("circle", { cx: cx + dx * w * 0.6 + w * 0.05, cy: y + dy * h, r: Math.max(1.6, w * 0.035), class: "dirt" }, g));
+    });
+    if (label !== false) S("text", { x: x - half - 6, y: y + 4, "text-anchor": "end", class: "small", text: s }, g);
+    return g;
+  }
+  // figur 5: 8 tilstander
+  (function () {
+    const el = $("fig-vac8"); if (!el) return;
+    for (let s = 1; s <= 8; s++) {
+      const col = (s - 1) % 4, row = Math.floor((s - 1) / 4);
+      drawVac(el, 90 + col * 130, 55 + row * 90, s, s >= 7 ? "vbox-good" : "vbox", 96);
+      if (s >= 7) S("text", { x: 90 + col * 130, y: 55 + row * 90 + 38, "text-anchor": "middle", class: "small good", text: "mål" }, el);
+    }
+  })();
+
+  // AND-OR-tre
+  const AO = {
+    r: { s: 1, x: 350, y: 26 },
+    a1: { and: 1, x: 210, y: 84, p: "r", act: "Suck" },
+    a2: { and: 1, x: 520, y: 84, p: "r", act: "Right" },
+    n7: { s: 7, x: 110, y: 142, p: "a1", lab: "GOAL" },
+    n5: { s: 5, x: 300, y: 142, p: "a1" },
+    a3: { and: 1, x: 220, y: 200, p: "n5", act: "Suck" },
+    a4: { and: 1, x: 380, y: 200, p: "n5", act: "Right" },
+    n5b: { s: 5, x: 165, y: 258, p: "a3", lab: "LOOP" },
+    n1b: { s: 1, x: 265, y: 258, p: "a3", lab: "LOOP" },
+    n6: { s: 6, x: 380, y: 258, p: "a4" },
+    a5: { and: 1, x: 330, y: 316, p: "n6", act: "Suck" },
+    a6: { and: 1, x: 440, y: 316, p: "n6", act: "Left" },
+    n8: { s: 8, x: 330, y: 374, p: "a5", lab: "GOAL" },
+    n5c: { s: 5, x: 440, y: 374, p: "a6", lab: "LOOP" },
+    n2: { s: 2, x: 520, y: 142, p: "a2" },
+    a7: { and: 1, x: 475, y: 200, p: "n2", act: "Left" },
+    a8: { and: 1, x: 600, y: 200, p: "n2", act: "Suck" },
+    n1c: { s: 1, x: 475, y: 258, p: "a7", lab: "LOOP" },
+    n8b: { s: 8, x: 570, y: 258, p: "a8", lab: "GOAL" },
+    n4: { s: 4, x: 655, y: 258, p: "a8" }
+  };
+  const AO_SOL = ["a1", "n7", "n5", "a4", "n6", "a5", "n8"];
+  function drawAndOr(el, opt) {
+    clear(el);
+    const show = opt.show ? new Set(opt.show) : new Set(Object.keys(AO));
+    const cls = opt.cls || {}, goodE = new Set(opt.goodEdges || []);
+    const W = 56, H = 24;
+    const top = n => AO[n].and ? AO[n].y - 9 : AO[n].y - H / 2;
+    const bot = n => AO[n].and ? AO[n].y + 9 : AO[n].y + H / 2;
+    const gE = S("g", null, el), gN = S("g", null, el);
+    // kanter
+    Object.entries(AO).forEach(([id, n]) => {
+      if (!n.p || !show.has(id) || !show.has(n.p)) return;
+      const p = AO[n.p];
+      S("line", { x1: p.x, y1: bot(n.p), x2: n.x, y2: top(id), class: goodE.has(id) ? "edge-good" : (opt.dimmed && opt.dimmed.includes(id) ? "edge-bad" : "edge") }, gE);
+      if (n.act) S("text", { x: (p.x + n.x) / 2 + (n.x < p.x ? -8 : 8), y: (bot(n.p) + top(id)) / 2, "text-anchor": n.x < p.x ? "end" : "start", class: "small", text: n.act }, gE);
+    });
+    // AND-buer
+    Object.entries(AO).forEach(([id, n]) => {
+      if (!n.and || !show.has(id)) return;
+      const kids = Object.keys(AO).filter(k => AO[k].p === id && show.has(k));
+      if (kids.length < 2) return;
+      const pts = kids.map(k => { const dx = AO[k].x - n.x, dy = top(k) - (n.y + 9), d = Math.hypot(dx, dy); return [n.x + dx / d * 22, n.y + 9 + dy / d * 22]; });
+      pts.sort((a, b) => a[0] - b[0]);
+      const [p0, p1] = [pts[0], pts[pts.length - 1]];
+      S("path", { d: `M${p0[0]},${p0[1]} Q${n.x},${n.y + 9 + 34} ${p1[0]},${p1[1]}`, class: "edge" }, gE);
+    });
+    Object.entries(AO).forEach(([id, n]) => {
+      if (!show.has(id)) return;
+      if (n.and) { S("circle", { cx: n.x, cy: n.y, r: 9, class: "andnode" }, gN); return; }
+      drawVac(gN, n.x, n.y, n.s, cls[id] || "vbox", W);
+      if (n.lab && (!opt.labels || opt.labels.includes(id))) S("text", { x: n.x, y: n.y + H / 2 + 13, "text-anchor": "middle", class: "small " + (n.lab === "GOAL" ? "good" : "bad"), text: n.lab }, gN);
+    });
+  }
+  (function () {
+    const el = $("fig-andor"); if (!el) return;
+    drawAndOr(el, { goodEdges: AO_SOL, cls: { n7: "vbox-good", n8: "vbox-good", n8b: "vbox-good" } });
+    const steps = [
+      { show: ["r", "a1", "n5", "n7"], cls: { r: "vbox-hl" }, labels: [] },
+      { show: ["r", "a1", "n5", "n7", "a3", "n5b", "n1b"], cls: { n5: "vbox-hl" }, labels: ["n5b", "n1b"], dimmed: ["n5b", "n1b"] },
+      { show: ["r", "a1", "n5", "n7", "a3", "n5b", "n1b", "a4", "n6", "a5", "n8"], cls: { n6: "vbox-hl", n8: "vbox-good" }, labels: ["n5b", "n1b", "n8"], goodEdges: ["a5", "n8"] },
+      { show: ["r", "a1", "n5", "n7", "a3", "n5b", "n1b", "a4", "n6", "a5", "n8"], cls: { n5: "vbox-hl", n7: "vbox-good", n8: "vbox-good" }, labels: ["n5b", "n1b", "n8", "n7"], goodEdges: ["a4", "n6", "a5", "n8", "n7"] },
+      { show: ["r", "a1", "n5", "n7", "a3", "n5b", "n1b", "a4", "n6", "a5", "n8"], cls: { r: "vbox-hl", n7: "vbox-good", n8: "vbox-good" }, labels: ["n5b", "n1b", "n8", "n7"], goodEdges: AO_SOL }
+    ];
+    document.querySelectorAll("svg.andor-step").forEach(sv => drawAndOr(sv, steps[+sv.dataset.step - 1]));
+  })();
+
+  // Belief-boble
+  function bubble(parent, x, y, states, w) {
+    w = w || 56; const n = states.length, hh = n * 30 + 14;
+    S("rect", { x: x - w / 2 - 22, y: y - hh / 2, width: w + 36, height: hh, rx: 16, class: "bubble" }, parent);
+    states.forEach((s, i) => drawVac(parent, x + 6, y - hh / 2 + 22 + i * 30, s, "vbox", w));
+    return { top: y - hh / 2, bot: y + hh / 2, left: x - w / 2 - 22, right: x + w / 2 + 14 };
+  }
+  (function () {
+    const el = $("fig-pou"); if (!el) return;
+    const b = bubble(el, 80, 115, [1, 3]);
+    const bh = bubble(el, 300, 115, [2, 4]);
+    S("line", { x1: b.right + 4, y1: 115, x2: bh.left - 6, y2: 115, class: "edge-hl" }, el);
+    S("text", { x: (b.right + bh.left) / 2, y: 105, "text-anchor": "middle", class: "small", text: "Right (predict)" }, el);
+    S("text", { x: 80, y: b.bot + 18, "text-anchor": "middle", class: "small", text: "b = {1, 3}" }, el);
+    S("text", { x: 300, y: bh.bot + 18, "text-anchor": "middle", class: "small", text: "b̂ = {2, 4}" }, el);
+    const o1 = bubble(el, 540, 55, [2]), o2 = bubble(el, 540, 175, [4]);
+    S("line", { x1: bh.right + 4, y1: 105, x2: o1.left - 6, y2: 55, class: "edge" }, el);
+    S("line", { x1: bh.right + 4, y1: 125, x2: o2.left - 6, y2: 175, class: "edge" }, el);
+    S("text", { x: 430, y: 66, "text-anchor": "middle", class: "small", text: "[R, Dirty]" }, el);
+    S("text", { x: 430, y: 172, "text-anchor": "middle", class: "small", text: "[R, Clean]" }, el);
+    S("text", { x: 540, y: o2.bot + 18, "text-anchor": "middle", class: "small", text: "update" }, el);
+  })();
+  (function () {
+    const el = $("fig-beliefandor"); if (!el) return;
+    const root = bubble(el, 280, 55, [1, 3]);
+    const A = [150, 132], B = [410, 132];
+    S("line", { x1: 270, y1: root.bot, x2: A[0], y2: A[1] - 9, class: "edge-good" }, el);
+    S("line", { x1: 290, y1: root.bot, x2: B[0], y2: B[1] - 9, class: "edge" }, el);
+    S("text", { x: 195, y: 108, "text-anchor": "end", class: "small", text: "Suck" }, el);
+    S("text", { x: 365, y: 108, class: "small", text: "Right" }, el);
+    S("circle", { cx: A[0], cy: A[1], r: 9, class: "andnode" }, el);
+    S("circle", { cx: B[0], cy: B[1], r: 9, class: "andnode" }, el);
+    const c1 = bubble(el, 150, 205, [5, 7]);
+    S("line", { x1: A[0], y1: A[1] + 9, x2: 150, y2: c1.top, class: "edge-good" }, el);
+    S("text", { x: 140, y: 160, "text-anchor": "end", class: "small", text: "[L, Clean]" }, el);
+    const c2 = bubble(el, 345, 205, [2]), c3 = bubble(el, 485, 205, [4]);
+    S("line", { x1: B[0], y1: B[1] + 9, x2: 345, y2: c2.top, class: "edge" }, el);
+    S("line", { x1: B[0], y1: B[1] + 9, x2: 485, y2: c3.top, class: "edge" }, el);
+    S("path", { d: `M${B[0] - 14},${B[1] + 24} Q${B[0]},${B[1] + 36} ${B[0] + 14},${B[1] + 24}`, class: "edge" }, el);
+    S("text", { x: 362, y: 166, "text-anchor": "end", class: "small", text: "[R, Dirty]" }, el);
+    S("text", { x: 452, y: 166, class: "small", text: "[R, Clean]" }, el);
+  })();
+
+  // Belief-state-laben
+  (function () {
+    const el = $("vac-svg"); if (!el) return;
+    const info = $("vac-info"), log = $("vac-log"), pBox = $("vac-percepts");
+    let B, awaiting = null; // awaiting = predicted belief state som venter på percept
+    const fmt = b => "{" + b.join(", ") + "}";
+    function draw() {
+      clear(el);
+      const cur = awaiting || B;
+      for (let s = 1; s <= 8; s++) {
+        const col = (s - 1) % 4, row = Math.floor((s - 1) / 4);
+        drawVac(el, 90 + col * 130, 55 + row * 90, s, cur.includes(s) ? (s >= 7 ? "vbox-good" : "vbox-hl") : "vbox-dim", 96);
+      }
+      const necessarily = B.every(s => s >= 7), possibly = B.some(s => s >= 7);
+      info.textContent = awaiting ? `Prediksjon b̂ = ${fmt(awaiting)} — velg hvilket percept agenten fikk` :
+        `Belief state = ${fmt(B)}  (${B.length} tilstand${B.length === 1 ? "" : "er"})` + (necessarily ? "  ·  mål NØDVENDIGVIS nådd" : possibly ? "  ·  mål muligens nådd" : "");
+      ["vac-L", "vac-R", "vac-S"].forEach(id => $(id).disabled = !!awaiting);
+      pBox.innerHTML = "";
+      if (awaiting) {
+        const ps = [...new Set(awaiting.map(percept))];
+        ps.forEach(p => { const b = document.createElement("button"); b.className = "secondary"; b.textContent = "Percept " + p; b.onclick = () => update(p); pBox.append(b); });
+      }
+    }
+    function update(p) {
+      const prev = awaiting; B = awaiting.filter(s => percept(s) === p); awaiting = null;
+      logTo(log, `  UPDATE(${fmt(prev)}, ${p}) = ${fmt(B)}`); draw();
+    }
+    function act(a) {
+      const mode = $("vac-mode").value;
+      const nb = [...new Set(B.flatMap(s => results(s, a, mode)))].sort((x, y) => x - y);
+      logTo(log, `${a}: PREDICT(${fmt(B)}, ${a}) = ${fmt(nb)}` + (nb.length > B.length ? "  ← belief state vokste (ikke-determinisme)" : ""));
+      if ($("vac-sense").checked) { awaiting = nb; B = nb; } else B = nb;
+      draw();
+    }
+    function reset() {
+      B = [1, 2, 3, 4, 5, 6, 7, 8]; awaiting = $("vac-sense").checked ? B.slice() : null;
+      logTo(log, "Start: b = {1, 2, 3, 4, 5, 6, 7, 8}" + (awaiting ? " — få første percept" : ""), true); draw();
+    }
+    $("vac-L").onclick = () => act("Left"); $("vac-R").onclick = () => act("Right"); $("vac-S").onclick = () => act("Suck");
+    $("vac-reset").onclick = reset; $("vac-sense").onchange = reset;
+    $("vac-mode").onchange = () => { logTo(log, "Variant: " + $("vac-mode").selectedOptions[0].textContent); };
+    reset();
+  })();
+
+  /* =========================================================
+     Labyrint (eksamen 2023)
+     ========================================================= */
+  const WALLS = new Set(["3,4", "3,10", "2,0", "2,1", "2,4", "2,6", "2,7", "2,9", "2,11", "1,0", "1,4", "1,6", "1,7", "0,2", "0,6", "0,11"]);
+  const blocked = (r, c) => r < 0 || r > 3 || c < 0 || c > 11 || WALLS.has(r + "," + c);
+  const mPercept = (r, c) => [blocked(r + 1, c), blocked(r - 1, c), blocked(r, c - 1), blocked(r, c + 1)];
+  const pName = p => "{" + ["North", "South", "West", "East"].map((n, i) => (p[i] ? "" : "No") + n).join(", ") + "}";
+  const cellName = k => { const [r, c] = k.split(","); return `(r${r}, c${c})`; };
+  function drawMaze(el, belief, onClick, robot) {
+    clear(el);
+    const X = c => 40 + c * 40, Y = r => 20 + (3 - r) * 40;
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 12; c++) {
+      const k = r + "," + c, w = WALLS.has(k);
+      const rect = S("rect", { x: X(c), y: Y(r), width: 40, height: 40, class: w ? "wall" : (belief && belief.has(k) ? "belief" : "free") }, el);
+      if (!w && onClick) { rect.style.cursor = "pointer"; rect.addEventListener("click", () => onClick(r, c)); }
+    }
+    S("rect", { x: 40, y: 20, width: 480, height: 160, fill: "none", stroke: "var(--ink)", "stroke-width": 4 }, el);
+    for (let c = 0; c < 12; c++) S("text", { x: X(c) + 20, y: 198, "text-anchor": "middle", class: "small", text: "c" + c }, el);
+    for (let r = 0; r < 4; r++) S("text", { x: 22, y: Y(r) + 25, "text-anchor": "middle", class: "small", text: "r" + r }, el);
+    if (robot) {
+      const [r, c] = robot;
+      S("circle", { cx: X(c) + 20, cy: Y(r) + 20, r: 12, class: "agent" }, el);
+      S("text", { x: X(c) + 20, y: Y(r) + 25, "text-anchor": "middle", class: "label", fill: "var(--paper)", style: "fill:var(--paper)", text: "R" }, el);
+    }
+  }
+  (function () { const el = $("ex-maze-svg"); if (el) drawMaze(el, null, null, [2, 3]); })();
+  (function () {
+    const el = $("maze-svg"); if (!el) return;
+    const info = $("mz-info"), log = $("mz-log");
+    const all = () => { const s = new Set(); for (let r = 0; r < 4; r++) for (let c = 0; c < 12; c++) if (!WALLS.has(r + "," + c)) s.add(r + "," + c); return s; };
+    let B = all();
+    const boxes = ["mz-N", "mz-S", "mz-W", "mz-E"].map($);
+    const show = () => { drawMaze(el, B, click); info.textContent = `Belief state (${B.size}): {` + [...B].sort((a, b) => { const [r1, c1] = a.split(",").map(Number), [r2, c2] = b.split(",").map(Number); return r1 - r2 || c1 - c2; }).map(cellName).join(", ") + "}"; };
+    function click(r, c) { const p = mPercept(r, c); boxes.forEach((b, i) => b.checked = p[i]); logTo(log, `Ruta (r${r}, c${c}) gir percept ${pName(p)}`); }
+    $("mz-update").onclick = () => {
+      const p = boxes.map(b => b.checked);
+      B = new Set([...B].filter(k => { const [r, c] = k.split(",").map(Number); return mPercept(r, c).every((v, i) => v === p[i]); }));
+      logTo(log, `UPDATE med ${pName(p)} → ${B.size} rute(r)`); show();
+    };
+    const mv = (dr, dc, name) => () => {
+      B = new Set([...B].map(k => { const [r, c] = k.split(",").map(Number); return blocked(r + dr, c + dc) ? k : (r + dr) + "," + (c + dc); }));
+      logTo(log, `PREDICT med ${name} → ${B.size} rute(r)`); show();
+    };
+    $("mz-up").onclick = mv(1, 0, "Up"); $("mz-down").onclick = mv(-1, 0, "Down"); $("mz-left").onclick = mv(0, -1, "Left"); $("mz-right").onclick = mv(0, 1, "Right");
+    $("mz-reset").onclick = () => { B = all(); logTo(log, "Belief state = alle frie ruter.", true); show(); };
+    logTo(log, "Belief state = alle frie ruter. Prøv eksamensoppgaven: kryss av North, South, West og trykk Update.", true);
+    show();
+  })();
+
+  /* =========================================================
+     LRTA*
+     ========================================================= */
+  (function () {
+    const H = [[8, 9, 2, 2, 4, 3], [8, 9, 3, 2, 4, 3], [8, 9, 3, 4, 4, 3], [8, 9, 5, 4, 4, 3], [8, 9, 5, 5, 4, 3]];
+    const AG = [2, 3, 2, 3, 4], UPD = [-1, 2, 3, 2, 3];
+    document.querySelectorAll("svg.lrta-step").forEach(el => {
+      const k = +el.dataset.step;
+      for (let i = 0; i < 5; i++) {
+        S("line", { x1: 60 + i * 80 + 20, y1: 35, x2: 60 + (i + 1) * 80 - 20, y2: 35, class: "edge" }, el);
+        S("text", { x: 60 + i * 80 + 40, y: 28, "text-anchor": "middle", class: "small", text: "1" }, el);
+      }
+      for (let i = 0; i < 6; i++) {
+        const x = 60 + i * 80;
+        if (UPD[k] === i) S("circle", { cx: x, cy: 35, r: 23, class: "node-warn" }, el);
+        S("circle", { cx: x, cy: 35, r: 18, class: i === AG[k] ? "node-hl" : "node" }, el);
+        S("text", { x, y: 40, "text-anchor": "middle", class: "label", text: H[k][i] }, el);
+      }
+      S("text", { x: 60 + AG[k] * 80, y: 68, "text-anchor": "middle", class: "small accent", text: "agent" }, el);
+    });
+  })();
+})();
+</script>
+</body>
+</html>

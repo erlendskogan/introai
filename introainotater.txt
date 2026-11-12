@@ -1,0 +1,448 @@
+notater intro ai
+
+kap 1
+
+AI - betyr egentlig bare maskiner som kan gjøre beslutninger som krever intelligens
+
+når det kommer til AI har vi en taksonomi som skiller dem på 4 måter:
+tanke eller adferd
+menneskelig eller rasjonell
+
+man kan være interessert i maskinens rasjonale rundt et tema, men man kan også velge kun å fokusere på hva den gjør av handlinger
+
+i tillegg er det forskjell på hva menneskelig adferd er og hva rasjonell adferd er. selv om vi liker å tro at vi er rasjonelle, gjøre mennesker ofte ting som er irrasjonelle. dette skiller menneskelig adferd fra rasjonell adferd.
+
+dette kurset fokuserer på rasjonell adferd som kunstlig intelligens
+
+
+det å handle menneskelig - turing-testen:
+
+Turing-testen går ut på at man har en menneskelig spørrer, og bak to lukkede rom sitter en KI-maskin og et menneske. Hvis spørreren ikke klarer å finne ut av hvem som er mennesket, består maskinen testen. 
+for å kunne bestå testen trenger maskinen 4 evner, som utgjør mye av det en KI håper å oppnå.
+
+- naturlig språkbehandling
+	- kommunisere på samme måte som et menneske
+- kunnskapsrepresentasjon
+	- lagre det den blir fortalt, og det den kan fra før
+- automatisk resonnering
+	- svare på spørsmål og trekke nye slutninger
+- maskinlæring
+	- tilpasse seg nye situasjoner den ikke allerede har opplevd
+	- gjenkjenne mønstre
+	
+Den totale Turing-testen: bola turingtest
+denne krever i tillegg datasyn og talegjenkjenning
+og robotikk, manipulere og bevege fysiske objekter
+
+ELIZA var en tidlig utgave av en KI. Den bare leste tilbake det brukeren fortalte den. Den forsto ikke hva ordene betydde, men likevel tok mange mennesker den på alvor. 
+Da kan man trekke konklusjonen at det å lure et menneske er ikke det samme som å være intelligent.
+
+Man trenger da altså ikke være intelligent for å bestå turing-testen- man må ikke ressonere på en god måte for å være menneskelig. 
+
+Forskere fokuserer mye mer på å bygge intelligente systemer, og det å forstå prinsippene bak intelligens, enn de gjør på å prøve å bestå turing-testen. den er egt litt ass, og ikke så interessant. mer bare som en test der man kan se hvordan maskiner kan etterlikne oss, selv om de bare er en maskin.
+
+
+
+1.2
+For å kunne forstå om en maskin tenker som et menneske må vi vite hva det egentlig betyr: "å tenke som et menneske".
+Dette kan man bruke ved å tenke selv og gjennom div psykologiske eksperimenter. 
+Man kan i noen tilfeller bruke hjerneavbildning.
+
+Kognitiv vitenskap handler om å sette ki-modeller og menneskelige tankeeksperimenter opp mt hverandre. 
+
+GPS var en modelle som trente på å gjøre logiske steg. den modellen skulle bare etterlikne stegene et menneske tok i et eksperiment. 
+
+
+1.3
+
+Aristoteles og andre store filosofer har prøvd å definere riktig tenkning. Hva vil det si at en tanke er riktig?
+Gitt at alle mennesker er dødelige, og jeg er et menneske, da er jeg dødelig. Dette er et eksempel på en syllogisme- en riktig slutning. 
+Dette er starten på logikk, og er grunnlaget for KI-modeller. 
+
+
+Logikk krever sikker kunnskap. Når man er usikker kan man fylle hullene med sannsynlighet. Generell deduktiv inferens (utledning) er uhåndterlig beregningsmessig.
+Riktig tenkning alene kan ikke oppfylle intelligent adferd. 
+
+1.4
+En rasjonell agent gjør det som er riktig:
+den skal oppnår best mulig utfall gitt det den har av informasjon, enten den er sikker eller ikke. 
+Noen ting kan være rasjonelle uten å kreve tenkning- typ reflekser. 
+
+Korrekt logisk slutning er kun en delmengde av rasjonalitet
+Rasjonalitet kan presiseres, og brukes til å utlede agentdesign som beviselig oppfyller den. 
+
+Standardmodellen
+Vi gir agenten et mål, og den skal maksimere dette målet. Perfekt rasjonalitet er ofte alfor beregningskrevende, så i praksis snakker vi om begrenset rasjonalitet. Hvis maskinen ikke får til det som stemmer med målet, får vi verdijusteringsproblemet. 
+
+1.5
+Kan maskiner være intelligente?
+to boys er uenige
+Allen newell og herbert simon- ja de kan det
+john searle- nah bare organiske organismer
+
+2. KI-historien i korte trekk
+
+boolsk kretsmodell av hjernen - 1943
+turing- maskinlæring
+dartmouth sommerprosjektet - 1956
+folk mister troen på nevrale nett når man ser komputasjonskraften som trengs
+bakpropagation gjør nevrale nett fett igjen
+tidlig 2000s- ikke så fett
+2012+ KI megasehr
+
+fra allerede 1956 ble det sagt at all form for kunnskap kan beksrives så presist at en maskin kan simulere den.
+
+
+3.
+Agenter og omgivelser
+
+en agent er bare et ord for noe som kan sanse og handle
+Agenten har altså sensorer som kan plukke opp informasjon, og aktuatorer som er de kanalene den kan bruke for å utføre handlingene.
+sensorene er sansene våre, og hendene er akutatorene
+
+en persepsjon er det en sensor registrerer i et øyeblikk, og en persepsjonssekvens er historikken av det en agent har oppfattet.
+
+Hvis vi angir agentens handling for hver mulig persepsjonssekvens, så har vi sagt absolutt alt om oppførselen til den agenten. 
+Denne avbildningen kaller vi agentfunksjonen:
+f: P* -> A (persepsjonssekvens -> handling)
+denne agentfunksjonen er en abstrakt beskrivelse. den konkrete implementasjonen som kjører på maskinvaren er agentprogrammet, og maskinvaren med sensorer og aktuatorer er arkitektruen. 
+
+agentprogrammet er altså en instans av en agent, der:
+agent = arkitektur + program
+
+Agentarkitekturen og agentprogrammet er nødt til å passe sammen. hvis agenten vil plukke opp noe er den nødt til å ha en aktuator som kan plukke opp noe- typ en arm eller noe.
+
+viktig:
+agentfunksjonen stapper inn hele persepsjonssekvensen og spytter ut en handling. det er ikke kun den aktuelle persepsjonen som brukes.
+
+STØVSUGER
+støvsugere brukes som eksempel på et program. den suger og sdet er støvete i ruten (i et rutenett), eller så går den til neste rute. har bygger den opp en persepsjonshistorikk som den lagrer.
+
+
+
+hvordan bedømme hvor god en agent er?:
+
+Vi bedømmer agenten etter konsekvensene av det den gjør, ikke etter intensjonene. Agenten gjør en sekvens av handlinger, og omgivelsen går gjennom en sekvens av tilstander. er sekvensen ønskelig gjorde agenten det bra.
+
+Ytelsesmål- en evaluering av omgivelsens tilstander. Det er brukerens evaluering av omgivelsene sine tilstander som vurderer og evaluerer det agenten har oppnådd.
+
+Rasjonalitet:
+Hva som er rasjonelt i et gitt øyeblikk avhenger av 4 ting:
+- Ytelsesmålet
+- Agentens forhåndskunnskap om omgivelsen
+- Handlingene agenten kan utføre
+- Agentens persepsjonssekvens
+
+Definisjon- rasjonell agent:
+For hver mulige persepsjonssekvens, burde en rasjonell agent velge en handling som er forventet å maksimere dens ytelsesmål, gitt bevisene gitt av persepsjonssekvensen og hvilken annen kunnskap agenten har.
+
+
+Det at en agent er rasjonell kan aldri bety at den alltid vil handle riktig. Den handler best mulig utifra det den vet og det den forutser. Den kan ikke være allvitende, så derfor kan den ikke alltid ta rett, uansett hvor kraftig den er.
+
+Rasjonalitet maksimerer altså forventet ytelse, ikke faktisk ytelse. Det er ikke mulig.
+Likevel bør en rasjonell agent kunne forutse at problemer den ikke vet om kan oppstå, og bør ta forebyggende tiltak for å sikre at noe den ikke har kontroll over skjer. 
+
+
+
+PEAS- spesifisere oppgaveomgivelsen
+Vi trenger å spesifisere oppgaven og omgivelsene for å kunne definere hva vi ønsker at agenten skal gjøre.
+Dette bruker vi PEAS til:
+p - Performance measure (ytelsesmålet)
+e - environment, miljøet agenten skal navigere seg i
+a - actuators, de aktuatorene agenten har tilgjengelig for bruk
+s - sensors, de sensorene agenten kan innhente informasjon med
+
+p - hva utgjør en god agent her?
+e - hvor handler agenten? i verde, i et system, osv.
+a - hva kan den gjøre
+s - hva kan den oppfatte
+
+i p er det viktig at man snakker om kvantifiserbare mål. vi kan ikke bare si kjør trygt, men heller definere regelbrudd som vi deterministisk kan si er sanne eller usanne
+
+
+egenskaper ved omgivelser
+omgivelsene kan gjøre svært mye med hvordan vi ønsker at en agent kan oppføre seg. si man spiller sjakk. da kan agenten anta at den vet alt om hva som foregår, og ingenting skjer mens den tenker. si heller at agenten ferdes i den virkelige verden. da har den ikke all kunnskap den trenger, og uforutsette ting kan oppstå. den må være føre var, noe sjakkagenten ikke behøver. da blir oppførselen vidt forskjellige mellom disse agentene, og dette skydes i stor grad omgivelsene.
+
+
+hvis omgivelsene er fullt observerbar betyr det at agenten vet alt om hva som foregår, og kan derfor alltid vite (ish) hva som er beste trekk å gjøre. den trenger f.eks. ikke se seg om for å være sikker på hva som skjer, siden den vil ha tilgang til all data den trenger for omgivelsene, for å ta det riktige valget. 
+motsetningen her er delvis observerbare omgivelser. her må agenten ferdes, og ofte kanskje gjøre ting som viser seg i ettertid å være "unødvendige", men likevel rasjonelle. typ se seg for før den krysser en vei- selv om det viser seg at det ikke var noen biler på veien til den tiden. 
+
+annet spørsmål- 
+hvordan skal agenten forholde seg til andre entiteter i miljøet?
+si at den spiller sjakk mot noen (agent eller ikke), da vet den at den andre entiteten ønsker å minimere målet dens, og kan bruke dette. skal agenten være i en autonom taxi derimot, kan den i større grad anta at biler den omgås med heller ikke ønsker å krasje med den. 
+
+vi navngir noen entiteter som agenter. dette gjør vi ved å teste: påvirkes denne entitetens oppførsel ved å maksimere ett av dine egne ytelsesmål? da er det en agent. 
+typ: ønsker entitet B å maksimere et ytelsesmål? ja? avhenger B av A sin adferd? ja? vil oppførselen til B best beskrives som dette? ja? da kaller vi det en agent. 
+
+konkurrerende agent- sjakk: a og b jobber aktivt mot hverandre
+samarbeidene agent- taxi: ingen ønsker kollisjon, og begge vil komme trygt frem. 
+
+
+i samarbeidene miljøer er f.eks. kommunikasjon rasjonellt og ønskerlig, men i konkurrerende miljøer kan randomisert adferd være ønskelig adferd
+
+
+deterministisk vs. ikke-deterministisk
+neste tilstand er fullstendig bestemt av nåværende tilstand
+utfallet av en handling er ikke entydig bestemt
+
+
+stokastisk er en mindre delmengde av det å være ikke-deterministisk
+er noe stokastisk kan du oppgi en sannsynlighet for mulige utfall, men bare ikke-deterministisk kan bare liste opp de mulige utfallene.
+
+et miljø som er uforutsigbart gir ikke nødvendigvis ikke-determinisme. i sjakk handler man kun basert på tilstanden man er i akkurat nå, og en smart agent vil da handle likt "hver" gang. 
+
+
+
+episodisk vs. sekvensiell:
+episodiske handlinger er at agenten handler kun basert på nåværende tilstand, og tenker ikke på fortid eller framtid.
+en sekvensiell handlingsmetode er når agenten oppfører seg som at nåværende beslutning vil påvirke neste. kansje man har et beste neste trekk, men hvis man tenker fremover er et annet trekk bedre, fordi det kan sikre et mye bedre andretrekk.
+
+
+statisk vs. dynamiske omgivelser:
+en statisk omgivelse endrer seg ikke mens agenten tenker. en dynamisk gjør det. hvis en agent er i en dynamisk omgivelse, så er det å tenker det samme som fravær av handling, så dette må veies opp før agenten kan tenke. hvis man brenner seg på noe, så trekker man bort hånden før man får tenkt. dette er fordi det å tenke seg om før man handler er fravær av handling, og man vil brenne seg mens man prosesserer et det er varmt.
+
+man har også en mellomting som kalles semi-dynamisk. hvis omgivelsene er semidynamiske så står verden stille mens agenten tenker, men noen ytelsesmål kan likevel endre seg. ingenting uforutsett oppstår liksom, men den ønsker å minimere noe som endrer seg mens den tenker.
+
+diskret vs. kontinuerlige situasjoner/omgivelser. 
+når man kjører endres farten kontinuerlig, men i sjakk uten tid så er man i en diskret og adskilt tilstand.
+
+kjent vs. ukjent
+hvis agenten vet alt eller mye om omgivelsenes adferd så kan man anta oppførsel av omgivelsene. man vet at en stein blir i ro hvis man ikke rører den, og at tyngdekraften virker på den. hvis omgivelsene har noen ukjente omgivelser, kan den ikke anta hva tingen er, og er nødt til å lære seg dette.
+
+kjent vs ukjent er kjent vs ukjent oppførsel i omgivelsene
+den vet ikke alltid alt om omgivelsene, men den vet alt om hva som kan skje i omgivelsene
+
+
+en enkel refleksagent
+driter i historikk, og bare gunner utifra observert tilstand
+hvis det er noe som alltid er sant, er denne agenten nyttig, fordi den minimerer tenketid til agenten. 
+
+
+den mest effektive måten å holde styr på delvis observerbarhet, er å holde styr på alt agenten ikke vet tilstanden til akkurat nå. 
+
+en transisjonsmodell er en modell på hvordan verden fungerer. det er kombinasjonen av hva agenten gjør og hvordan det påvriker omgirvelsene, samt hvordan verden oppfører seg uavhengig av agentens handlinger
+
+man har også en sensormodell som er det agenten oppfatter av hverdan. hvis en bil bremser, så er bremselysene på, så dette betyr at bilen bremeser. 
+
+
+
+hvordan skal agentens representasjon av omverdenen skrives ned?
+atomisk betyr at man bare vet om denne tilstanden er lik eller ulik en annen. 
+faktorisert betyr at man representerer en tilstand som en etitet i en tabell. 
+strukturert betyr at man representerer objekter som sin interne tilstand samt relasjonene de har med omverdenen. 
+
+
+Ekspressitivitet vs. kompleksitet
+grunne ntil at vi har disse 3 kategoriene er at de øker med ekspressivitet og kompleksitet. det ene går på bekostning av det andre og motsatt.
+
+
+
+1.1
+vi ønsker mer informasjon
+
+1.2
+modellen hjelper oss å bedre navigere verden ved å legge til et aspekt med tilstand. man kan ofte ønsker å gjøre endre ting basert på hvilke tilstand man er i.
+
+
+2.
+hvis man ikke vet helt hva som kan skje med omgivelsene er det ikke mulig å kunne tilpasse seg den med deterministiske sjekker. man trenger en form for læring av omgivelsene, så læring her blir nødvendig
+
+3.
+
+4.
+stokastiske lister opp mulighetene og sannsynligheten for dem, ikke-deterministisk lister bare opp mulighetene
+
+5.
+hvis man ønsker at motstanderen ikke skal skjønne hva planen din er kan det være lurt å villede dem for å lure dem. 
+
+
+
+1.
+true
+
+2.
+if checks: if state:
+		action;
+		
+		
+3.
+episodic
+stocastic
+static
+
+
+1.f
+2.f
+3.t
+hvis man konkurrerer mot noen og ikke ønsker at de skal skjønne hva du har planer om å gjøre
+
+
+a.t
+b.t
+c.f
+d.f
+e.f
+
+a.f
+b.t
+
+
+p- 
+
+
+
+
+
+
+
+
+
+
+
+MODUL 2
+Søk
+
+når en riktig handling for en agent ikke er åpnebar, er den nødt til å planlegge løsningen i flere steg. en agent som løser et problem heter ... ... ... en problemløsende agent (wow).
+selve beregningsprosessen den gjør for å løse problemet kalles søk. 
+se for deg at et problem er et nodekart som skal traverseres på best mulig måte, da trenger man å bruke søk for å navigere kartet for å finne den beste løsningen. 
+
+en problemløsende agent har 4 faser den går igjennom når den skal løse et problem:
+
+- Målformulering: agenter velger et mål, denne formuleringen bør være klar. dette er byen du vil til
+- Problemformulering: agenten legger frem hvilke tilstander og handlinger agenten skal ha/ha tilgang til. dette er alle veier og byer du kan traversere.
+- søk: agenten traverserer problemformuleringen for å finne fram til en løsning på problemet, eller å finne ut at en løsning ikke finnes
+- utførelse: agenten gunner i vei med løsningen den fant via søke på problemformuleringen
+
+
+formell definisjon av et søkeproblem
+(SIGATA)
+- state space (alle mulige tilstander)
+- initial state (starttilstand)
+- goal states (tilstandene man har som mål å nå)
+- actions (mulige handlinger for å endre tilstand basert på din nåværende )
+- transition model (
+- action cost
+
+
+dette er en abstraksjon av den virkelige verden. det er viktig at den er både gyldig (en riktig representasjon av problemet) og nyttig (enklere enn virkelige problemet).
+
+når man traverserer mange tilstander tar man flere valg. si jeg skal reise til en by, så er hele kartet tilstandsrommet, mens i hver tilstand har jeg en mengde actions som jeg kan velge mellom. et søketre viser alle mulige traverseringer som man har, ved å vise alle mulig tilstander man kan gå til basert på tidligere valg. 
+
+
+
+å ekspandere en node
+hvis man ekspanderer en node så lister man opp alle mulige handlinger til den tilstanden, setter disse opp som barnenoder av den aktuelle noden.
+
+frontier betegner noder som er generert, men ikke ekspandert enda. i et søketre blir altså dette nederste nodene i treet. 
+
+vi sier at en tilstand (state) er nådd om vi har generert en node for den. 
+
+frontier er liksom alt vi har sett, men ikke utforsket
+
+redundante stier er stier vi ikke trenger fordi en bedre allerede er oppdaget. si jeg har osl-trd, men også osl-brg-trd. da er sistnevnte redundant siden den er mer ass enn den andre
+
+man har 3 strategier for å finne en sti:
+graph search - har en tabell reached med vekter som viser alle noder som er nådd. sjekker denne når en sti oppdages, og legger den inn om en bedre sti er funnet, eller forkaster den hvis ikke.
+tree-like search - driter i alt og satser på at det fungerer
+tree-like + cycle check - tree-like bare med en sjekk for sykler
+
+en søkealgoritme er en graph-search hvis den sjekke for redundante stier, og en tree-like hvis ikke.
+
+
+
+best-first search
+algoritme som sjekker listen over frontier med en funksjon, og sjekker den beste av disse nodene basert på funksjonen den bruker.
+funksjonen som sjekker frontiernodene kalles en evalueringsfunksjon
+
+vi lagrer frontier i en kø. hvilke køtype vi bruker bestemmer hvordan algoritmen blir:
+fifo gir BFS
+lifo gir dfs
+og prioritetskø (basert på laves kost) gir dijkstra, greedy og A*
+
+
+når man sjekker om man har kommet i mål så bruker man en av to metoder:
+tidlig målsjekk: sjekk om barnet er målnoden idet den genereres
+sen målsjekk: sjekk først når noden tas ut av frontier for å ekspanderes
+
+alle untatt bfs sjekker sent. bfs er frempå
+
+
+
+grunnen for navnet tree-like search er at den antar at tilstandsrommet er et tre, så den er ikke redd for å finne sykler, fordi den alltid forventer å ende i en løvnode.
+
+
+
+
+hva faen er bfs?
+best first search
+
+det er egentlig et skjelett på mange forskjellig algoritmer, untatt bfs og ids i boka. 
+
+for hver iterasjon best first søker, så bruker den listen sin med alle noder i frontier, og bruker en evalueringsfunksjon til å finne ut av hvilken den vil velge. 
+
+
+
+hvilken kø vi holder frontier i estemmer hvilken type algoritme vi har:
+fifo- gir oss bfs. for hver node den passerer med ikke velger, vil den legge noden i en kø. har den passert noden tidlig betyr dette at den ligger langt fremm i køen. 
+lifo-kø: dfs. her legger den frontierlisten sin som en stack. dette vil si at hvis den nettopp oppdaget noden, vil den prioritere denne noden ved neste iterasjon
+
+prioritetskø:
+her tar den ut noden med lavest f (evalueringsfunksjonen). dette kan være lavest vekt som i dijkstra
+
+
+
+vi har også noen forskjeller i når i algoritmen vi oppdager at vi er i mål.
+eneste som egentlig sjekker tidlig er bfs. 
+
+
+
+vi ønsker å evaluere hvor bra en søkealgoritme er:
+kompletthet- finner algoritmen alltid løsningen hvis det finnes en?
+
+kostnad optimalisering:
+finner den løsningen med lavest kostnad
+
+finner vi løsningen raskt? her måler man ofte tid i antall noder generert
+
+siste: finner vi noden med lite minnebruk?
+søksalgoritmer:
+
+dls:
+dette er dfs med en dybdebegrensning på l. her har vi rett og slett satt 
+
+når man bruker dlsen velger man hyperparameteren l (cutoff). her møter man da problemet med å ikke vite hva den beste cutoffen er. man har sikkert en formening, men for å velge beste cutoff kan man bruke iterative deepening search. den itererer dls med økende cutoff til algoritmen returnerer noe annet enn failure. 
+
+
+dls er tree-like. den husker ingenting, men den sjekker for sykler
+
+
+selv om det skjer mye redundans ved å sjekke de øvre nodene flere ganger mens vi øker cutoff, så er det lite kostnad forbundet med dette. dette avhenger litt av frogreningsgrad, men nesten alle nodene ligger i løvnoder, og det tyngste laget regner bare ut en gang. så det er lowkey ikke så bad likevel
+
+
+
+bidireksjonalt søk:
+ny søkealgoritme som begynner fra start og mål samtidig, og håper at de to møtes.
+her kreves to frontiers, og to reached tabeller. 
+vi har en løsning når begge retninger har nådd samme node.
+
+
+
+
+bfs: a, b, k, c, g
+dfs: a, b, c, d, e, g
+dijkstra: b, c, a, d, k, e, g
+
+bfs og dijkstra
+
+bfs
+
+
+
+
+ucs:
+a, b, c, e, d, g
+
+s, a, b, c, d, e, 
+
+dfs
+a, c, d, g
